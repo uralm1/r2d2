@@ -1,0 +1,24 @@
+Cron on erebus:
+-------------------------------
+# Run r2d2 rt syncronizer every 30 minutes
+1,31 * * * * /etc/r2d2/rtsyn 1> /dev/null
+
+Cron on fw:
+-------------------------------
+# Run r2d2 fw syncronizer every 30 minutes
+0,30 * * * * /etc/r2d2/fwsyn 1> /dev/null
+
+Cron on dhcp:
+-------------------------------
+start: D:\Perl\bin\wperl.exe c:\utils\r2d2\dhcpsyn.pl
+start dir: c:\utils\r2d2
+everyday, start 0:01, every 1 day, repeat every 30 min, run to 23h58m
+run no more than 10min
+
+Cron on database:
+-------------------------------
+# run r2d2 daily/monthly/yearly processor
+1 0 * * * /etc/r2d2/dproc --daily 1> /dev/null
+11 0 1 * * /etc/r2d2/dproc --monthly 1> /dev/null
+5 0 1 1 * /etc/r2d2/dproc --yearly 1> /dev/null
+

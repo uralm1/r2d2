@@ -1,0 +1,14 @@
+# R2D2
+Alias /r2d2/admin/img /var/www/r2d2/img
+Alias /r2d2/admin /var/www/r2d2/admin
+Alias /stat/img /var/www/r2d2/img
+Alias /stat /var/www/r2d2/users
+
+<Directory "/var/www/r2d2">
+  SSLRequireSSL
+  AllowOverride All
+  Options FollowSymLinks
+  Order allow,deny
+  Allow from all
+</Directory>
+

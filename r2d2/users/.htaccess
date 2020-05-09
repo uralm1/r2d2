@@ -1,0 +1,4 @@
+DirectoryIndex rep.cgi
+Options +ExecCGI
+AddHandler cgi-script .cgi
+

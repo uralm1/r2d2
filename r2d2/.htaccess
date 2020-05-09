@@ -1,0 +1,11 @@
+#AuthName "Internet: use your computer login and password"
+#AuthType Kerberos
+#KrbMethodNegotiate on
+#KrbMethodK5Passwd on
+#KrbAuthoritative on
+#KrbAuthRealms UWC.LOCAL
+#KrbVerifyKDC on
+#KrbServiceName HTTP/server.uwc.local@UWC.LOCAL
+#Krb5Keytab /etc/apache2/krb5.keytab.http
+#KrbSaveCredentials off
+#Require valid-user

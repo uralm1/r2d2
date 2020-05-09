@@ -1,0 +1,726 @@
+#!/usr/bin/perl
+# This is the part of R2D2
+# Fw (iptables) syncronizer
+# author: Ural Khassanov, 2013
+
+use strict;
+use warnings;
+use DBI;
+use NetAddr::IP;
+use NetAddr::MAC;
+use Encode;
+use Net::LDAP;
+use Net::SMTP;
+
+# this looks kinda experimental
+use Sys::RunAlone;
+
+my $agent_name = 'fwsyn';
+my $version = 'r2d2.fwsyn stars v2.12';
+
+# configure credentials here
+my $dbhost = 'localhost';
+my $dbdb = 'inet';
+my $dbuser = 'user';
+my $dbpass = 'pass';
+
+my @ldapservers = ('ldap://srv1', 'ldap://srv2');
+my $ldapuser = 'ldapuser';
+my $ldappass = 'ldappass';
+#my $ldapbase = 'OU=UWC Users,DC=uwc,DC=local';
+my $ldapbase = 'DC=uwc,DC=local';
+
+my $smtphost = 'mail.testdomain';
+my $mailfrom = 'r2d2@testdomain';
+my $mail_templates_dir = '/etc/r2d2/'; # ending slash required
+
+my $client_in_chain = 'pipe_in_inet_clients'; # mangle and filter
+my $client_out_chain = 'pipe_out_inet_clients'; # mangle and filter since 2.6
+my $rulefile = '/etc/rc.d/rc.firewall.clients';
+my $traffile = '/etc/rc.d/rc.traf.clients';
+my $rctraffile = '/etc/rc.d/rc.traf';
+my $iptables_path = '/usr/sbin/iptables';
+my $tc_path = '/sbin/tc';
+my $traf_intr_interface = 'eth1';
+my $traf_extr_interface = 'eth0';
+my $traf_id_start = 300; #for client classid
+my $filelog = '/etc/r2d2/err.log';
+
+my $dbh_inet;
+
+if (!($dbh_inet = DBI->connect("DBI:mysql:database=$dbdb;host=$dbhost", $dbuser, $dbpass))) {
+  die "Connection to database $dbdb failed!\n";
+}
+
+$dbh_inet->do("SET NAMES 'UTF8'");
+
+&dblog("FW syncronization started ($version).");
+
+###
+# debug (iptables [-t mangle] -N testchain_in/testchain_out)
+#$client_in_chain = 'testchain_in';
+#$client_out_chain = 'testchain_out';
+#$rulefile = 'rc.firewall2.clients';
+#$traffile = 'rc.traf2.clients';
+#clients = 'test';
+
+# create rule dumps
+my @dump_f_in = `$iptables_path -t filter -nvx --line-numbers -L $client_in_chain`;
+if ($?) {
+  &dblog("Error dumping rules $client_in_chain in filter table!", 1);
+  die;
+}
+
+my @dump_f_out = `$iptables_path -t filter -nvx --line-numbers -L $client_out_chain`;
+if ($?) {
+  &dblog("Error dumping rules $client_out_chain in filter table!", 1);
+  die;
+}
+
+my @dump_m_in = `$iptables_path -t mangle -nvx --line-numbers -L $client_in_chain`;
+if ($?) {
+  &dblog("Error dumping rules $client_in_chain in mangle table!", 1);
+  die;
+}
+
+my @dump_m_out = `$iptables_path -t mangle -nvx --line-numbers -L $client_out_chain`;
+if ($?) {
+  &dblog("Error dumping rules $client_out_chain in mangle table!", 1);
+  die;
+}
+
+# check filter-in and mangle-in tables have same size
+if ($#dump_f_in != $#dump_m_in) {
+  &dblog("FATAL ERROR! Filter and mangle chains $client_in_chain are different! Manual intervention required.", 1);
+  die;
+}
+# check filter-in and mangle-out tables have same size
+if ($#dump_f_in != $#dump_m_out) {
+  &dblog("FATAL ERROR! Filter chain $client_in_chain and mangle chain $client_out_chain are different! Manual intervention required.", 1);
+  die;
+}
+
+###
+my $s = $dbh_inet->prepare("SELECT ip, mac, defjump \
+FROM clients, clients_sync s WHERE s.sync_fw = '1' AND clients.login = s.login ORDER BY ip ASC");
+$s->execute;
+my $syn_counter = 0;
+
+while (my ($dbip, $dbmac, $defjump) = $s->fetchrow_array) {
+  # update iptables rules here and reset sync flags
+  my $ipo = NetAddr::IP->new($dbip);
+  if (!$ipo) {
+    &dblog("Invalid ip address $dbip.", 1);
+    next;
+  }
+  my $ip = $ipo->addr;
+  my $maco = eval { NetAddr::MAC->new($dbmac) };
+  if ($@) {
+    &dblog("Invalid mac address $dbmac.", 1);
+    next;
+  }
+  my $mac = $maco->as_microsoft;
+
+  &dblog("FW updating iptables: $ip");
+
+  my $failure = 0;
+  # process in-rules in filter table (and in/out-rules in mangle table too)
+  my $ff = 0;
+  my $ri = 1; # actual rule index
+  for (my $i = 2; $i < @dump_f_in; $i++) { # skip first 2 lines
+    $_ = $dump_f_in[$i];
+    # n pkt bytes ACCEPT all -- * * 0.0.0.0/0 10.15.0.2 ext
+    if (/^\s*(\d+)\s+ \S+\s+ \S+\s+ \S*\s+ \S+\s+ \-\-\s+ \S+\s+ \S+\s+ \S+\s+ \Q$ip\E\s+ .*/x) {
+      my $rulenum = $1;
+      # check in-chain in mangle chain
+      # n pkt bytes MARK all -- * * 0.0.0.0/0 10.15.0.2 MARK set 0x4
+      # n pkt bytes      all -- * * 0.0.0.0/0 10.15.0.2
+      unless ($dump_m_in[$i] =~ /^\s*\Q$rulenum\E\s+ \S+\s+ \S+\s+ \S*\s+ \S+\s+ \-\-\s+ \S+\s+ \S+\s+ \S+\s+ \Q$ip\E\s+ .*/x) {
+	$failure = 1;
+        &dblog("In-rules sync error. Filter $client_in_chain and mangle $client_in_chain rule mismatch! Manual intervention required.", 1);
+      }
+      # check out-chain in mangle chain
+      # n pkt bytes MARK all -- * * 10.15.0.2 0.0.0.0/0 MARK set 0x4
+      # n pkt bytes      all -- * * 10.15.0.2 0.0.0.0/0
+      unless ($dump_m_out[$i] =~ /^\s*\Q$rulenum\E\s+ \S+\s+ \S+\s+ \S*\s+ \S+\s+ \-\-\s+ \S+\s+ \S+\s+ \Q$ip\E\s+ \S+\s+ .*/x) {
+	$failure = 1;
+        &dblog("In-rules sync error. Filter $client_in_chain and mangle $client_out_chain rule mismatch! Manual intervention required.", 1);
+      }
+
+      if (!$ff) {
+        &dblog("In-rules sync. Replacing rules #$rulenum ip $ip in filter and mangle tables.");
+        $ff = 1;
+        ### this should be done atomically...
+	if (system("$iptables_path -t mangle -R $client_in_chain $ri -d $ip")) {
+	  $failure = 1;
+          &dblog("In-rules sync error. Can't replace rule in $client_in_chain mangle table.", 1);
+	}
+	if (system("$iptables_path -t mangle -R $client_out_chain $ri -s $ip")) {
+	  $failure = 1;
+          &dblog("In-rules sync error. Can't replace rule in $client_out_chain mangle table.", 1);
+	}
+	if (system("$iptables_path -R $client_in_chain $ri -d $ip -j $defjump")) {
+	  $failure = 1;
+          &dblog("In-rules sync error. Can't replace rule in $client_in_chain filter table.", 1);
+	}
+        ###
+      } else {
+        &dblog("In-rules sync. Deleting duplicate rules #$rulenum ip $ip in filter and mangle tables.");
+        ### this should be done atomically...
+	if (system("$iptables_path -t mangle -D $client_in_chain $ri")) {
+	  $failure = 1;
+          &dblog("In-rules sync error. Can't delete rule from $client_in_chain mangle table.", 1);
+        } else {
+          $dump_m_in[$i] = '';
+        }
+	if (system("$iptables_path -t mangle -D $client_out_chain $ri")) {
+	  $failure = 1;
+          &dblog("In-rules sync error. Can't delete rule from $client_out_chain mangle table.", 1);
+        } else {
+          $dump_m_out[$i] = '';
+        }
+	if (system("$iptables_path -D $client_in_chain $ri")) {
+	  $failure = 1;
+          &dblog("In-rules sync error. Can't delete rule from $client_in_chain filter table.", 1);
+	} else {
+          $ri--;
+          $dump_f_in[$i] = '';
+        }
+        ###
+      }
+    }
+    $ri++ if $_;
+  }
+  if (!$ff) { # if not found, add rule
+    &dblog("In-rules sync. Appending rules ip $ip to filter and mangle tables.");
+    ### this should be done atomically...
+    if (system("$iptables_path -t mangle -A $client_in_chain -d $ip")) {
+      $failure = 1;
+      &dblog("In-rules sync error. Can't append rule to $client_in_chain  mangle table.", 1);
+    }
+    if (system("$iptables_path -t mangle -A $client_out_chain -s $ip")) {
+      $failure = 1;
+      &dblog("In-rules sync error. Can't append rule to $client_out_chain  mangle table.", 1);
+    }
+    if (system("$iptables_path -A $client_in_chain -d $ip -j $defjump")) {
+      $failure = 1;
+      &dblog("In-rules sync error. Can't append rule to $client_in_chain filter table.", 1);
+    }
+    ###
+  }
+
+
+  # process out-rules in filter table
+  $ff = 0;
+  $ri = 1; # actual rule index
+  for (my $i = 2; $i < @dump_f_out; $i++) { # skip first 2 lines
+    $_ = $dump_f_out[$i];
+    # n pkt bytes ACCEPT all -- * * 10.15.0.2 0.0.0.0/0 MAC 00:19:D1:11:60:98
+    if (/^\s*(\d+)\s+ \S+\s+ \S+\s+ \S*\s+ \S+\s+ \-\-\s+ \S+\s+ \S+\s+ \Q$ip\E\s+ \S+\s+ .*/x) {
+      if (!$ff) {
+        &dblog("Out-rules sync. Replacing rule #$1 ip $ip in filter table.");
+        $ff = 1;
+	if (system("$iptables_path -R $client_out_chain $ri -s $ip -m mac --mac-source $mac -j $defjump")) {
+	  $failure = 1;
+          &dblog("Out-rules sync error. Can't replace rule in $client_out_chain filter table.", 1);
+	}
+      } else {
+        &dblog("Out-rules sync. Deleting duplicate rule #$1 ip $ip in filter table.");
+	if (system("$iptables_path -D $client_out_chain $ri")) {
+	  $failure = 1;
+          &dblog("Out-rules sync error. Can't delete rule from $client_out_chain filter table.", 1);
+	} else {
+          $ri--;
+          $dump_f_out[$i] = '';
+        }
+      }
+    }
+    $ri++ if $_;
+  }
+  if (!$ff) { # if not found, add rule
+    &dblog("Out-rules sync. Appending rule ip $ip to filter table.");
+    if (system("$iptables_path -A $client_out_chain -s $ip -m mac --mac-source $mac -j $defjump")) {
+      $failure = 1;
+      &dblog("Out-rules sync error. Can't append rule to $client_out_chain filter table.", 1);
+    }
+  }
+  
+
+  # update sync flag
+  if (!$failure) {
+    my $q_ip = $dbh_inet->quote($dbip);
+    $dbh_inet->do("UPDATE clients, clients_sync s SET s.sync_fw = '0' WHERE ip = $q_ip AND clients.login = s.login");
+  }
+
+  $syn_counter++;
+}
+$s->finish;
+
+
+# update statistics, block/unblock clients and clean up unused ip-s
+# run all rules in/out
+&dblog("Processing traffic statistics.");
+
+# retrive all clients data to speed up all process a little
+my $sssh = $dbh_inet->prepare("SELECT ip, sum_in, sum_out, qs, sum_limit_in, email_notify FROM clients");
+$sssh->execute;
+my $dbref = $sssh->fetchall_arrayref();
+my %db_hash;
+foreach my $row (@$dbref) {
+  #($ipn, $sum_in, $sum_out, $qs, $sum_limit_in, $email_notify)=@$row  
+  my $ipn = $$row[0];
+  ########## [0]sum_in, [1]sum_out, [2]qs, [3]sum_limit_in, [4]email_notify
+  $db_hash{$ipn} = [ $$row[1], $$row[2], $$row[3], $$row[4], $$row[5] ];
+}
+$sssh->finish;
+
+# process in-chain
+print "Processing input rules...\n";
+my $ri = 1; # actual rule index
+for (my $i = 2; $i < @dump_f_in; $i++) { # skip first 2 lines
+  $_ = $dump_f_in[$i];
+  # n pkt bytes ACCEPT all -- * * 0.0.0.0/0 10.15.0.2 ext
+  if (/^\s*(\d+)\s+ \S+\s+ (\S+)\s+ \S*\s+ \S+\s+ \-\-\s+ \S+\s+ \S+\s+ \S+\s+ (\S+)\s+ .*/x) {
+    #print "process in-chain rule $1 $2 dst $3\n";
+    my $ipo = NetAddr::IP->new($3);
+    if (!$ipo) {
+      &dblog("Invalid ip address conversion $3", 1);
+      next;
+    }
+    my $dest_ip = $3;
+    my $db_dest_ip = $ipo->numeric;
+
+    if (defined(my $sum_in = $db_hash{$db_dest_ip}->[0])) {
+      my $sum_limit_in = $db_hash{$db_dest_ip}->[3];
+      my $bcnt = $2;
+      print "$ri, $3, in: $bcnt\n";
+      my $qs = $db_hash{$db_dest_ip}->[2];
+      my $email_notify = $db_hash{$db_dest_ip}->[4];
+      if ($bcnt > 0) { # skip unnesessary updates
+	$sum_in += $bcnt;
+        if ($qs != 0) { # don't calc limit when quota is disabled
+	  $sum_limit_in -= $bcnt;
+	  $sum_limit_in = 0 if ($sum_limit_in < 0);
+        }
+	# update table
+	$dbh_inet->do("UPDATE clients SET sum_in = $sum_in, sum_limit_in = $sum_limit_in WHERE ip = $db_dest_ip") or
+	  &dblog("Stat in-rules sync error. Can't update db.", 1);
+      }
+      # block/unblock client if necessary
+      # parse mangle-in chain
+      # n pkt bytes MARK all -- * * 0.0.0.0/0 10.15.0.2 MARK set 0x4
+      # n pkt bytes      all -- * * 0.0.0.0/0 10.15.0.2
+      $dump_m_in[$i] =~ /^\s*\d+\s+ \S+\s+ \S+\s+ (\S*)\s+ \S+\s+ \-\-\s+ \S+\s+ \S+\s+ \S+\s+ (\S+)\s+ (.*)/x;
+      #print "mangle-in: jump=$1 ip=$2 ext=$3\n";
+      if ($dest_ip ne $2) {
+        &dblog("WARNING! Ip's mismatch in filter and in-mangle tables, rule #$ri. Manual intervention required (filter: $dest_ip, in-mangle: $2).");
+      }
+      my $jm_in = $1; #$jm_in = '' unless defined $jm_in;
+      $3 =~ /mark set ((?:0x)?\w+)/i;
+      my $jm_in_mark = ($1) ? $1 : -1;
+      $jm_in_mark = oct($jm_in_mark) if $jm_in_mark =~ /^0/;
+
+      # parse mangle-out chain
+      # n pkt bytes MARK all -- * * 10.15.0.2 0.0.0.0/0 MARK set 0x4
+      # n pkt bytes      all -- * * 10.15.0.2 0.0.0.0/0
+      $dump_m_out[$i] =~ /^\s*\d+\s+ \S+\s+ \S+\s+ (\S*)\s+ \S+\s+ \-\-\s+ \S+\s+ \S+\s+ (\S+)\s+ \S+\s+ (.*)/x;
+      #print "mangle-out: jump=$1 ip=$2 ext=$3\n";
+      if ($dest_ip ne $2) {
+        &dblog("WARNING! Ip's mismatch in filter and out-mangle tables, rule #$ri. Manual intervention required (filter: $dest_ip, out-mangle: $2).");
+      }
+      my $jm_out = $1; #$jm_out = '' unless defined $jm_out;
+      $3 =~ /mark set ((?:0x)?\w+)/i;
+      my $jm_out_mark = ($1) ? $1 : -1;
+      $jm_out_mark = oct($jm_out_mark) if $jm_out_mark =~ /^0/;
+
+      my $is_blocked_any = $jm_in eq 'MARK' || $jm_out eq 'MARK';
+      my $is_blocked_all = $jm_in eq 'MARK' && $jm_out eq 'MARK';
+      if ($is_blocked_any != $is_blocked_all) {
+        &dblog("WARNING! Marks mismatch in in/out mangle tables, rule #$ri, ip $dest_ip. I have to reblock this client.", 1);
+      }
+      if ($is_blocked_any) {
+        # unblock blocked user with $qs=0 or 1
+        if ($qs == 0 || $qs == 1) {
+          &unblock_rule($dest_ip, $ri);
+        } elsif (($jm_in_mark != $qs || $jm_out_mark != $qs) && $sum_limit_in <= 0) {
+          # qs was 2 or 3 and changed? we have to reblock to update marks...
+          &block_rule($dest_ip, $ri, $qs);
+          $is_blocked_all = 1;
+          &notify_user($db_dest_ip, $qs) if $email_notify;
+        }
+      }
+      if ($sum_limit_in <= 0) {
+        if ($qs == 1) { # warn(1) client
+          &notify_user($db_dest_ip, $qs) if $email_notify;
+        } elsif (($qs == 2 || $qs == 3) && !$is_blocked_all) {
+	  # limit(2) or block(3) client
+          &block_rule($dest_ip, $ri, $qs);
+          &notify_user($db_dest_ip, $qs) if $email_notify;
+	}
+      } else {
+	# unblock client
+	if ($is_blocked_any) {
+          &unblock_rule($dest_ip, $ri);
+	}
+      }
+    } else {
+      &dblog("Stat in-rules sync. Rule #$ri ip $3 is not found in database. Deleting.");
+      ### this should be done atomically...
+      my $r1 = system("$iptables_path -t mangle -D $client_in_chain $ri");
+      my $r2 = system("$iptables_path -t mangle -D $client_out_chain $ri");
+      if ($r1) {
+	&dblog("Stat in-rules sync error. Can't delete rule from mangle-in table. Giving up deleting rules.", 1);
+      } elsif ($r2) {
+	&dblog("Stat in-rules sync error. Can't delete rule from mangle-out table. Giving up deleting rules.", 1);
+      } else {
+	if (system("$iptables_path -D $client_in_chain $ri")) {
+	  &dblog("Stat in-rules sync error. Can't delete rule from filter table. Manual intervention required.", 1);
+	} else {
+	  $ri--;
+	  $syn_counter++; # force script-files update
+	}
+      }
+      ###
+    }
+  }
+  $ri++ if $_;
+}
+!system("$iptables_path -Z $client_in_chain") or &dblog("Stat in-rules sync. Can't reset counters.", 1);
+
+# process out-chain
+print "Processing output rules...\n";
+$ri = 1; # actual rule index
+for (my $i = 2; $i < @dump_f_out; $i++) { # skip first 2 lines
+  $_ = $dump_f_out[$i];
+  # n pkt bytes ACCEPT all -- * * 10.15.0.2 0.0.0.0/0 MAC 00:19:D1:11:60:98
+  if (/^\s*(\d+)\s+ \S+\s+ (\S+)\s+ \S*\s+ \S+\s+ \-\-\s+ \S+\s+ \S+\s+ (\S+)\s+ \S+\s+ .*/x) {
+    #print "process out-chain rule $1 $2 src $3\n";
+    my $ipo = NetAddr::IP->new($3);
+    if (!$ipo) {
+      &dblog("Invalid ip address conversion $3", 1);
+      next;
+    }
+    my $db_src_ip = $ipo->numeric;
+
+    if (defined(my $sum_out = $db_hash{$db_src_ip}->[1])) {
+      my $bcnt = $2;
+      print "$ri, $3, out: $bcnt\n";
+      if ($bcnt > 0) { # skip unnesessary updates
+	$sum_out += $bcnt;
+	# update table
+	$dbh_inet->do("UPDATE clients SET sum_out = $sum_out WHERE ip = $db_src_ip") or
+	  &dblog("Stat out-rules sync error. Can't update db.", 1);
+      }
+    } else {
+      &dblog("Stat out-rules sync. Rule #$ri ip $3 is not found in database. Deleting.");
+      if (system("$iptables_path -D $client_out_chain $ri")) {
+	&dblog("Stat out-rules sync error. Can't delete rule from filter table.", 1);
+      } else {
+        $ri--;
+        $syn_counter++; # force script-files update
+      }
+    }
+  }
+  $ri++ if $_;
+}
+!system("$iptables_path -Z $client_out_chain") or &dblog("Stat out-rules sync. Can't reset counters.", 1);
+
+
+if ($syn_counter > 0) {
+  # write rule/traf-files
+  &dblog("Updating rulefile: $rulefile, traffile: $traffile");
+  if (!open(RULEFILE, '>', $rulefile)) {
+    &dblog("Can't create rule-file: $!");
+    die;
+  }
+  if (!open(TRAFFILE, '>', $traffile)) {
+    &dblog("Can't create traf-file: $!");
+    die;
+  }
+  print RULEFILE "# WARNING: this is autogenerated file, don't run or change it!\n\n";
+  # write additionals jump chains
+  #print RULEFILE "\n# ICMP_ONLY chain\n";
+  print RULEFILE "$iptables_path -N ICMP_ONLY\n";
+  print RULEFILE "$iptables_path -A ICMP_ONLY -p icmp -j ACCEPT\n";
+  #print RULEFILE "\n# HTTP_ICMP chain\n";
+  print RULEFILE "$iptables_path -N HTTP_ICMP\n";
+  print RULEFILE "$iptables_path -A HTTP_ICMP -p icmp -j ACCEPT\n";
+  print RULEFILE "$iptables_path -A HTTP_ICMP -p tcp -m multiport --source-ports 80,8080,81,3128,443 -j ACCEPT\n";
+  print RULEFILE "$iptables_path -A HTTP_ICMP -p tcp -m multiport --destination-ports 80,8080,81,3128,443 -j ACCEPT\n";
+  #print RULEFILE "\n# HTTP_IM_ICMP chain\n";
+  print RULEFILE "$iptables_path -N HTTP_IM_ICMP\n";
+  print RULEFILE "$iptables_path -A HTTP_IM_ICMP -p icmp -j ACCEPT\n";
+  print RULEFILE "$iptables_path -A HTTP_IM_ICMP -p tcp -j HTTP_ICMP\n";
+  print RULEFILE "$iptables_path -A HTTP_IM_ICMP -p tcp -m multiport --source-ports 25,110,995,143,993,119,563,5190,5222,5223,1863 -j ACCEPT\n";
+  print RULEFILE "$iptables_path -A HTTP_IM_ICMP -p tcp -m multiport --destination-ports 25,110,995,143,993,119,563,5190,5222,5223,1863 -j ACCEPT\n";
+  print RULEFILE "\n";
+
+  print TRAFFILE "# WARNING: this is autogenerated file, don't run or change it!\n\n";
+
+  $s = $dbh_inet->prepare("SELECT login, clients.desc, ip, mac, defjump, speed_in, speed_out \
+FROM clients ORDER BY ip ASC");
+  $s->execute;
+  my $traf_id_counter = $traf_id_start; 
+  while (my ($login, $desc, $dbip, $dbmac, $defjump, $speed_in, $speed_out) = $s->fetchrow_array) {
+    my $ipo = NetAddr::IP->new($dbip);
+    if (!$ipo) {
+      &dblog("Invalid ip address $dbip, $login");
+      next;
+    }
+    my $ip = $ipo->addr;
+    my $maco = eval { NetAddr::MAC->new($dbmac) };
+    if ($@) {
+      &dblog("Invalid mac address $dbmac, $login.");
+      next;
+    }
+    my $mac = $maco->as_microsoft;
+
+    # make description looks good on fw
+    Encode::from_to($desc, 'utf-8', 'koi8-r');
+
+    print RULEFILE "# $login"; print RULEFILE ", $desc" if ($desc); print RULEFILE "\n";
+    print RULEFILE "$iptables_path -A $client_in_chain -d $ip -j $defjump\n";
+    print RULEFILE "$iptables_path -A $client_out_chain -s $ip -m mac --mac-source $mac -j $defjump\n";
+    print RULEFILE "$iptables_path -t mangle -A $client_in_chain -d $ip\n";
+    print RULEFILE "$iptables_path -t mangle -A $client_out_chain -s $ip\n";
+    print RULEFILE "\n";
+
+    $speed_in = "quantum 6400 rate 256kbit prio 5" if ($speed_in eq '');
+    $speed_out = "quantum 6400 rate 256kbit prio 5" if ($speed_out eq '');
+    print TRAFFILE "# $login"; print TRAFFILE ", $desc" if ($desc); print TRAFFILE "\n";
+    #print TRAFFILE "$tc_path -batch <<EOF\n";
+    print TRAFFILE "$tc_path class add dev $traf_intr_interface parent 1:10 classid 1:$traf_id_counter htb $speed_in\n";
+    print TRAFFILE "$tc_path qdisc add dev $traf_intr_interface parent 1:$traf_id_counter handle $traf_id_counter: pfifo limit 150\n";
+    print TRAFFILE "$tc_path filter add dev $traf_intr_interface parent 1:0 protocol ip pref 10 u32 match ip dst $ip flowid 1:$traf_id_counter\n";
+    print TRAFFILE "$tc_path filter add dev $traf_intr_interface parent 1:0 protocol ip pref 4 u32 match ip dst $ip match ip src 10.15.0.1 match ip sport 3128 0xffff flowid 1:$traf_id_counter\n";
+    print TRAFFILE "$tc_path class add dev $traf_extr_interface parent 1:10 classid 1:$traf_id_counter htb $speed_out\n";
+    print TRAFFILE "$tc_path qdisc add dev $traf_extr_interface parent 1:$traf_id_counter handle $traf_id_counter: pfifo limit 120\n";
+    print TRAFFILE "$tc_path filter add dev $traf_extr_interface parent 1:0 protocol ip pref 10 u32 match ip src $ip flowid 1:$traf_id_counter\n";
+    print TRAFFILE "$tc_path filter add dev $traf_extr_interface parent 1:0 protocol ip pref 4 u32 match ip dst $ip match ip src 192.168.12.1 match ip sport 3128 0xffff flowid 1:$traf_id_counter\n";
+    #print TRAFFILE "EOF\n";
+    print TRAFFILE "\n";
+    $traf_id_counter++;
+  }
+  $s->finish;
+  close RULEFILE;
+  close TRAFFILE;
+
+  # update htb configuration / run traffile
+  !system "$rctraffile" or &dblog("Can't update htb configuration.");
+}
+
+&dblog("FW syncronization finished.");
+$dbh_inet->disconnect;
+
+exit;
+
+
+# &block_rule($ip, $rule_idx, $qs);
+sub block_rule {
+  my $ip = shift;
+  my $ri = shift;
+  my $qs = shift;
+  &dblog("Blocking user $ip, rule $ri, qs $qs.");
+
+  !system("$iptables_path -t mangle -R $client_in_chain $ri -d $ip -j MARK --set-mark $qs") or
+    &dblog("Block user error. Can't replace rule in $client_in_chain mangle table.", 1);
+  !system("$iptables_path -t mangle -R $client_out_chain $ri -s $ip -j MARK --set-mark $qs") or
+    &dblog("Block user error. Can't replace rule in $client_out_chain mangle table.", 1);
+}
+
+
+# &unblock_rule($ip, $rule_idx);
+sub unblock_rule {
+  my $ip = shift;
+  my $ri = shift;
+  &dblog("Unblocking user $ip, rule $ri.");
+
+  !system("$iptables_path -t mangle -R $client_in_chain $ri -d $ip") or
+    &dblog("Unblock user error. Can't replace rule in $client_in_chain mangle table.", 1);
+  !system("$iptables_path -t mangle -R $client_out_chain $ri -s $ip") or
+    &dblog("Unblock user error. Can't replace rule in $client_out_chain mangle table.", 1);
+}
+
+
+# &notify_user($db_dest_ip, $qs);
+sub notify_user {
+  my $db_dest_ip = shift;
+  my $qs = shift;
+
+  # first, we need to retrieve login, limit and notify flag from db
+  my ($login, $limit_in, $notified_flag) = $dbh_inet->selectrow_array("SELECT clients.login, clients.limit_in, s.email_notified \
+FROM clients, clients_sync s WHERE ip = $db_dest_ip AND clients.login = s.login");
+
+  if ($login) {
+    unless ($notified_flag) {
+      # next, search ad for e-mail
+      my $entry = &lookup_ad($login);
+      if ($entry) {
+        my %h;
+        my @ll;
+        my $user_fullname = '';
+        my $user_email;
+        foreach (qw (cn sn givenname)) {
+          my $v = $entry->get_value($_);
+          $v = '' unless $v;
+          $h{$_} = decode_utf8($v);
+        }
+        push @ll, $h{sn} if $h{sn};
+        push @ll, $h{givenname} if $h{givenname};
+        push @ll, "($h{cn})" if $h{cn};
+        $user_fullname = join(' ', @ll) if @ll;
+        $user_email = $entry->get_value('mail');
+
+        if ($user_email) {
+          &dblog("Notify client $login, qs $qs. Sending notification to $user_email.");
+          unless (&send_mail_notification($user_email, $user_fullname, $qs, &btomb($limit_in))) {
+            &dblog("Notify client $login error. Mail subsystem failure.");
+          }
+        } else {
+          &dblog("Notify client $login. Not sending notification, client e-mail is not available.");
+        }
+	# update notification flag
+	my $q_login = $dbh_inet->quote($login);
+	$dbh_inet->do("UPDATE clients_sync SET email_notified = '1' WHERE login = $q_login") or
+	  &dblog("Notify client $login error. Can't update notification flag in database.");
+      } else {
+        &dblog("Notify client $login error. Not sending notification, no data from active directory.");
+      }
+    } else {
+      #&dblog("Notify client $login. Not sending notification, client's already been notified in this month.");
+    }
+  }
+}
+
+
+# &send_mail_notification($user_email, $user_fullname, $user_qs, $user_limit_mb)
+sub send_mail_notification {
+  my $to = shift;
+  my $fullname = shift;
+  my $qs = shift;
+  my $limit_mb = shift;
+  $limit_mb = '---' unless defined $limit_mb;
+
+  if ($qs < 1 || $qs > 3) {
+    &dblog("Mail error. Unsupported quota mode.");
+    return undef;
+  }
+  # read and fill mail template
+  my @ll;
+  unless (open(TPLFILE, '<', $mail_templates_dir.'mail'.$qs.'.txt')) {
+    &dblog("Mail error. Can't open mail template file: $!");
+    return undef;
+  }
+  while (<TPLFILE>) {
+    $_ = decode_utf8($_);
+    my $s = '';
+    while (/%%([A-Za-z0-9_-]+)%%/) {
+      $s = $`;
+      if ($1 eq 'USERNAME') {
+	$s .= $fullname;
+      } elsif ($1 eq 'USEREMAIL') {
+	$s .= $to;
+      } elsif ($1 eq 'USERLIMIT') {
+	$s .= $limit_mb;
+      } else {
+	$s .= $&;
+        &dblog("Mail warning. Unknown template $& in template file.");
+      }
+      $_ = $';
+    }
+    push @ll, $s . $_;
+  }
+  close TPLFILE;
+  # send mail
+  my $smtp = Net::SMTP->new($smtphost, Hello => 'fw.uwc.local', Timeout => 10, Debug => 0);
+  unless ($smtp) {
+    &dblog("Mail error. Create smtp object failed.");
+    return undef;
+  }
+  unless ($smtp->mail($mailfrom)) {
+    &dblog("Mail error. Mail command failed.");
+    $smtp->quit;
+    return undef;
+  }
+  unless ($smtp->to($to)) {
+    &dblog("Mail error. Rcpt command failed.");
+    $smtp->quit;
+    return undef;
+  }
+  unless ($smtp->data(@ll)) {
+    &dblog("Mail error. Data command failed.");
+    $smtp->quit;
+    return undef;
+  }
+  $smtp->quit;
+  return 1;
+}
+
+
+# my $entry = &lookup_ad($login)
+# returns Net::LDAP::Entry object or undef
+sub lookup_ad {
+  my $l = shift;
+
+  my $ldap = Net::LDAP->new(\@ldapservers, port => 389, timeout => 3);
+  unless ($ldap) {
+    &dblog("Ldap connection error. Create object failed.");
+    return undef;
+  }
+
+  my $mesg = $ldap->bind($ldapuser, password => $ldappass, version => 3);
+  if ($mesg->code) {
+    &dblog("Ldap bind error: " . $mesg->error);
+    return undef;
+  }
+
+  my $filter = "(&(objectClass=person)(sAMAccountName=$l))";
+  my $res = $ldap->search(base => $ldapbase, filter => $filter,
+    attrs => ['cn','sn','givenname','mail']);
+  if ($res->code) {
+    &dblog("Ldap search error: " . $res->error);
+    $ldap->unbind;
+    return undef;
+  }
+
+  my $count = $res->count;
+  my $entry = undef;
+  if ($count > 0) {
+    $entry = $res->entry(0);
+  }
+
+  $ldap->unbind;
+  return $entry;
+}
+
+
+# $mb = &btomb(1024)
+sub btomb {
+  return sprintf('%.1f', shift() / 1048576);
+}
+
+
+# &dblog("msg"); or &dblog("msg", 1);
+sub dblog {
+  my $msg = shift;
+  my $f_log = shift;  
+
+  my $q_msg = $dbh_inet->quote($agent_name.': '.$msg);
+  $dbh_inet->do("REPLACE INTO log_agents \
+SET row_id = (SELECT COALESCE(MAX(log_id), 0) % 5000 + 1 \
+FROM log_agents AS t), \
+msg = $q_msg");
+  #print "$q_msg\n";
+
+  if ($f_log) {
+    if (!open(FLOGFILE, '>>', $filelog)) {
+      &dblog("Can't open logfile: $!");
+    } else {
+      $msg = localtime().' '.$msg."\n";
+      print FLOGFILE $msg;
+      close FLOGFILE;
+    }
+  }
+}
+
+__DATA__

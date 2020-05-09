@@ -1,0 +1,37 @@
+#!/usr/bin/perl
+
+my @dump_f_in = `iptables -t filter -nvx --line-numbers -L testchain_in`;
+if ($?) {
+  print("Error dumping rules in filter table!");
+  die;
+}
+
+my @dump_m_in = `iptables -t mangle -nvx --line-numbers -L testchain_in`;
+if ($?) {
+  print("Error dumping rules in mangle table!");
+  die;
+}
+
+# check filter-in and mangle tables have same size
+if ($#dump_f_in != $#dump_m_in) {
+  print("FATAL ERROR! Filter and mangle tables different! Manual intervention required.");
+  die;
+}
+
+
+my $ri = 1; # actual rule index
+for (my $i = 2; $i < @dump_f_in; $i++) { # skip first 2 lines
+  $_ = $dump_f_in[$i];
+  my $rman = $dump_m_in[$i];
+  # n pkt bytes ACCEPT all -- * * 0.0.0.0/0 10.15.0.2 ext
+  if (/^\s*(\d+)\s+ \S+\s+ (\S+)\s+ \S*\s* \S+\s+ \-\-\s+ \S+\s+ \S+\s+ \S+\s+ (\S+)\s+ .*/x) {
+    print "process in-chain rule $1 $2 dst $3\n";
+
+    # n pkt bytes MARK all -- * * 0.0.0.0/0 10.15.0.2 MARK set 0x4
+    # n pkt bytes      all -- * * 0.0.0.0/0 10.15.0.2
+    $rman =~ /^\s*\d+\s+ \S+\s+ (\S+)\s+ (\S*)\s+ (\S+)\s+ \-\-\s+ \S+\s+ \S+\s+ \S+\s+ \S+\s+ .*/x;
+
+    print "jump=$1 $2 $3\n";
+  }
+}
+

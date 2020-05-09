@@ -1,0 +1,123 @@
+#!/usr/bin/perl
+# This is the part of R2D2
+# Daily/Monthly/Yearly processor
+# author: Ural Khassanov, 2013
+#
+# usage: dproc --daily / --monthly / --yearly
+
+use warnings;
+use DBI;
+
+# this looks kinda experimental
+###use Sys::RunAlone;
+
+my $agent_name = 'dproc';
+my $version = 'r2d2.dproc damaged brain v1.8';
+
+# configure credentials here
+my $dbhost = 'localhost';
+my $dbdb = 'inet';
+my $dbuser = 'user';
+my $dbpass = 'pass';
+
+my $dbh_inet;
+my $procstr;
+
+my $sql;
+if (@ARGV == 1) {
+  my $par = shift;
+  if ($par eq '-m' || $par eq '--monthly') { 
+    &do_monthly();
+  } elsif ($par eq '-d' || $par eq '--daily') {
+    &do_daily();
+  } elsif ($par eq '-y' || $par eq '--yearly') {
+    &do_yearly();
+  } else {
+    die "Invalid arguments\n"; 
+  }
+} else {
+  die "Usage: $0 --daily / --monthly / --yearly\n";
+}
+
+exit;
+
+
+###
+sub do_daily {
+  &startup('Daily');
+
+  # archive traffic statistics
+  my $sql = "INSERT INTO adaily (login, date, d_in, d_out) \
+SELECT login, CURDATE(), sum_in, sum_out \
+FROM clients \
+ON DUPLICATE KEY UPDATE d_in = sum_in, d_out = sum_out";
+  $dbh_inet->do($sql) or &dblog("Daily archive SQL operation failed.");
+
+  &finish;
+}
+
+
+sub do_monthly {
+  &startup('Monthly');
+
+  # archive traffic statistics
+  my $sql = "INSERT INTO amonthly (login, date, m_in, m_out) \
+SELECT login, CURDATE(), sum_in, sum_out \
+FROM clients \
+ON DUPLICATE KEY UPDATE m_in = sum_in, m_out = sum_out";
+  $dbh_inet->do($sql) or &dblog("Monthly archive SQL operation failed.");
+
+  # restore limits
+  &dblog("Restoring quota limits.");
+  $sql = "UPDATE clients SET sum_limit_in = limit_in";
+  $dbh_inet->do($sql) or &dblog("Restoring quota limits failed.");
+
+  # reset notification flags
+  &dblog("Resetting notification flags.");
+  $sql = "UPDATE clients_sync SET email_notified = 0";
+  $dbh_inet->do($sql) or &dblog("Resetting notification flags failed.");
+
+  &finish;
+}
+
+
+sub do_yearly {
+  &startup('Yearly');
+
+  # archive traffic statistics
+  my $sql = "UPDATE clients SET sum_in = 0, sum_out = 0";
+  $dbh_inet->do($sql) or &dblog("Yearly archive SQL operation failed.");
+
+  &finish;
+}
+
+
+###
+# &startup("Daily")
+sub startup {
+  $procstr = shift;
+
+  if (!($dbh_inet = DBI->connect("DBI:mysql:database=$dbdb;host=$dbhost", $dbuser, $dbpass))) {
+    die "Connection to database $dbdb failed!\n";
+  }
+  $dbh_inet->do("SET NAMES 'UTF8'");
+
+  &dblog("$procstr processing started ($version).");
+}
+
+sub finish {
+  &dblog("$procstr processing finished.");
+  $dbh_inet->disconnect;
+}
+
+
+# &dblog("msg");
+sub dblog {
+  my $q_msg = $dbh_inet->quote($agent_name.': '.shift);
+  $dbh_inet->do("REPLACE INTO log_agents \
+SET row_id = (SELECT COALESCE(MAX(log_id), 0) % 5000 + 1 \
+FROM log_agents AS t), \
+msg = $q_msg");
+}
+
+__DATA__

@@ -1,0 +1,434 @@
+#!/usr/bin/perl
+# This is the part of R2D2
+# Fw (iptables) syncronizer
+# author: Ural Khassanov, 2013
+
+use DBI;
+use IPTables::IPv4;
+use NetAddr::IP;
+use NetAddr::MAC;
+use Encode;
+use warnings;
+
+# this looks kinda experimental
+use Sys::RunAlone;
+
+my $agent_name = 'fwsyn';
+my $version = 'r2d2.fwsyn damaged brain v1.16';
+
+# configure credentials here
+my $dbhost = 'server';
+my $dbdb = 'inet';
+my $dbuser = 'user';
+my $dbpass = 'pass';
+
+my $rulefile = '/etc/rc.d/rc.firewall.clients';
+my $client_in_chain = 'pipe_in_inet_clients'; # mangle and filter
+my $client_out_chain = 'pipe_out_inet_clients'; # filter only
+my $traffile = '/etc/rc.d/rc.traf.clients';
+my $rctraffile = '/etc/rc.d/rc.traf';
+my $iptables_path = '/usr/sbin/iptables';
+my $tc_path = '/sbin/tc';
+my $traf_intr_interface = 'eth1';
+my $traf_extr_interface = 'eth0';
+my $traf_id_start = 300; #for client classid
+
+my $dbh_inet;
+
+if (!($dbh_inet = DBI->connect("DBI:mysql:database=$dbdb;host=$dbhost", $dbuser, $dbpass))) {
+  die "Connection to database inet failed!\n";
+}
+
+$dbh_inet->do("SET NAMES 'UTF8'");
+
+&dblog("FW syncronization started ($version).");
+
+my $table = IPTables::IPv4::init('filter');
+my $table_mangle = IPTables::IPv4::init('mangle');
+# debug (iptables [-t mangle] -N testchain_in/testchain_out)
+#$client_in_chain = 'testchain_in';
+#$client_out_chain = 'testchain_out';
+
+if (!$table->is_chain($client_in_chain)) {
+  &dblog("Client $client_in_chain chain not found in filter table!");
+  die;
+}
+if (!$table->is_chain($client_out_chain)) {
+  &dblog("Client $client_out_chain chain not found in filter table!");
+  die;
+}
+if (!$table_mangle->is_chain($client_in_chain)) {
+  &dblog("Client $client_in_chain chain not found in mangle table!");
+  die;
+}
+
+###
+my $s = $dbh_inet->prepare("SELECT ip, mac, defjump \
+FROM clients WHERE sync_fw = '1'");
+$s->execute;
+my $syn_counter = 0;
+my @commitlist;
+
+while (my ($dbip, $dbmac, $defjump) = $s->fetchrow_array) {
+  # update iptables rules here and reset sync flags
+  my $ipo = NetAddr::IP->new($dbip);
+  if (!$ipo) {
+    &dblog("Invalid ip address $dbip.");
+    next;
+  }
+  my $ip = $ipo->addr;
+  my $maco = eval { NetAddr::MAC->new($dbmac) };
+  if ($@) {
+    &dblog("Invalid mac address $dbmac.");
+    next;
+  }
+  my $mac = $maco->as_microsoft;
+
+  &dblog("Updating iptables: $ip");
+  # define hashes for new rules
+  my %h_in = (
+    'destination' => $ip,
+    'jump' => $defjump,
+    'bcnt' => 0,
+  );
+
+  my %h_out = (
+    'source' => $ip,
+    'matches' => ['mac'],
+    'mac-source' => $mac,
+    'jump' => $defjump,
+    'bcnt' => 0,
+  );
+
+  my %h_in_mangle = (
+    'destination' => $ip,
+    'bcnt' => 0,
+  );
+
+  my $failure = 0;
+  # process in-rules in filter table
+  my @rules = $table->list_rules($client_in_chain);
+  my $ff = 0;
+  my $i = 0;
+  foreach $r (@rules) {
+    if ($$r{"destination"} eq $ip) {
+      if (!$ff) {
+        &dblog("In-rules sync. Replacing rule #$i ip $ip in filter table.");
+        $ff = 1;
+        if (!$table->replace_entry($client_in_chain, \%h_in, $i)) {
+          $failure = 1;
+          &dblog("In-rules sync error. Can't replace rule in filter table.");
+        }
+      } else {
+        &dblog("In-rules sync. Deleting duplicate rule #$i ip $ip in filter table.");
+        if (!$table->delete_num_entry($client_in_chain, $i)) {
+          $failure = 1;
+          &dblog("In-rules sync error. Can't delete rule from filter table.");
+        } else {
+          $i--;
+        } 
+      }
+    }
+    $i++;
+  }
+  if (!$ff) { # if not found, add rule
+    &dblog("In-rules sync. Appending rule ip $ip to filter table.");
+    if (!$table->append_entry($client_in_chain, \%h_in)) {
+      $failure = 1;
+      &dblog("In-rules sync error. Can't append rule to filter table.");
+    }
+  }
+
+  # process out-rules in filter table
+  @rules = $table->list_rules($client_out_chain);
+  $ff = 0;
+  $i = 0;
+  foreach $r (@rules) {
+    if ($$r{"source"} eq $ip) {
+      if (!$ff) {
+        &dblog("Out-rules sync. Replacing rule #$i ip $ip in filter table.");
+        $ff = 1;
+        if (!$table->replace_entry($client_out_chain, \%h_out, $i)) {
+          $failure = 1;
+          &dblog("Out-rules sync error. Can't replace rule in filter table.");
+        }
+      } else {
+        &dblog("Out-rules sync. Deleting duplicate rule #$i ip $ip in filter table.");
+        if (!$table->delete_num_entry($client_out_chain, $i)) {
+          $failure = 1;
+          &dblog("Out-rules sync error. Can't delete rule from filter table.");
+        } else {
+          $i--;
+        }
+      }
+    }
+    $i++;
+  }
+  if (!$ff) { # if not found, add rule
+    &dblog("Out-rules sync. Appending rule ip $ip to filter table.");
+    if (!$table->append_entry($client_out_chain, \%h_out)) {
+      $failure = 1;
+      &dblog("Out-rules sync error. Can't append rule to filter table.");
+    }
+  }
+  
+  # process in-rules in mangle table
+  @rules = $table_mangle->list_rules($client_in_chain);
+  $ff = 0;
+  $i = 0;
+  foreach $r (@rules) {
+    if ($$r{"destination"} eq $ip) {
+      if (!$ff) {
+        &dblog("Mangle-In-rules sync. Replacing rule #$i ip $ip in mangle table.");
+        $ff = 1;
+        if (!$table_mangle->replace_entry($client_in_chain, \%h_in_mangle, $i)) {
+          $failure = 1;
+          &dblog("Mangle-In-rules sync error. Can't replace rule in mangle table.");
+        }
+      } else {
+        &dblog("Mangle-In-rules sync. Deleting duplicate rule #$i ip $ip in mangle table.");
+        if (!$table_mangle->delete_num_entry($client_in_chain, $i)) {
+          $failure = 1;
+          &dblog("Mangle-In-rules sync error. Can't delete rule from mangle table.");
+        } else {
+          $i--;
+        } 
+      }
+    }
+    $i++;
+  }
+  if (!$ff) { # if not found, add rule
+    &dblog("Mangle-In-rules sync. Appending rule ip $ip to mangle table.");
+    if (!$table_mangle->append_entry($client_in_chain, \%h_in_mangle)) {
+      $failure = 1;
+      &dblog("Mangle-In-rules sync error. Can't append rule to mangle table.");
+    }
+  }
+
+  if (!$failure) { push @commitlist, $dbip; }
+  $syn_counter++;
+}
+$s->finish;
+
+# write rule/traf-files
+if ($syn_counter > 0) {
+  &dblog("Updating rulefile: $rulefile, traffile: $traffile");
+  if (!open(RULEFILE, '>', $rulefile)) {
+    &dblog("Can't create rule-file: $!");
+    die;
+  }
+  if (!open(TRAFFILE, '>', $traffile)) {
+    &dblog("Can't create traf-file: $!");
+    die;
+  }
+  print RULEFILE "# WARNING: this is autogenerated file, don't run or change it!\n\n";
+  # write additionals jump chains
+  #print RULEFILE "\n# HTTP_ICMP chain\n";
+  print RULEFILE "$iptables_path -N HTTP_ICMP\n";
+  print RULEFILE "$iptables_path -A HTTP_ICMP -p icmp -j ACCEPT\n";
+  print RULEFILE "$iptables_path -A HTTP_ICMP -p tcp -m multiport --source-ports 80,8080,81,3128,443 -j ACCEPT\n";
+  print RULEFILE "$iptables_path -A HTTP_ICMP -p tcp -m multiport --destination-ports 80,8080,81,3128,443 -j ACCEPT\n";
+  #print RULEFILE "\n# HTTP_IM_ICMP chain\n";
+  print RULEFILE "$iptables_path -N HTTP_IM_ICMP\n";
+  print RULEFILE "$iptables_path -A HTTP_IM_ICMP -p icmp -j ACCEPT\n";
+  print RULEFILE "$iptables_path -A HTTP_IM_ICMP -p tcp -j HTTP_ICMP\n";
+  print RULEFILE "$iptables_path -A HTTP_IM_ICMP -p tcp -m multiport --source-ports 25,110,995,143,993,119,563,5190,5222,5223,1863 -j ACCEPT\n";
+  print RULEFILE "$iptables_path -A HTTP_IM_ICMP -p tcp -m multiport --destination-ports 25,110,995,143,993,119,563,5190,5222,5223,1863 -j ACCEPT\n";
+  print RULEFILE "\n";
+
+  print TRAFFILE "# WARNING: this is autogenerated file, don't run or change it!\n\n";
+
+  $s = $dbh_inet->prepare("SELECT login, clients.desc, ip, mac, defjump, speed \
+FROM clients ORDER BY ip ASC");
+  $s->execute;
+  $traf_id_counter = $traf_id_start; 
+  while (my ($login, $desc, $dbip, $dbmac, $defjump, $speed) = $s->fetchrow_array) {
+    my $ipo = NetAddr::IP->new($dbip);
+    if (!$ipo) {
+      &dblog("Invalid ip address $dbip, $login");
+      next;
+    }
+    my $ip = $ipo->addr;
+    my $maco = eval { NetAddr::MAC->new($dbmac) };
+    if ($@) {
+      &dblog("Invalid mac address $dbmac, $login.");
+      next;
+    }
+    my $mac = $maco->as_microsoft;
+
+    # make description looks good on fw
+    Encode::from_to($desc, 'utf-8', 'koi8-r');
+
+    print RULEFILE "# $login"; print RULEFILE ", $desc" if ($desc); print RULEFILE "\n";
+    print RULEFILE "$iptables_path -A $client_in_chain -d $ip -j $defjump\n";
+    print RULEFILE "$iptables_path -A $client_out_chain -s $ip -m mac --mac-source $mac -j $defjump\n";
+    print RULEFILE "$iptables_path -t mangle -A $client_in_chain -d $ip\n";
+    print RULEFILE "\n";
+
+    if ($speed eq '') { $speed = "quantum 6400 rate 256kbit prio 5"; }
+    print TRAFFILE "# $login"; print TRAFFILE ", $desc" if ($desc); print TRAFFILE "\n";
+    #print TRAFFILE "$tc_path -batch <<EOF\n";
+    print TRAFFILE "$tc_path class add dev $traf_intr_interface parent 1:10 classid 1:$traf_id_counter htb $speed\n";
+    print TRAFFILE "$tc_path qdisc add dev $traf_intr_interface parent 1:$traf_id_counter handle $traf_id_counter: pfifo limit 150\n";
+    print TRAFFILE "$tc_path filter add dev $traf_intr_interface parent 1:0 protocol ip pref 10 u32 match ip dst $ip flowid 1:$traf_id_counter\n";
+    print TRAFFILE "$tc_path filter add dev $traf_intr_interface parent 1:0 protocol ip pref 4 u32 match ip dst $ip match ip src 10.15.0.1 match ip sport 3128 0xffff flowid 1:$traf_id_counter\n";
+    print TRAFFILE "$tc_path class add dev $traf_extr_interface parent 1:10 classid 1:$traf_id_counter htb $speed\n";
+    print TRAFFILE "$tc_path qdisc add dev $traf_extr_interface parent 1:$traf_id_counter handle $traf_id_counter: pfifo limit 120\n";
+    print TRAFFILE "$tc_path filter add dev $traf_extr_interface parent 1:0 protocol ip pref 10 u32 match ip src $ip flowid 1:$traf_id_counter\n";
+    print TRAFFILE "$tc_path filter add dev $traf_extr_interface parent 1:0 protocol ip pref 4 u32 match ip dst $ip match ip src 192.168.12.1 match ip sport 3128 0xffff flowid 1:$traf_id_counter\n";
+    #print TRAFFILE "EOF\n";
+    print TRAFFILE "\n";
+    $traf_id_counter++;
+  }
+  $s->finish;
+  close RULEFILE;
+  close TRAFFILE;
+}
+
+# update statistics, block/unblock clients and clean up unused ip-s
+# run all rules in/out
+&dblog("Processing traffic statistics.");
+
+# retrive all clients data to speed up all process a little
+my $sssh = $dbh_inet->prepare("SELECT ip, sum_in, sum_out, sum_limit_in FROM clients");
+$sssh->execute;
+my $dbref = $sssh->fetchall_arrayref();
+my %db_sum_in;
+my %db_sum_out;
+my %db_sum_limit_in;
+foreach my $row (@$dbref) {
+  #($ipn, $sum_in, $sum_out, $sum_limit_in)=@$row  
+  my $ipn = $$row[0];
+  $db_sum_in{$ipn} = $$row[1];
+  $db_sum_out{$ipn} = $$row[2];
+  $db_sum_limit_in{$ipn} = $$row[3];
+}
+$sssh->finish;
+
+# process in-chain
+my @rules = $table->list_rules($client_in_chain);
+my @rules_mangle = $table_mangle->list_rules($client_in_chain);
+my $i = 0;
+foreach $r (@rules) {
+  my $rman = $rules_mangle[$i];
+  my $dest_ip = $$r{'destination'};
+  my $ipo = NetAddr::IP->new($dest_ip);
+  if (!$ipo) {
+    &dblog("Invalid ip address conversion $dest_ip");
+    next;
+  }
+  my $q_dest_ip = $ipo->numeric;
+
+  if (defined(my $sum_in = $db_sum_in{$q_dest_ip})) {
+    my $sum_limit_in = $db_sum_limit_in{$q_dest_ip};
+    my $bcnt = $$r{'bcnt'};
+    print "$i, $dest_ip, in: $bcnt\n";
+    if ($bcnt > 0) { # skip unnesessary updates
+      $sum_in += $bcnt;
+      $sum_limit_in -= $bcnt;
+      $sum_limit_in = 0 if ($sum_limit_in < 0);
+      # update table
+      $dbh_inet->do("UPDATE clients SET sum_in = $sum_in, sum_limit_in = $sum_limit_in WHERE ip = $q_dest_ip") or
+        &dblog("Stat in-rules sync error. Can't update db.");
+    }
+    # block/unblock client if necessary
+    my $jm = $$rman{'jump'};
+    $jm = '' unless defined $jm;
+    if ($sum_limit_in <= 0) {
+      if ($jm ne 'MARK') {
+	# block client
+	&dblog("Blocking user $dest_ip, rule $i.");
+	my %h_in_mangle_block = (
+	  'destination' => $dest_ip,
+	  'jump' => 'MARK',
+	  'set-mark' => '4',
+	);
+	$table_mangle->replace_entry($client_in_chain, \%h_in_mangle_block, $i) or
+	  &dblog("Block user error. Can't replace rule in mangle table.");
+      }
+    } else {
+      if ($jm eq 'MARK') {
+	# unblock client
+	&dblog("Unblocking user $dest_ip, rule $i.");
+	my %h_in_mangle_unblock = (
+	  'destination' => $dest_ip,
+	);
+	$table_mangle->replace_entry($client_in_chain, \%h_in_mangle_unblock, $i) or
+	  &dblog("Unblock user error. Can't replace rule in mangle table.");
+      }
+    }
+  } else {
+    &dblog("Stat in-rules sync. Rule #$i ip $dest_ip is not found in database. Deleting.");
+    $table->delete_num_entry($client_in_chain, $i) or
+      &dblog("Stat in-rules sync error. Can't delete rule from filter table.");
+    $table_mangle->delete_num_entry($client_in_chain, $i) or
+      &dblog("Stat in-rules sync error. Can't delete rule from mangle table.");
+    $i--;
+  }
+
+  $i++;
+}
+$table->zero_entries($client_in_chain) or &dblog("Stat in-rules sync. Can't reset counters.");
+
+# process out-chain
+@rules = $table->list_rules($client_out_chain);
+$i = 0;
+foreach $r (@rules) {
+  my $src_ip = $$r{'source'};
+  my $ipo = NetAddr::IP->new($src_ip);
+  if (!$ipo) {
+    &dblog("Invalid ip address conversion $src_ip");
+    next;
+  }
+  my $q_src_ip = $ipo->numeric;
+
+  if (defined(my $sum_out = $db_sum_out{$q_src_ip})) {
+    my $bcnt = $$r{'bcnt'};
+    print "$i, $src_ip, out: $bcnt\n";
+    if ($bcnt > 0) { # skip unnesessary updates
+      $sum_out += $bcnt;
+      # update table
+      $dbh_inet->do("UPDATE clients SET sum_out = $sum_out WHERE ip = $q_src_ip") or
+        &dblog("Stat out-rules sync error. Can't update db.");
+    }
+  } else {
+    &dblog("Stat out-rules sync. Rule #$i ip $src_ip is not found in database. Deleting.");
+    $table->delete_num_entry($client_out_chain, $i) or
+      &dblog("Stat out-rules sync error. Can't delete rule from filter table.");
+    $i--;
+  }
+
+  $i++;
+}
+$table->zero_entries($client_out_chain) or &dblog("Stat out-rules sync. Can't reset counters.");
+
+
+# commit changes to iptables
+if ($table->commit && $table_mangle->commit) {
+  # uptate sync flags
+  foreach (@commitlist) {
+    my $q_ip = $dbh_inet->quote($_);
+    $dbh_inet->do("UPDATE clients SET sync_fw = '0' WHERE ip = $q_ip");
+  }
+} else {
+  &dblog("Sync error. Can't commit to iptables. No changes saved.");
+}
+
+# update htb configuration / run traffile
+if ($syn_counter > 0) {
+  !system "$rctraffile" or &dblog("Can't update htb configuration.");
+}
+
+&dblog("FW syncronization finished.");
+$dbh_inet->disconnect;
+
+exit;
+
+
+# &dblog("msg");
+sub dblog {
+  my $q_msg = $dbh_inet->quote($agent_name.': '.shift);
+  $dbh_inet->do("INSERT INTO log_agents (time, msg) VALUES (NOW(), $q_msg)");
+}
+
+__DATA__

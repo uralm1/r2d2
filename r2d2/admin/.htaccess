@@ -1,0 +1,6 @@
+DirectoryIndex adm.cgi
+Options +ExecCGI
+AddHandler cgi-script .cgi
+RewriteEngine on
+RewriteRule ^rep\.cgi$ /rep.cgi
+#Require user admin@UWC.LOCAL admin2@UWC.LOCAL

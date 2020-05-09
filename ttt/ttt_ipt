@@ -1,0 +1,48 @@
+#!/usr/bin/perl
+
+# for test
+#iptables -N testchain
+#iptables -A testchain -s 1.2.3.4 -p tcp -j ACCEPT
+#iptables -X testchain
+
+use IPTables::IPv4;
+use warnings;
+
+my $table = IPTables::IPv4::init('filter');
+
+#@chains = $table->list_chains();
+#foreach (@chains) {
+#  print $_,"\n";
+#}
+
+$table->is_chain('testchain') or die "Add testchain!";
+
+my @rules = $table->list_rules('testchain');
+foreach $rhashref (@rules) {
+  my @rh = %{$rhashref};
+  print "@rh\n\n";
+}
+
+print "-------------------------------\n";
+my @aa = @{${$rules[2]}{'matches'}};
+print "@aa\n";
+
+print "-------------------------------\n";
+my %h1 = (
+  'destination' => '2.3.4.5',
+  'jump' => 'ACCEPT',
+);
+
+my %h2 = (
+  'source' => '2.3.4.5',
+  'matches' => ['mac'],
+  'mac-source' => '22:22:22:22:22:22',
+  'jump' => 'ACCEPT',
+);
+
+  my @z = %{\%h2};
+  print "@z\n\n";
+ @aa = @{$h2{'matches'}};
+print "@aa\n";
+#$table->append_entry('testchain', \%h1) or die;
+#$table->commit or die;
