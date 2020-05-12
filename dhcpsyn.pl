@@ -18,7 +18,7 @@ my $version = 'r2d2.dhcpsyn damaged brain v1.14.1';
 
 my $cfg;
 { # slurp config
-  open my $fh, '<', "$FindBin::Bin/r2d2.conf" or die "Can't read config file!\n";
+  open my $fh, '<', "$FindBin::Bin\\r2d2.conf" or die "Can't read config file!\n";
   local $/ = undef;
   $cfg = eval <$fh>;
   close $fh;

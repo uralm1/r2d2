@@ -5,10 +5,11 @@
 
 use strict;
 use warnings;
-use DBI;
-use NetAddr::IP;
-use Encode;
 use FindBin;
+#use lib $FindBin::Bin;
+use DBI;
+use NetAddr::IP::Lite;
+use Encode;
 #use Data::Dumper;
 use v5.12;
 
@@ -16,7 +17,7 @@ use v5.12;
 use Sys::RunAlone;
 
 my $agent_name = 'rtsyn';
-my $version = 'r2d2.rtsyn damaged brain v1.2.1';
+my $version = 'r2d2.rtsyn damaged brain v1.4';
 
 my $cfg;
 { # slurp config
@@ -28,7 +29,8 @@ my $cfg;
 die "Error found in config file.\n" if (!$cfg or ref($cfg) ne 'HASH');
 
 my $client_out_chain = 'pipe_out_inet_clients'; # mangle chain name
-my $rulefile = '/etc/rc.d/rc.firewall.clients';
+my $ruledir = '/var/r2d2';
+my $rulefile = "$ruledir/firewall.clients";
 my $iptables_path = '/usr/sbin/iptables';
 my $filelog = '/etc/r2d2/err.log';
 
@@ -37,25 +39,29 @@ my %rt_marks = (
   '1' => '-j MARK --set-mark 2', # beeline
 );
 
-my $dbh_inet;
-
-if (!($dbh_inet = DBI->connect("DBI:mysql:database=$cfg->{db};host=$cfg->{dbhost}", $cfg->{dbuser}, $cfg->{dbpass}))) {
-  die "Connection to database $cfg->{db} failed!\n";
+unless (-e $ruledir or mkdir $ruledir) {
+  die "Unable to create directory $ruledir.\n";
 }
+
+my $no_rulefile;
+$no_rulefile = 1 unless (-e $rulefile);
+
+my $dbh_inet = DBI->connect("DBI:mysql:database=$cfg->{db};host=$cfg->{dbhost}", $cfg->{dbuser}, $cfg->{dbpass}) or
+  die "Connection to database $cfg->{db} failed!\n";
 
 $dbh_inet->do("SET NAMES 'UTF8'");
 
-&dblog("ROUTER syncronization started ($version).");
+dblog("ROUTER syncronization started ($version).");
 
 ###
 # debug (iptables -t mangle -N testchain_out)
 #$client_out_chain = 'testchain_out';
-#$rulefile = 'rc.firewall2.clients';
+#$rulefile = 'firewall2.clients';
 
 # create rule dumps
 my @dump_m_out = `$iptables_path -t mangle -nvx --line-numbers -L $client_out_chain`;
 if ($?) {
-  &dblog("Error dumping rules $client_out_chain in mangle table!", 1);
+  dblog("Error dumping rules $client_out_chain in mangle table!", 1);
   die;
 }
 
@@ -67,14 +73,14 @@ my $syn_counter = 0;
 
 while (my ($dbip, $rt) = $s->fetchrow_array) {
   # update iptables rules here and reset sync flags
-  my $ipo = NetAddr::IP->new($dbip);
-  if (!$ipo) {
-    &dblog("Invalid ip address $dbip.", 1);
+  my $ipo = NetAddr::IP::Lite->new($dbip);
+  unless ($ipo) {
+    dblog("Invalid ip address $dbip.", 1);
     next;
   }
   my $ip = $ipo->addr;
 
-  &dblog("ROUTER updating iptables: $ip");
+  dblog("ROUTER updating iptables: $ip");
 
   my $failure = 0;
   # process out-rules in mangle table
@@ -86,17 +92,17 @@ while (my ($dbip, $rt) = $s->fetchrow_array) {
     # n pkt bytes      all -- * * 10.15.0.2 0.0.0.0/0
     if (/^\s*(\d+)\s+ \S+\s+ \S+\s+ \S*\s+ \S+\s+ \-\-\s+ \S+\s+ \S+\s+ \Q$ip\E\s+ \S+\s+ .*/x) {
       if (!$ff) {
-        &dblog("Marking-rules sync. Replacing rule #$1 ip $ip in mangle table.");
+        dblog("Marking-rules sync. Replacing rule #$1 ip $ip in mangle table.");
         $ff = 1;
 	if (system("$iptables_path -t mangle -R $client_out_chain $ri -s $ip $rt_marks{$rt}")) {
 	  $failure = 1;
-          &dblog("Marking-rules sync error. Can't replace rule in mangle table.", 1);
+          dblog("Marking-rules sync error. Can't replace rule in mangle table.", 1);
 	}
       } else {
-        &dblog("Marking-rules sync. Deleting duplicate rule #$1 ip $ip in mangle table.");
+        dblog("Marking-rules sync. Deleting duplicate rule #$1 ip $ip in mangle table.");
 	if (system("$iptables_path -t mangle -D $client_out_chain $ri")) {
 	  $failure = 1;
-          &dblog("Marking-rules sync error. Can't delete rule from mangle table.", 1);
+          dblog("Marking-rules sync error. Can't delete rule from mangle table.", 1);
 	} else {
           $ri--;
           $dump_m_out[$i] = '';
@@ -106,10 +112,10 @@ while (my ($dbip, $rt) = $s->fetchrow_array) {
     $ri++ if $_;
   }
   if (!$ff) { # if not found, add rule
-    &dblog("Marking-rules sync. Appending rule ip $ip to mangle table.");
+    dblog("Marking-rules sync. Appending rule ip $ip to mangle table.");
     if (system("$iptables_path -t mangle -A $client_out_chain -s $ip $rt_marks{$rt}")) {
       $failure = 1;
-      &dblog("Marking-rules sync error. Can't append rule to mangle table.", 1);
+      dblog("Marking-rules sync error. Can't append rule to mangle table.", 1);
     }
   }
 
@@ -121,7 +127,6 @@ while (my ($dbip, $rt) = $s->fetchrow_array) {
 
   $syn_counter++;
 }
-$s->finish;
 
 
 # clean up unused/deleted ip-s
@@ -134,7 +139,6 @@ foreach (@$dbref) {
   #($ipn)=@$_;
   $dbips{$$_[0]} = 1;
 }
-$sssh->finish;
 
 # process marking-chain
 my $ri = 1; # actual rule index
@@ -144,15 +148,15 @@ for (my $i = 2; $i < @dump_m_out; $i++) { # skip first 2 lines
   # n pkt bytes      all -- * * 10.15.0.2 0.0.0.0/0
   if (/^\s*(\d+)\s+ \S+\s+ \S+\s+ \S*\s+ \S+\s+ \-\-\s+ \S+\s+ \S+\s+ (\S+)\s+ \S+\s+ .*/x) {
     #print "process mark-chain rule $1 src $2\n";
-    my $ipo = NetAddr::IP->new($2);
-    if (!$ipo) {
-      &dblog("Invalid ip address conversion $2", 1);
+    my $ipo = NetAddr::IP::Lite->new($2);
+    unless ($ipo) {
+      dblog("Invalid ip address conversion $2", 1);
       next;
     }
     if (!defined($dbips{$ipo->numeric})) { # not in database
-      &dblog("Marking out-rules sync. Rule #$ri ip $2 is not found in database. Deleting.");
+      dblog("Marking out-rules sync. Rule #$ri ip $2 is not found in database. Deleting.");
       if (system("$iptables_path -t mangle -D $client_out_chain $ri")) {
-	&dblog("Marking out-rules sync error. Can't delete rule from mangle table.", 1);
+	dblog("Marking out-rules sync error. Can't delete rule from mangle table.", 1);
       } else {
         $ri--;
         $syn_counter++; # force script-files update
@@ -163,22 +167,23 @@ for (my $i = 2; $i < @dump_m_out; $i++) { # skip first 2 lines
 }
 
 
-if ($syn_counter > 0) {
+if ($syn_counter > 0 or $no_rulefile) {
   # write rule-file
-  &dblog("Updating rulefile: $rulefile");
+  dblog("Updating rulefile: $rulefile");
   if (!open(RULEFILE, '>', $rulefile)) {
-    &dblog("Can't create rule-file: $!");
+    dblog("Can't create rule-file: $!");
     die;
   }
   print RULEFILE "# WARNING: this is autogenerated file, don't run or change it!\n\n";
+  print RULEFILE "$iptables_path -t mangle -F $client_out_chain\n\n";
 
   $s = $dbh_inet->prepare("SELECT login, clients.desc, ip, rt \
 FROM clients ORDER BY ip ASC");
   $s->execute;
   while (my ($login, $desc, $dbip, $rt) = $s->fetchrow_array) {
-    my $ipo = NetAddr::IP->new($dbip);
-    if (!$ipo) {
-      &dblog("Invalid ip address $dbip, $login");
+    my $ipo = NetAddr::IP::Lite->new($dbip);
+    unless ($ipo) {
+      dblog("Invalid ip address $dbip, $login");
       next;
     }
     my $ip = $ipo->addr;
@@ -190,17 +195,20 @@ FROM clients ORDER BY ip ASC");
     print RULEFILE "$iptables_path -t mangle -A $client_out_chain -s $ip $rt_marks{$rt}\n";
     print RULEFILE "\n";
   }
-  $s->finish;
   close RULEFILE;
 }
 
-&dblog("ROUTER syncronization finished.");
+if ($no_rulefile) {
+  !system "sh $rulefile" or dblog("Can't activate rulefile configuration.");
+}
+
+dblog("ROUTER syncronization finished.");
 $dbh_inet->disconnect;
 
 exit;
 
 
-# &dblog("msg"); or &dblog("msg", 1);
+# dblog("msg"); or dblog("msg", 1);
 sub dblog {
   my $msg = shift;
   my $f_log = shift;
@@ -214,7 +222,7 @@ msg = $q_msg");
 
   if ($f_log) {
     if (!open(FLOGFILE, '>>', $filelog)) {
-      &dblog("Can't open logfile: $!");
+      dblog("Can't open logfile: $!");
     } else {
       $msg = localtime().' '.$msg."\n";
       print FLOGFILE $msg;
@@ -223,4 +231,4 @@ msg = $q_msg");
   }
 }
 
-__DATA__
+__END__

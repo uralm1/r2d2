@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # fw
 #iptables --line-numbers -nvL testchain_in
