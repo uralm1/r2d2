@@ -8,18 +8,24 @@ use warnings;
 use DBI;
 use NetAddr::IP;
 use Encode;
+use FindBin;
+#use Data::Dumper;
+use v5.12;
 
 # this looks kinda experimental
 use Sys::RunAlone;
 
 my $agent_name = 'rtsyn';
-my $version = 'r2d2.rtsyn damaged brain v1.2';
+my $version = 'r2d2.rtsyn damaged brain v1.2.1';
 
-# configure credentials here
-my $dbhost = 'localhost';
-my $dbdb = 'inet';
-my $dbuser = 'user';
-my $dbpass = 'pass';
+my $cfg;
+{ # slurp config
+  open my $fh, '<', "$FindBin::Bin/r2d2.conf" or die "Can't read config file!\n";
+  local $/ = undef;
+  $cfg = eval <$fh>;
+  close $fh;
+}
+die "Error found in config file.\n" if (!$cfg or ref($cfg) ne 'HASH');
 
 my $client_out_chain = 'pipe_out_inet_clients'; # mangle chain name
 my $rulefile = '/etc/rc.d/rc.firewall.clients';
@@ -33,8 +39,8 @@ my %rt_marks = (
 
 my $dbh_inet;
 
-if (!($dbh_inet = DBI->connect("DBI:mysql:database=$dbdb;host=$dbhost", $dbuser, $dbpass))) {
-  die "Connection to database $dbdb failed!\n";
+if (!($dbh_inet = DBI->connect("DBI:mysql:database=$cfg->{db};host=$cfg->{dbhost}", $cfg->{dbuser}, $cfg->{dbpass}))) {
+  die "Connection to database $cfg->{db} failed!\n";
 }
 
 $dbh_inet->do("SET NAMES 'UTF8'");

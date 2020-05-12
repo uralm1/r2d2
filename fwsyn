@@ -11,27 +11,25 @@ use NetAddr::MAC;
 use Encode;
 use Net::LDAP;
 use Net::SMTP;
+use FindBin;
+#use Data::Dumper;
+use v5.12;
 
 # this looks kinda experimental
 use Sys::RunAlone;
 
 my $agent_name = 'fwsyn';
-my $version = 'r2d2.fwsyn stars v2.12';
+my $version = 'r2d2.fwsyn stars v2.12.1';
 
-# configure credentials here
-my $dbhost = 'localhost';
-my $dbdb = 'inet';
-my $dbuser = 'user';
-my $dbpass = 'pass';
+my $cfg;
+{ # slurp config
+  open my $fh, '<', "$FindBin::Bin/r2d2.conf" or die "Can't read config file!\n";
+  local $/ = undef;
+  $cfg = eval <$fh>;
+  close $fh;
+}
+die "Error found in config file.\n" if (!$cfg or ref($cfg) ne 'HASH');
 
-my @ldapservers = ('ldap://srv1', 'ldap://srv2');
-my $ldapuser = 'ldapuser';
-my $ldappass = 'ldappass';
-#my $ldapbase = 'OU=UWC Users,DC=uwc,DC=local';
-my $ldapbase = 'DC=uwc,DC=local';
-
-my $smtphost = 'mail.testdomain';
-my $mailfrom = 'r2d2@testdomain';
 my $mail_templates_dir = '/etc/r2d2/'; # ending slash required
 
 my $client_in_chain = 'pipe_in_inet_clients'; # mangle and filter
@@ -48,8 +46,8 @@ my $filelog = '/etc/r2d2/err.log';
 
 my $dbh_inet;
 
-if (!($dbh_inet = DBI->connect("DBI:mysql:database=$dbdb;host=$dbhost", $dbuser, $dbpass))) {
-  die "Connection to database $dbdb failed!\n";
+if (!($dbh_inet = DBI->connect("DBI:mysql:database=$cfg->{db};host=$cfg->{dbhost}", $cfg->{dbuser}, $cfg->{dbpass}))) {
+  die "Connection to database $cfg->{db} failed!\n";
 }
 
 $dbh_inet->do("SET NAMES 'UTF8'");
@@ -632,12 +630,12 @@ sub send_mail_notification {
   }
   close TPLFILE;
   # send mail
-  my $smtp = Net::SMTP->new($smtphost, Hello => 'fw.uwc.local', Timeout => 10, Debug => 0);
+  my $smtp = Net::SMTP->new($cfg->{smtphost}, Hello => 'fw.uwc.local', Timeout => 10, Debug => 0);
   unless ($smtp) {
     &dblog("Mail error. Create smtp object failed.");
     return undef;
   }
-  unless ($smtp->mail($mailfrom)) {
+  unless ($smtp->mail($cfg->{mailfrom})) {
     &dblog("Mail error. Mail command failed.");
     $smtp->quit;
     return undef;
@@ -662,20 +660,20 @@ sub send_mail_notification {
 sub lookup_ad {
   my $l = shift;
 
-  my $ldap = Net::LDAP->new(\@ldapservers, port => 389, timeout => 3);
+  my $ldap = Net::LDAP->new($cfg->{ldapservers}, port => 389, timeout => 3);
   unless ($ldap) {
     &dblog("Ldap connection error. Create object failed.");
     return undef;
   }
 
-  my $mesg = $ldap->bind($ldapuser, password => $ldappass, version => 3);
+  my $mesg = $ldap->bind($cfg->{ldapuser}, password => $cfg->{ldappass}, version => 3);
   if ($mesg->code) {
     &dblog("Ldap bind error: " . $mesg->error);
     return undef;
   }
 
   my $filter = "(&(objectClass=person)(sAMAccountName=$l))";
-  my $res = $ldap->search(base => $ldapbase, filter => $filter,
+  my $res = $ldap->search(base => $cfg->{ldapbase}, filter => $filter,
     attrs => ['cn','sn','givenname','mail']);
   if ($res->code) {
     &dblog("Ldap search error: " . $res->error);

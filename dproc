@@ -5,20 +5,27 @@
 #
 # usage: dproc --daily / --monthly / --yearly
 
+use strict;
 use warnings;
 use DBI;
+use FindBin;
+#use Data::Dumper;
+use v5.12;
 
 # this looks kinda experimental
 ###use Sys::RunAlone;
 
 my $agent_name = 'dproc';
-my $version = 'r2d2.dproc damaged brain v1.8';
+my $version = 'r2d2.dproc damaged brain v1.8.1';
 
-# configure credentials here
-my $dbhost = 'localhost';
-my $dbdb = 'inet';
-my $dbuser = 'user';
-my $dbpass = 'pass';
+my $cfg;
+{ # slurp config
+  open my $fh, '<', "$FindBin::Bin/r2d2.conf" or die "Can't read config file!\n";
+  local $/ = undef;
+  $cfg = eval <$fh>;
+  close $fh;
+}
+die "Error found in config file.\n" if (!$cfg or ref($cfg) ne 'HASH');
 
 my $dbh_inet;
 my $procstr;
@@ -97,8 +104,8 @@ sub do_yearly {
 sub startup {
   $procstr = shift;
 
-  if (!($dbh_inet = DBI->connect("DBI:mysql:database=$dbdb;host=$dbhost", $dbuser, $dbpass))) {
-    die "Connection to database $dbdb failed!\n";
+  if (!($dbh_inet = DBI->connect("DBI:mysql:database=$cfg->{db};host=$cfg->{dbhost}", $cfg->{dbuser}, $cfg->{dbpass}))) {
+    die "Connection to database $cfg->{db} failed!\n";
   }
   $dbh_inet->do("SET NAMES 'UTF8'");
 

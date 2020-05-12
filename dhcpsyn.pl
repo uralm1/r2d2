@@ -3,20 +3,27 @@
 # Windows DHCP syncronizer
 # author: Ural Khassanov, 2013
 
+use strict;
+use warnings;
 use DBI;
 use Encode;
 use NetAddr::IP;
 use NetAddr::MAC;
-use warnings;
+use FindBin;
+#use Data::Dumper;
+use v5.12;
 
 my $agent_name = 'dhcpsyn';
-my $version = 'r2d2.dhcpsyn damaged brain v1.14';
+my $version = 'r2d2.dhcpsyn damaged brain v1.14.1';
 
-# configure credentials here
-my $dbhost = 'localhost';
-my $dbdb = 'inet';
-my $dbuser = 'user';
-my $dbpass = 'pass';
+my $cfg;
+{ # slurp config
+  open my $fh, '<', "$FindBin::Bin/r2d2.conf" or die "Can't read config file!\n";
+  local $/ = undef;
+  $cfg = eval <$fh>;
+  close $fh;
+}
+die "Error found in config file.\n" if (!$cfg or ref($cfg) ne 'HASH');
 
 my $dhcpfile = 'reservedip.cmd';
 my @dhcpservers = ('10.14.0.1', '10.14.0.2');
@@ -25,8 +32,8 @@ my $dhcpscope = '10.0.0.0';
 
 my $dbh_inet;
 
-if (!($dbh_inet = DBI->connect("DBI:mysql:database=$dbdb;host=$dbhost", $dbuser, $dbpass))) {
-  die "Connection to database $dbdb failed!\n";
+if (!($dbh_inet = DBI->connect("DBI:mysql:database=$cfg->{db};host=$cfg->{dbhost}", $cfg->{dbuser}, $cfg->{dbpass}))) {
+  die "Connection to database $cfg->{db} failed!\n";
 }
 
 $dbh_inet->do("SET NAMES 'UTF8'");
