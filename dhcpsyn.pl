@@ -43,7 +43,7 @@ $s->execute;
 my @dumps;
 # create dumps if update requested
 if ($s->rows > 0) {
-  foreach $ds (@{$cfg->{dhcpservers}}) {
+  foreach my $ds (@{$cfg->{dhcpservers}}) {
     my @dump = `netsh dhcp server $ds scope $dhcpscope dump`;
     if (!$?) {
       push @dumps, \@dump;
@@ -54,7 +54,7 @@ if ($s->rows > 0) {
   }
 }
 
-###foreach $l (@{$dumps[1]}) { print "$l"; }
+###foreach my $l (@{$dumps[1]}) { print "$l"; }
 
 my $syn_counter = 0;
 
@@ -78,9 +78,9 @@ while (my ($login, $dbip, $dbmac, $no_dhcp) = $s->fetchrow_array) {
 
   my $i = 0;
   my $failure = 0;
-  foreach $ds (@{$cfg->{dhcpservers}}) {
+  foreach my $ds (@{$cfg->{dhcpservers}}) {
     # delete old reservedip or reservedmac
-    foreach $l (@{$dumps[$i]}) {
+    foreach my $l (@{$dumps[$i]}) {
       if ($l =~ /^dhcp server \Q$ds\E scope \Q$dhcpscope\E add reservedip \Q$ip\E (\w+)\s/i) {
         dblog("Deleting found reservedip $ip, mac $1 on dhcp server $ds.");
         !system("netsh dhcp server $ds scope $dhcpscope delete reservedip $ip $1") or
@@ -115,7 +115,7 @@ while (my ($login, $dbip, $dbmac, $no_dhcp) = $s->fetchrow_array) {
 $s->finish;
 
 # write dhcp-file
-if ($syn_counter > 0) {
+if ($syn_counter > 0 || !-e $dhcpfile) {
   dblog("Updating dhcp-file: $dhcpfile");
   if (!open(DHCPFILE, '>', $dhcpfile)) {
     dblog("Can't create dhcp-file!");
