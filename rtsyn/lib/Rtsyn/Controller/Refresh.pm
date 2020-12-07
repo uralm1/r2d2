@@ -1,0 +1,55 @@
+package Rtsyn::Controller::Refresh;
+use Mojo::Base 'Mojolicious::Controller';
+
+sub refresh {
+  my $self = shift;
+  my $id = $self->stash('id');
+  return $self->render(text=>'Bad parameter', status=>503) unless (defined($id) && $id =~ /^\d+$/);
+
+  $self->render_later;
+
+  # request client record, continue in cb
+  $self->ua->get($self->config('master_url')."/client/$id" =>
+    sub {
+      my ($ua, $tx) = @_;
+      my $res;
+      my $e = eval {
+	$res = $tx->result;
+      };
+      if (defined $e) {
+        if ($res->is_success) {
+	  my $v = $res->json;
+	  if ($v) {
+	    # add or update
+            # actual data returned
+	    my $e = eval { $self->rt_add_replace($v) };
+	    if (defined $e) {
+              return $self->render(text => $e);
+	    } else {
+              return $self->render(text=>$@, status=>503);
+	    }
+
+	  } else {
+            return $self->render(text=>"Client response json error", status=>503);
+	  }
+	} else {
+	  if ($res->code == 404) {
+	    # delete not found client $id
+	    my $e = eval { $self->rt_delete($id) };
+	    if (defined $e) {
+              return $self->render(text => $e);
+	    } else {
+              return $self->render(text=>$@, status=>503);
+	    }
+	  }
+          return $self->render(text=>"Client request error: ".$res->body, status=>503) if $res->is_error;
+	}
+      } else {
+        return $self->render(text=>"Connection to master failed: $@", status=>503);
+      }
+    }
+  );
+}
+
+
+1;

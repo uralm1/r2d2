@@ -1,0 +1,14 @@
+requires 'EV';
+requires 'Mojolicious', '8.09';
+requires 'Mojo::mysql', '1.04';
+requires 'Algorithm::Cron', '0.10';
+requires 'ExtUtils::MakeMaker::CPANfile';
+
+on 'configure' => sub {
+  requires 'ExtUtils::MakeMaker';
+  requires 'ExtUtils::MakeMaker::CPANfile';
+};
+
+on 'test' => sub {
+  requires 'Test::More';
+};

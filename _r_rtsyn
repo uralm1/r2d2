@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cd rtsyn
+sudo morbo script/rtsyn -l 'http://*:3001'

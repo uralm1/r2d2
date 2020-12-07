@@ -1,0 +1,62 @@
+openapi: 3.0.0
+info:
+  version: '3.00'
+  title: agent api
+  description: 'API модуля agent'
+paths:
+  /subsys:
+    get:
+      summary: Имя модуля агента и версия
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: rtsyn@wispa (3.00)
+            application/json:
+              schema:
+                type: object
+                properties:
+                  subsys:
+                    type: string
+                    example: rtsyn@wispa
+                  version:
+                    type: string
+                    example: '3.00'
+
+  /refresh/{id}:
+    post:
+      summary: refresh client
+      parameters: 
+        - name: id
+          in: path
+          required: true
+          description: client id
+          schema:
+            type: integer
+            example: 11
+            
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'ADDED'
+                description: client status on agent - NONE/ADDED/REPLACED/DELETED
+        '503':
+          description: Bad id, connection problems, etc
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/uralm1/agent/3.00
