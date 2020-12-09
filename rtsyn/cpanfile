@@ -1,5 +1,6 @@
 requires 'EV';
 requires 'Mojolicious', '8.09';
+requires 'Cpanel::JSON::XS', '4.10';
 requires 'Mojo::mysql', '1.04';
 requires 'Algorithm::Cron', '0.10';
 requires 'ExtUtils::MakeMaker::CPANfile';

@@ -1,0 +1,7 @@
+#!/bin/bash
+
+docker run -d --name r2d2-master \
+  -v /srv/r2d2-master/master.conf:/opt/master/master.conf:ro \
+  -e TZ=Asia/Yekaterinburg \
+  -p 2271:2271 \
+  uralm1/r2d2-master

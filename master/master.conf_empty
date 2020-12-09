@@ -1,0 +1,31 @@
+{
+  inet_db_conn => 'mysql://user:pass@srv/inet',
+
+  # db check schedule
+  check_schedule => '*/2 * * * *',
+
+  # stats rotation
+  # set to undef to disable scheduling
+  stat_schedules => {
+    daily => '1 0 * * *',
+    monthly => '11 0 1 * *',
+    yearly => '5 0 1 1 *',
+  },
+
+  profiles => {
+    1 => {
+      nick => 'plk',
+      agents => [
+        { type => 'rtsyn', url => 'http://localhost:3001' },
+        #{ type => 'dhcpsyn', url => 'http://localhost:3002' },
+        #{ type => 'fwsyn', url => 'http://localhost:3003' },
+      ],
+    },
+    2 => {
+      nick => 'atcsev',
+      agents => [
+      ],
+    },
+  },
+
+}

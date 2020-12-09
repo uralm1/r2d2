@@ -1,0 +1,6 @@
+#!/bin/bash
+
+docker run -d --name r2d2-master-cron \
+  -v /srv/r2d2-master/master.conf:/opt/master/master.conf:ro \
+  -e TZ=Asia/Yekaterinburg \
+  uralm1/r2d2-master sh -c "script/check_db_hosts && script/master cron -m production"
