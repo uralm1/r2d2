@@ -1,6 +1,7 @@
 #!/bin/bash
 
 docker run -d --name r2d2-master \
+  -h master-cont \
   -v /srv/r2d2-master/master.conf:/opt/master/master.conf:ro \
   -e TZ=Asia/Yekaterinburg \
   -p 2271:2271 \

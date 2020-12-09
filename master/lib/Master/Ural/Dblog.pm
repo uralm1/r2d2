@@ -3,7 +3,7 @@ use Mojo::Base -base;
 
 use Carp;
 use Mojo::mysql;
-#use Mojo::IOLoop;
+use Mojo::IOLoop;
 
 # Ural::Dblog->new($db, subsys=>'master');
 sub new {
@@ -35,7 +35,7 @@ sub l {
       carp "Log record ($subsys) hasn't been inserted." if $err;
     }
   );
-  #Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+  Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
 }
 
 

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+#morbo script/master -l 'http://*:2271'
+#script/master daemon -l 'http://*:2271'
+script/master prefork -l 'http://*:2271'

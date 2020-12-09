@@ -14,6 +14,6 @@ do
   sleep 2
 done
 
-[ -e /opt/master/run/hypnotoad.pid ] && { echo "Removing stalled hypnotoad.pid file."; rm -f /opt/master/run/hypnotoad.pid; }
+[ -e /opt/master/run/master.pid ] && { echo "Removing stalled master.pid file."; rm -f /opt/master/run/master.pid; }
 
 echo "All OK"

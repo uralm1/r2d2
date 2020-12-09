@@ -1,5 +1,5 @@
 {
-  master_url => 'http://localhost:3000',
+  master_url => 'http://localhost:2271',
 
   iptables_path => '/usr/sbin/iptables',
   iptables_restore_path => '/usr/sbin/iptables-restore',
