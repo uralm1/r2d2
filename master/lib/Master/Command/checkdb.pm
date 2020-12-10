@@ -32,13 +32,13 @@ WHERE (s.sync_rt = 1 OR s.sync_fw = 1 OR s.sync_dhcp = 1) AND clients.login = s.
               my $agent_type = $agent->{type};
               my $agent_url = $agent->{url};
               if ($agent_type eq 'rtsyn' && $n->{sync_rt}) {
-                $app->log->info("Client id $id refreshing $agent_type\@$agent_url");
+                $app->log->info("Client id $id refreshing $agent_type\@[$agent_url]");
                 rtsyn_refresh_id($app, $dbconn, $id, $agent_url);
               } elsif ($agent_type eq 'dhcpsyn' && $n->{sync_dhcp}) {
-                $app->log->info("Client id $id refreshing $agent_type\@$agent_url");
+                $app->log->info("Client id $id refreshing $agent_type\@[$agent_url]");
                 #TODO
               } elsif ($agent_type eq 'fwsyn' && $n->{sync_fw}) {
-                $app->log->info("Client id $id refreshing $agent_type\@$agent_url");
+                $app->log->info("Client id $id refreshing $agent_type\@[$agent_url]");
                 #TODO
               } else {
                 $app->log->warn("Client id $id refresh unsupported agent!");

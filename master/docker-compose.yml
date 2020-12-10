@@ -1,0 +1,37 @@
+version: "3.7"
+services:
+  master:
+    image: uralm1/r2d2-master
+    container_name: r2d2-master
+    hostname: r2d2-master
+    domainname: uwc.local
+    networks:
+      uwcnet:
+        ipv4_address: 10.14.72.5
+      default:
+    dns:
+      - 10.14.0.2
+      - 10.14.0.4
+    volumes:
+      - /srv/r2d2-master/master.conf:/opt/master/master.conf:ro
+    environment:
+      - TZ=Asia/Yekaterinburg
+    restart: unless-stopped
+
+  master-cron:
+    image: uralm1/r2d2-master
+    container_name: r2d2-master-cron
+    volumes:
+      - /srv/r2d2-master/master.conf:/opt/master/master.conf:ro
+    environment:
+      - TZ=Asia/Yekaterinburg
+    command: sh -c "script/check_db_hosts && script/master cron"
+    depends_on:
+      - master
+    restart: unless-stopped
+
+networks:
+  uwcnet:
+    external:
+      name: uwcnet
+
