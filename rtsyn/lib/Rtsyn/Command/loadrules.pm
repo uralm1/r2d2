@@ -3,7 +3,7 @@ use Mojo::Base 'Mojolicious::Command';
 
 use Carp;
 
-has description => '* Reload all rules from master like on restart';
+has description => '* Reload all rules from head like on restart';
 has usage => "Usage: APPLICATION loadrules\n";
 
 sub run {

@@ -1,11 +1,13 @@
-package Rtsyn;
+package Head;
 use Mojo::Base 'Mojolicious';
 
-use Mojo::File qw(path);
-use Rtsyn::Command::loadrules;
-use Rtsyn::Command::printrules;
+use Head::Command::statprocess;
+use Head::Command::cron;
+use Head::Command::cleanlog;
+use Head::Command::refresh;
+use Head::Command::checkdb;
+use Head::Ural::Dblog;
 
-use Carp;
 use Sys::Hostname;
 
 our $VERSION = '2.50';
@@ -16,10 +18,7 @@ sub startup {
 
   # Load configuration from hash returned by config file
   my $config = $self->plugin('Config', { default => {
-    secrets => ['94ea91356cc026fa947ba8475dae8573b756c249'],
-    iptables_path => '/usr/sbin/iptables',
-    iptables_restore_path => '/usr/sbin/iptables-restore',
-    client_out_chain => 'pipe_out_inet_clients',
+    secrets => ['6ac63578bb604df4865ae802de3098b80c082740'],
   }});
   delete $self->defaults->{config}; # safety - not to pass passwords to stashes
 
@@ -31,14 +30,17 @@ sub startup {
   # 1Mb max request
   $self->max_request_size(1048576);
 
-  $self->plugin('Rtsyn::Plugin::Utils');
-  $self->plugin('Rtsyn::Plugin::Loadrules');
-  $self->plugin('Rtsyn::Plugin::Rtops');
-  $self->commands->namespaces(['Mojolicious::Command', 'Rtsyn::Command']);
+  $self->plugin('Head::Plugin::Utils');
+  $self->commands->namespaces(['Mojolicious::Command', 'Head::Command']);
 
   my $subsys = $self->moniker.'@'.hostname;
   $self->defaults(subsys => $subsys);
   $self->defaults(version => $VERSION);
+
+  $self->defaults(dblog => Head::Ural::Dblog->new($self->mysql_inet->db, subsys=>$subsys));
+  unless ($self->defaults('dblog')) {
+    die 'Fatal: Database logger creation failure!';
+  }
 
   # use text/plain in most responses
   $self->renderer->default_format('txt');
@@ -50,25 +52,19 @@ sub startup {
   # this should run only in server, not with commands
   $self->hook(before_server_start => sub {
     my ($server, $app) = @_;
-    
+
     # log startup
-    $app->rlog("Rtsyn agent daemon ($VERSION) starting.");
-
-    # load rules on startup
-    $app->rlog("Loading and activating clients rules on agent startup");
-    unless ($app->load_rules) {
-      $app->rlog("Updating rules failed!");
-      # TODO reschedule this with timer to repeat later...
-    }
-
+    $app->defaults('dblog')->l(info=>"Head of R2D2 ($VERSION) starting.");
   });
 
   # Router
   my $r = $self->routes;
 
   $r->get('/subsys')->to('utils#subsys');
+  $r->get('/clients')->to('clients#clients');
+  $r->get('/client/#id')->to('clients#client');
 
-  $r->post('/refresh/#id')->to('refresh#refresh');
+  $r->post('/log/#rsubsys' => {rsubsys => 'none'})->to('log#log');
 }
 
 1;

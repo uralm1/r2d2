@@ -4,7 +4,7 @@
 
 DAYS_CA=5475
 DAYS=1825
-SERVERS=( r2d2-master localhost )
+SERVERS=( r2d2-head localhost )
 IPS=( 10.14.72.5 10.15.0.31 )
 
 # gen CA key (give a password)

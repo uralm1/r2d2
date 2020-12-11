@@ -1,0 +1,19 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use Mojo::File qw(curfile);
+use lib curfile->dirname->sibling('lib')->to_string;
+
+use Mojolicious::Plugin::Config;
+my $c = Mojolicious::Plugin::Config->new->load(
+  curfile->dirname->sibling('head.conf')->to_string
+);
+# verify = SSL_VERIFY_PEER (0x01) & SSL_VERIFY_FAIL_IF_NO_PEER_CERT (0x02)
+my $sp = "?cert=$c->{local_cert}&key=$c->{local_key}&ca=$c->{ca}&verify=0x03";
+
+use Mojolicious::Commands;
+
+# Start command line interface for application
+Mojolicious::Commands->start_app('Head', 'prefork', '-l', 'https://*:2271'.$sp, '-P', '/opt/head/run/head.pid');

@@ -9,7 +9,7 @@ sub refresh {
   $self->render_later;
 
   # request client record, continue in cb
-  $self->ua->get($self->config('master_url')."/client/$id" =>
+  $self->ua->get($self->config('head_url')."/client/$id" =>
     sub {
       my ($ua, $tx) = @_;
       my $res;
@@ -45,7 +45,7 @@ sub refresh {
           return $self->render(text=>"Client request error: ".$res->body, status=>503) if $res->is_error;
 	}
       } else {
-        return $self->render(text=>"Connection to master failed: $@", status=>503);
+        return $self->render(text=>"Connection to head failed: $@", status=>503);
       }
     }
   );

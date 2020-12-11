@@ -1,6 +1,6 @@
 #!/bin/bash
 
 # actual apis are stored in the swaggerhub:
-curl https://api.swaggerhub.com/apis/uralm1/master/3.00/swagger.yaml -o api-master.yaml
+curl https://api.swaggerhub.com/apis/uralm1/head/3.00/swagger.yaml -o api-head.yaml
 curl https://api.swaggerhub.com/apis/uralm1/agent/3.00/swagger.yaml -o api-agent.yaml
 

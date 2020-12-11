@@ -14,7 +14,7 @@ sub register {
     my ($self, $m) = @_;
     $self->log->info($m);
 
-    my $url = $self->config('master_url').'/log/'.$self->stash('subsys');
+    my $url = $self->config('head_url').'/log/'.$self->stash('subsys');
     $self->ua->post($url => $m =>
       sub {
 	my ($ua, $tx) = @_;

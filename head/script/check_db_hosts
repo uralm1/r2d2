@@ -1,0 +1,19 @@
+#!/bin/sh
+
+ip1=beko.uwc.local
+
+echo "System startup precheck"
+echo "Waiting for $ip1 goes online..."
+for cc in `seq 90`
+do
+  if ping -c 1 $ip1 &>/dev/null
+  then
+    break
+  fi
+  #echo -n "$cc "
+  sleep 2
+done
+
+[ -e /opt/head/run/head.pid ] && { echo "Removing stalled head.pid file."; rm -f /opt/head/run/head.pid; }
+
+echo "All OK"

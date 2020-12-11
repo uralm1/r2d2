@@ -1,9 +1,9 @@
-package Master::Command::testtt;
+package Head::Command::testtt;
 use Mojo::Base 'Mojolicious::Command';
 
 use Carp;
 use Mojo::mysql;
-use Master::Ural::Dblog;
+use Head::Ural::Dblog;
 
 has description => '* Testtt';
 has usage => "Usage: APPLICATION testtt\n";

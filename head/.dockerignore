@@ -1,0 +1,7 @@
+Makefile
+.gitattributes
+.gitignore
+_b
+_r_cron
+_r_head
+_d_head

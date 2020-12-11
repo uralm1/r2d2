@@ -18,7 +18,7 @@ sub register {
 
     my $res;
     my $e = eval {
-      my $tx = $self->ua->get($self->config('master_url').'/clients' => {Accept => 'application/json'});
+      my $tx = $self->ua->get($self->config('head_url').'/clients' => {Accept => 'application/json'});
       $res = $tx->result;
     };
     if (defined $e) {
@@ -65,7 +65,7 @@ sub register {
         $self->log->error("${ftitle}Clients request error: ".$res->body) if $res->is_error;
       }
     } else {
-      $self->log->error("${ftitle}Connection to master failed: $@");
+      $self->log->error("${ftitle}Connection to head failed: $@");
     }
     return 0; #error
   });
