@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# original from https://docs.docker.com/engine/security/https/
+
+DAYS_CA=5475
+DAYS=1825
+SERVERS=( r2d2-master localhost )
+IPS=( 10.14.72.5 10.15.0.31 )
+
+# gen CA key (give a password)
+#openssl genrsa -aes256 -out ca-key.pem 4096
+#openssl req -new -x509 -days $DAYS_CA -key ca-key.pem -sha256 -out ca.pem
+#openssl x509 -in ca.pem -text -noout > ca.txt
+#exit 0
+
+# servers
+index=0
+for s in "${SERVERS[@]}"; do
+  openssl genrsa -out $s-key.pem 4096
+  openssl req -subj "/CN=$s" -sha256 -new -key $s-key.pem -out $s.csr
+
+  echo subjectAltName = DNS:$s.uwc.local,IP:${IPS[$index]} > extfile.cnf
+  echo extendedKeyUsage = serverAuth, clientAuth >> extfile.cnf
+
+  openssl x509 -req -days $DAYS -sha256 -in $s.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out $s-cert.pem -extfile extfile.cnf
+
+  openssl x509 -in $s-cert.pem -text -noout > $s-cert.txt
+
+  let "index = $index + 1"
+done
+
+###
+rm -v *.csr *.cnf
+
+# view cert details
+#openssl x509 -in cert.pem -text

@@ -1,4 +1,8 @@
 {
+  local_cert => '../cert/localhost-cert.pem',
+  local_key => '../cert/localhost-key.pem',
+  ca => '../cert/ca.pem',
+
   inet_db_conn => 'mysql://user:pass@srv/inet',
 
   # db check schedule
@@ -16,9 +20,9 @@
     1 => {
       nick => 'plk',
       agents => [
-        { type => 'rtsyn', url => 'http://localhost:3001' },
-        #{ type => 'dhcpsyn', url => 'http://localhost:3002' },
-        #{ type => 'fwsyn', url => 'http://localhost:3003' },
+        { type => 'rtsyn', url => 'https://localhost:3001' },
+        #{ type => 'dhcpsyn', url => 'https://localhost:3002' },
+        #{ type => 'fwsyn', url => 'https://localhost:3003' },
       ],
     },
     2 => {

@@ -14,11 +14,10 @@ RUN apk update && \
   groupadd master && \
   useradd -N -g master -M -d /opt/master/run -s /sbin/nologin -c "R2D2 master user" master && \
 # fix ping to run under user
-  chmod u+s /bin/ping
-# && \
+  chmod u+s /bin/ping && \
 # cleanup
-  #apk del perl-dev g++ wget curl mariadb-connector-c-dev shadow && \
-  #rm -rf /root/.cpanm/* /usr/local/share/man/* /src/cpanfile
+  apk del perl-dev g++ wget curl mariadb-connector-c-dev shadow && \
+  rm -rf /root/.cpanm/* /usr/local/share/man/* /src/cpanfile
 
 COPY . /src/
 
@@ -41,6 +40,4 @@ ENV TZ Asia/Yekaterinburg
 USER master:master
 EXPOSE 2271
 
-#CMD ["sh", "-c", "script/check_db_hosts && script/master prefork -m production -l 'http://*:2271' -P /opt/master/run/master.pid"]
-CMD ["sh", "-c", "script/check_db_hosts && script/master prefork -l 'http://*:2271' -P /opt/master/run/master.pid"]
-
+CMD ["sh", "-c", "script/check_db_hosts && script/start_server"]

@@ -25,8 +25,7 @@ WHERE (s.sync_rt = 1 OR s.sync_fw = 1 OR s.sync_dhcp = 1) AND clients.login = s.
           my $id = $n->{id};
 
           #say "id: $id, profile_id: $n->{profile_id}";
-          my $profile = $profiles->{$n->{profile_id}};
-          if ($profile) {
+          if (my $profile = $profiles->{$n->{profile_id}}) {
             # loop by agents
             for my $agent (@{$profile->{agents}}) {
               my $agent_type = $agent->{type};

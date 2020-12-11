@@ -14,6 +14,9 @@ services:
       - 10.14.0.4
     volumes:
       - /srv/r2d2-master/master.conf:/opt/master/master.conf:ro
+      - /srv/r2d2-master/r2d2-master-cert.pem:/opt/master/r2d2-master-cert.pem:ro
+      - /srv/r2d2-master/r2d2-master-key.pem:/opt/master/r2d2-master-key.pem:ro
+      - /srv/r2d2-master/ca.pem:/opt/master/ca.pem:ro
     environment:
       - TZ=Asia/Yekaterinburg
     restart: unless-stopped
@@ -23,6 +26,9 @@ services:
     container_name: r2d2-master-cron
     volumes:
       - /srv/r2d2-master/master.conf:/opt/master/master.conf:ro
+      - /srv/r2d2-master/r2d2-master-cert.pem:/opt/master/r2d2-master-cert.pem:ro
+      - /srv/r2d2-master/r2d2-master-key.pem:/opt/master/r2d2-master-key.pem:ro
+      - /srv/r2d2-master/ca.pem:/opt/master/ca.pem:ro
     environment:
       - TZ=Asia/Yekaterinburg
     command: sh -c "script/check_db_hosts && script/master cron"

@@ -1,5 +1,9 @@
 {
-  master_url => 'http://localhost:2271',
+  local_cert => '../cert/localhost-cert.pem',
+  local_key => '../cert/localhost-key.pem',
+  ca => '../cert/ca.pem',
+
+  master_url => 'https://localhost:2271',
 
   iptables_path => '/usr/sbin/iptables',
   iptables_restore_path => '/usr/sbin/iptables-restore',

@@ -43,6 +43,10 @@ sub startup {
   # use text/plain in most responses
   $self->renderer->default_format('txt');
 
+  # set cert/key to useragent
+  $self->ua->ca($config->{ca});
+  $self->ua->cert($config->{local_cert})->key($config->{local_key});
+
   # this should run only in server, not with commands
   $self->hook(before_server_start => sub {
     my ($server, $app) = @_;
