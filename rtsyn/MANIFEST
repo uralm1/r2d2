@@ -1,0 +1,16 @@
+_d_rtsyn
+Build.PL
+cpanfile
+lib/Rtsyn.pm
+lib/Rtsyn/Command/loadrules.pm
+lib/Rtsyn/Command/printrules.pm
+lib/Rtsyn/Controller/Refresh.pm
+lib/Rtsyn/Controller/Utils.pm
+lib/Rtsyn/Plugin/Loadrules.pm
+lib/Rtsyn/Plugin/Rtops.pm
+lib/Rtsyn/Plugin/Utils.pm
+MANIFEST			This list of files
+META.json
+META.yml
+rtsyn.conf_empty
+script/rtsyn
