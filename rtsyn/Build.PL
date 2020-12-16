@@ -8,8 +8,6 @@ my $inst_dir = '/opt/rtsyn'; #FIXME
 
 my $class = Module::Build->subclass(
 code => <<'SUBCLASS');
-  sub process_conf_files { print "in process_conf_files()\n";}
-
   sub ACTION_build {
     my $self = shift;
     print " ** Checking...\n";
@@ -22,6 +20,12 @@ code => <<'SUBCLASS');
     $self->SUPER::ACTION_install;
 
     print " ** Installing configuration, public and templates files...\n";
+    my $dprefix = $self->destdir().$self->install_path('prefix');
+    $self->copy_if_modified(from=>'rtsyn.conf_empty', to=>"$dprefix/rtsyn.conf");
+    chmod 0644, "$dprefix/rtsyn.conf";
+    mkdir "$dprefix/run";
+    chmod 0755, "$dprefix/run";
+    #chown 0, 0, "$dprefix/run" if ($< == 0);
   }
 SUBCLASS
 
@@ -52,7 +56,7 @@ my $build = $class->new(
 );
 
 $build->add_build_element('conf');
-$build->add_build_element('script');
-$build->add_build_element('run');
+#$build->add_build_element('script');
+#$build->add_build_element('run');
 
 $build->create_build_script;
