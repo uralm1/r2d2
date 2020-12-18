@@ -1,14 +1,15 @@
-package Rtsyn;
+package Gwsyn;
 use Mojo::Base 'Mojolicious';
 
 use Mojo::File qw(path);
-use Rtsyn::Command::loadrules;
-use Rtsyn::Command::printrules;
+use Gwsyn::Command::loadclients;
+use Gwsyn::Command::printdhcp;
+use Gwsyn::Command::printrules;
 
 use Carp;
 use Sys::Hostname;
 
-our $VERSION = '2.50';
+our $VERSION = '2.51';
 
 # This method will run once at server start
 sub startup {
@@ -16,7 +17,7 @@ sub startup {
 
   # Load configuration from hash returned by config file
   my $config = $self->plugin('Config', { default => {
-    secrets => ['94ea91356cc026fa947ba8475dae8573b756c249'],
+    secrets => ['867da09855bcd84ff800ea38505a0b75c7399d32'],
     iptables_path => '/usr/sbin/iptables',
     iptables_restore_path => '/usr/sbin/iptables-restore',
     client_out_chain => 'pipe_out_inet_clients',
@@ -31,10 +32,10 @@ sub startup {
   # 1Mb max request
   $self->max_request_size(1048576);
 
-  $self->plugin('Rtsyn::Plugin::Utils');
-  $self->plugin('Rtsyn::Plugin::Loadrules');
-  $self->plugin('Rtsyn::Plugin::Rtops');
-  $self->commands->namespaces(['Mojolicious::Command', 'Rtsyn::Command']);
+  $self->plugin('Gwsyn::Plugin::Utils');
+  $self->plugin('Gwsyn::Plugin::Dhcp_utils');
+  $self->plugin('Gwsyn::Plugin::Loadclients');
+  $self->commands->namespaces(['Mojolicious::Command', 'Gwsyn::Command']);
 
   my $subsys = $self->moniker.'@'.hostname.'['.$self->config('my_profile').']';
   $self->defaults(subsys => $subsys);
@@ -50,17 +51,20 @@ sub startup {
   # this should run only in server, not with commands
   $self->hook(before_server_start => sub {
     my ($server, $app) = @_;
-    
-    # log startup
-    $app->rlog("Rtsyn agent daemon ($VERSION) starting.");
 
-    # load rules on startup
+    # create dhcpfile dirs
+    path($self->config('dhcphosts_file'))->dirname->make_path;
+
+    # log startup
+    $app->rlog("Gwsyn agent daemon ($VERSION) starting.");
+
+    # load clients data on startup
     unless ($config->{disable_autoload}) {
-      $app->rlog("Loading and activating clients rules on agent startup");
-      unless (eval { $app->load_rules }) {
-        $app->rlog("Updating rules failed: $@!");
+      #$app->rlog('Loading and activating clients on agent startup');
+      #unless (eval { $app->load_clients }) {
+      #  $app->rlog('Updating clients failed: $@!');
         # TODO reschedule this with timer to repeat later...
-      }
+      #}
     }
 
   });

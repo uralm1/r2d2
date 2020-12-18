@@ -1,4 +1,4 @@
-package Rtsyn::Controller::Refresh;
+package Gwsyn::Controller::Refresh;
 use Mojo::Base 'Mojolicious::Controller';
 
 sub refresh {
@@ -13,20 +13,21 @@ sub refresh {
     sub {
       my ($ua, $tx) = @_;
       my $res = eval {
-	$tx->result;
+        $tx->result;
       };
       if (defined $res) {
         if ($res->is_success) {
           my $v = $res->json;
           if ($v) {
             # add or update
-            # actual data returned
-            my $e = eval { $self->rt_add_replace($v) };
-            if (defined $e) {
-              return $self->render(text => $e);
-            } else {
-              return $self->render(text=>$@, status=>503);
-            }
+            # actual data returned $v
+            #my $e = eval { $self->rt_add_replace($v) };
+            #if (defined $e) {
+            #  return $self->render(text => $e);
+            #} else {
+            #  return $self->render(text=>$@, status=>503);
+            #}
+            return $self->render(text => "WORKING!!!");
 
           } else {
             return $self->render(text=>"Client response json error", status=>503);
@@ -34,12 +35,13 @@ sub refresh {
         } else {
           if ($res->code == 404) {
             # delete not found client $id
-            my $e = eval { $self->rt_delete($id) };
-            if (defined $e) {
-              return $self->render(text => $e);
-            } else {
-              return $self->render(text=>$@, status=>503);
-            }
+            #my $e = eval { $self->rt_delete($id) };
+            #if (defined $e) {
+            #  return $self->render(text => $e);
+            #} else {
+            #  return $self->render(text=>$@, status=>503);
+            #}
+            return $self->render(text => "WORKING!!!");
           }
           return $self->render(text=>"Client request error: ".$res->body, status=>503) if $res->is_error;
         }

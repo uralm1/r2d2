@@ -5,12 +5,12 @@ use Carp;
 use Mojo::mysql;
 use Mojo::IOLoop;
 
-# Ural::Dblog->new($db, subsys=>'head');
+# Ural::Dblog->new($mysql, subsys=>'head');
 sub new {
-  my ($class, $db, %logdata) = @_;
-  croak 'Database required' unless defined $db;
+  my ($class, $mysql, %logdata) = @_;
+  croak 'Database required' unless defined $mysql;
   my $self = bless {
-    db => $db,
+    mysql => $mysql,
     subsys => undef,
   }, $class;
   $self->{subsys} = $logdata{subsys} if defined $logdata{subsys};
@@ -27,7 +27,7 @@ sub l {
 
   $logdata->{info} = 'н/д' unless $logdata->{info};
   $subsys = 'н/д' unless $subsys;
-  $self->{db}->query("INSERT INTO op_log \
+  $self->{mysql}->db->query("INSERT INTO op_log \
     (date, subsys, info) VALUES (NOW(), ?, ?)",
     $subsys, $logdata->{info} =>
     sub {

@@ -26,6 +26,11 @@
       ],
     },
     2 => {
+      nick => 'gwtest1',
+      agents => [
+      ],
+    },
+    3 => {
       nick => 'atcsev',
       agents => [
       ],

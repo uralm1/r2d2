@@ -11,8 +11,8 @@ sub run {
   my $app = $self->app;
 
   $app->log->info('Reloading rules configuration');
-  unless ($app->load_rules) {
-    $app->log->error("Loading rules failed");
+  unless (eval { $app->load_rules }) {
+    $app->log->error("Loading rules failed: $@");
     return 1;
   }
 

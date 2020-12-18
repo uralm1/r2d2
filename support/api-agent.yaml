@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   version: '3.00'
-  title: agent api
+  title: Agent api
   description: 'API модуля agent'
 paths:
   /subsys:
@@ -14,17 +14,20 @@ paths:
             text/plain:
               schema:
                 type: string
-                example: rtsyn@wispa (3.00)
+                example: 'rtsyn@wispa[3] (3.00)'
             application/json:
               schema:
                 type: object
                 properties:
                   subsys:
                     type: string
-                    example: rtsyn@wispa
+                    example: 'rtsyn@wispa[3]'
                   version:
                     type: string
                     example: '3.00'
+                  profile:
+                    type: integer
+                    example: 3
 
   /refresh/{id}:
     post:

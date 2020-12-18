@@ -11,20 +11,18 @@ sub register {
   $args ||= {};
 
   # build rulefile and load it to iptables (blocking)
-  # doesn't log anything to remote log, returns 1-success, 0-error
+  # doesn't log anything to remote log, returns 1-success, dies on error
   $app->helper(load_rules => sub {
     my $self = shift;
-    my $ftitle = 'load_rules: ';
 
-    my $res;
-    my $e = eval {
-      my $tx = $self->ua->get($self->config('head_url').'/clients' => {Accept => 'application/json'});
-      $res = $tx->result;
+    my $res = eval {
+      my $pid = $self->config('my_profile');
+      my $tx = $self->ua->get($self->config('head_url')."/clients/$pid" => {Accept => 'application/json'});
+      $tx->result;
     };
-    if (defined $e) {
+    if (defined $res) {
       if ($res->is_success) {
-        my $v = $res->json;
-        if ($v) {
+        if (my $v = $res->json) {
           # create rule-file
 	  my $rulefile = tempfile;
           my $fh = $rulefile->open('>');
@@ -46,28 +44,27 @@ sub register {
 	    # footer
             print $fh "COMMIT\n";
 	    $fh->close;
-	    
+
 	    # load rules with iptables_restore
 	    # note: iptables_restore still flushes user chains mentioned in file
 	    if (!$self->system(iptables_restore => "--noflush < $rulefile")) {
 	      return 1; # success
 	    } else {
-              $self->log->error("${ftitle}Can't activate rules configuration");
+              croak "Can't activate iptables configuration";
 	    }
 
 	  } else {
-            $self->log->error("${ftitle}Can't create temporary file: $!");
+            croak "Can't create temporary file: $!";
 	  }
 	} else {
-          $self->log->error("${ftitle}Clients response json error");
+          croak 'Clients response json error';
 	}
       } else {
-        $self->log->error("${ftitle}Clients request error: ".$res->body) if $res->is_error;
+        croak "Clients request error: ".(($res->is_error) ? $res->body : '');
       }
     } else {
-      $self->log->error("${ftitle}Connection to head failed: $@");
+      croak "connection to head failed: $@";
     }
-    return 0; #error
   });
 }
 

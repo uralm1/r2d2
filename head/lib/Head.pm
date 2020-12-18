@@ -10,7 +10,7 @@ use Head::Ural::Dblog;
 
 use Sys::Hostname;
 
-our $VERSION = '2.50';
+our $VERSION = '2.51';
 
 # This method will run once at server start
 sub startup {
@@ -37,7 +37,7 @@ sub startup {
   $self->defaults(subsys => $subsys);
   $self->defaults(version => $VERSION);
 
-  $self->defaults(dblog => Head::Ural::Dblog->new($self->mysql_inet->db, subsys=>$subsys));
+  $self->defaults(dblog => Head::Ural::Dblog->new($self->mysql_inet, subsys=>$subsys));
   unless ($self->defaults('dblog')) {
     die 'Fatal: Database logger creation failure!';
   }
@@ -61,7 +61,7 @@ sub startup {
   my $r = $self->routes;
 
   $r->get('/subsys')->to('utils#subsys');
-  $r->get('/clients')->to('clients#clients');
+  $r->get('/clients/#id')->to('clients#clients');
   $r->get('/client/#id')->to('clients#client');
 
   $r->post('/log/#rsubsys' => {rsubsys => 'none'})->to('log#log');

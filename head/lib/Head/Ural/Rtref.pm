@@ -19,11 +19,10 @@ sub rtsyn_refresh_id {
   $app->ua->post("$agent_url/refresh/$id" =>
     sub {
       my ($ua, $tx) = @_;
-      my $res;
-      my $e = eval {
-        $res = $tx->result;
+      my $res = eval {
+        $tx->result;
       };
-      if (defined $e) {
+      if (defined $res) {
         if ($res->is_success) {
           # successful update
           $app->log->info("Refresh request for $id successful: ".$res->body);

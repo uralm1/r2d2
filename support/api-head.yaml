@@ -21,7 +21,7 @@ paths:
                 properties:
                   subsys:
                     type: string
-                    example: head@wispa
+                    example: 'head@wispa'
                   version:
                     type: string
                     example: '3.00'
@@ -89,9 +89,18 @@ paths:
                 type: string
                 description: error message
 
-  /clients:
+  /clients/{profile_id}:
     get:
-      summary: load clients data
+      summary: load clients data for profile
+      parameters:
+        - name: profile_id
+          in: path
+          required: true
+          description: profile id
+          schema:
+            type: integer
+            example: 1
+            
       responses:
         '200':
           description: Success
@@ -116,11 +125,11 @@ paths:
                 type: string
                 description: error message
 
-  /client/{id}:
+  /client/{client_id}:
     get:
       summary: load client data
       parameters:
-        - name: id
+        - name: client_id
           in: path
           required: true
           description: client id
@@ -182,12 +191,20 @@ components:
         login:
           type: string
           description: client login (deprecated)
-          example: abelguzina
+          example: 'abelguzina'
         ip:
           type: string
           description: client ip4
-          example: 10.15.0.33
+          example: '10.15.0.33'
+        mac:
+          type: string
+          description: client mac
+          example: '11:22:33:44:55:66'
         rt:
           type: integer
           description: route type (0-ufanet, 1-beeline)
           example: 1
+        no_dhcp:
+          type: integer
+          description:  '(0-use dhcp, 1-dont use)'
+          example: 0

@@ -1,11 +1,15 @@
 {
-  my_profile => 1,
+  my_profile => 2,
 
   local_cert => '../cert/localhost-cert.pem',
   local_key => '../cert/localhost-key.pem',
   ca => '../cert/ca.pem',
 
   head_url => 'https://localhost:2271',
+
+  dhcphosts_file => '/var/r2d2/dhcphosts.clients',
+  dnsmasq_pid_dir => '/var/run/dnsmasq',
+  dnsmasq_pidfile_regexp => qr{dnsmasq\.\w*\.pid},
 
   iptables_path => '/usr/sbin/iptables',
   iptables_restore_path => '/usr/sbin/iptables-restore',

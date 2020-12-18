@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# verify = SSL_VERIFY_PEER (0x01) & SSL_VERIFY_FAIL_IF_NO_PEER_CERT (0x02)
+SP=`perl -MMojolicious::Plugin::Config -E 'my $c=Mojolicious::Plugin::Config->new->load("gwsyn.conf");say "?cert=$c->{local_cert}&key=$c->{local_key}&ca=$c->{ca}&verify=0x03"'`
+
+MOJO_LISTEN="https://*:3005$SP"
+#MOJO_LISTEN='http://*:3005'
+
+#echo $MOJO_LISTEN
+export MOJO_LISTEN
+
+sudo morbo script/gwsyn -l $MOJO_LISTEN
+#sudo script/gwsyn daemon -l $MOJO_LISTEN
+#sudo script/gwsyn prefork -l $MOJO_LISTEN

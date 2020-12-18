@@ -1,4 +1,4 @@
-package Rtsyn::Controller::Utils;
+package Gwsyn::Controller::Utils;
 use Mojo::Base 'Mojolicious::Controller';
 
 sub subsys {
