@@ -10,7 +10,7 @@ sub clients {
   return $self->render(text=>'Bad parameter', status=>404) unless (defined($pid) && $pid =~ /^\d+$/);
 
   $self->render_later;
-  $self->mysql_inet->db->query("SELECT id, login, clients.desc, ip, mac, rt, no_dhcp \
+  $self->mysql_inet->db->query("SELECT id, login, clients.desc, ip, mac, rt, defjump, speed_in, speed_out, no_dhcp \
 FROM clients WHERE profile_id = ? ORDER BY ip ASC", $pid =>
     sub {
       my ($db, $err, $results) = @_;
@@ -21,15 +21,7 @@ FROM clients WHERE profile_id = ? ORDER BY ip ASC", $pid =>
 
       if (my $rc = $results->hashes) {
         $self->render(json => $rc->map(sub {
-          my $ipo = NetAddr::IP::Lite->new($_->{ip});
-          return undef unless $ipo;
-          { id => $_->{id},
-            login => $_->{login},
-            ip => $ipo->addr,
-            mac => $_->{mac},
-            rt => $_->{rt},
-            no_dhcp => $_->{no_dhcp},
-          }
+          return eval { _build_client_rec($_) };
         })->compact);
       } else {
         return $self->render(text=>'Not found', status=>404);
@@ -45,7 +37,7 @@ sub client {
   return $self->render(text=>'Bad parameter', status=>404) unless (defined($id) && $id =~ /^\d+$/);
 
   $self->render_later;
-  $self->mysql_inet->db->query("SELECT id, login, clients.desc, ip, mac, rt, no_dhcp \
+  $self->mysql_inet->db->query("SELECT id, login, clients.desc, ip, mac, rt, defjump, speed_in, speed_out, no_dhcp \
 FROM clients WHERE id = ?", $id =>
     sub {
       my ($db, $err, $results) = @_;
@@ -55,22 +47,27 @@ FROM clients WHERE id = ?", $id =>
       }
 
       if (my $rh = $results->hash) {
-        my $ipo = NetAddr::IP::Lite->new($rh->{ip});
-        return $self->render(text=>'Invalid IP', status=>503) unless $ipo;
-
-        $self->render(json => {
-          id => $rh->{id},
-          login => $rh->{login},
-          ip => $ipo->addr,
-          mac => $rh->{mac},
-          rt => $rh->{rt},
-          no_dhcp => $rh->{no_dhcp},
-        });
+        my $clr = eval { _build_client_rec($rh) };
+        return $self->render(text=>'Invalid IP', status=>503) unless $clr;
+        $self->render(json => $clr);
       } else {
         return $self->render(text=>'Not found', status=>404);
       }
     }
   );
+}
+
+
+# { client_rec_hash } = eval { _build_client_rec( { hash_from_database } ) };
+sub _build_client_rec {
+  my $h = shift;
+  my $ipo = NetAddr::IP::Lite->new($h->{ip}) || die 'IP adress failure';
+  my $clr = { ip => $ipo->addr };
+  for (qw/id login mac rt defjump speed_in speed_out no_dhcp/) {
+    die 'Undefined client record attribute' unless exists $h->{$_};
+    $clr->{$_} = $h->{$_};
+  }
+  return $clr;
 }
 
 

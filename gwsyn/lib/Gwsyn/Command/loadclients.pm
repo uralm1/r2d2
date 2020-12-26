@@ -11,8 +11,10 @@ sub run {
   my $app = $self->app;
 
   $app->log->info('Reloading all clients configuration');
-  unless (eval { $app->load_clients }) {
-    $app->log->error("Loading clients failed: $@");
+  if ($app->check_workers) {
+    $app->minion->enqueue('load_clients');
+  } else {
+    $app->log->error("Command cancelled. Execution subsystem error.");
     return 1;
   }
 

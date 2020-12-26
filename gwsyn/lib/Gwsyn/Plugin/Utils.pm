@@ -29,6 +29,14 @@ sub register {
   });
 
 
+  # my $bool = $self->check_workers
+  $app->helper(check_workers => sub { 
+    my $self = shift;
+    my $stats = $self->minion->stats;
+    return ($stats->{active_workers} != 0 || $stats->{inactive_workers} != 0);
+  });
+  
+
   # my $ret = $app->system("command args")
   # my $ret = $app->system(iptables => "args")
   # my $ret = $app->system(iptables_restore => "args")
@@ -60,27 +68,6 @@ sub register {
     }
   });
 
-
-  # my $err = $app->sighup_dnsmasq()
-  # returns 1-success, dies on error
-  $app->helper(sighup_dnsmasq => sub {
-    my $self = shift;
-    my $pidfile;
-    my $pid_re = $self->config('dnsmasq_pidfile_regexp');
-    for (@{path($self->config('dnsmasq_pid_dir'))->list}) {
-      if (/$pid_re/) {
-         $pidfile = $_;
-         last;
-       }
-    }
-    croak 'dnsmasq pidfile is not found!' unless $pidfile;
-    chomp(my $pid = $pidfile->slurp);
-    croak 'dnsmasq pid is invalid!' unless $pid =~ /^\d+$/;
-
-    #say "Dnsmasq PID: ".$pid;
-    croak "can not send hup signal to pid $pid!" unless kill('HUP', $pid) != 1;
-    return 1;
-  });
 }
 
 1;

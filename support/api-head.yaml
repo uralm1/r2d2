@@ -206,5 +206,17 @@ components:
           example: 1
         no_dhcp:
           type: integer
-          description:  '(0-use dhcp, 1-dont use)'
+          description: '(0-use dhcp, 1-dont use)'
           example: 0
+        defjump:
+          type: string
+          description: 'ACCEPT/DROP/HTTP_ICMP/HTTP_IM_ICMP/ICMP_ONLY'
+          example: 'ACCEPT'
+        speed_in:
+          type: string
+          description: 'dl speed tc parameters'
+          example: 'quantum 6400 rate 1mbit prio 5'
+        speed_out:
+          type: string
+          description: 'ul speed tc parameters'
+          example: 'quantum 6400 rate 1mbit ceil 1280kbit prio 5'

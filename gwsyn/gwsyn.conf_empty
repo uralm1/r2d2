@@ -5,16 +5,22 @@
   local_key => '../cert/localhost-key.pem',
   ca => '../cert/ca.pem',
 
+  minion_db_conn => 'sqlite:/tmp/r2d2minion.db',
+
   head_url => 'https://localhost:2271',
 
+  firewall_file => '/var/r2d2/firewall.clients',
+  tc_file => '/var/r2d2/traf.clients',
   dhcphosts_file => '/var/r2d2/dhcphosts.clients',
   dnsmasq_pid_dir => '/var/run/dnsmasq',
   dnsmasq_pidfile_regexp => qr{dnsmasq\.\w*\.pid},
 
   iptables_path => '/usr/sbin/iptables',
   iptables_restore_path => '/usr/sbin/iptables-restore',
+  tc_path => '/usr/sbin/tc',
 
-  client_out_chain => 'pipe_out_inet_clients', # mangle chain name
+  client_in_chain => 'pipe_in_inet_clients', #filter/mangle chains
+  client_out_chain => 'pipe_out_inet_clients', #filter/mangle chains
 
   iptables_wait => 3,
   #iptables_simulation => 1,

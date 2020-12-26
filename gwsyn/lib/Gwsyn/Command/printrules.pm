@@ -3,7 +3,7 @@ use Mojo::Base 'Mojolicious::Command';
 
 use Carp;
 
-has description => '* Print iptables rules';
+has description => '* Print firewall rules';
 has usage => "Usage: APPLICATION printrules\n";
 
 sub run {

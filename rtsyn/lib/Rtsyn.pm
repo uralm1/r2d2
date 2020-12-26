@@ -34,7 +34,7 @@ sub startup {
   $self->plugin('Rtsyn::Plugin::Utils');
   $self->plugin('Rtsyn::Plugin::Loadrules');
   $self->plugin('Rtsyn::Plugin::Rtops');
-  $self->commands->namespaces(['Mojolicious::Command', 'Rtsyn::Command']);
+  $self->commands->namespaces(['Mojolicious::Command', 'Minion::Command', 'Rtsyn::Command']);
 
   my $subsys = $self->moniker.'@'.hostname.'['.$self->config('my_profile').']';
   $self->defaults(subsys => $subsys);

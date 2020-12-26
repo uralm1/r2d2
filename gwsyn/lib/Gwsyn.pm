@@ -32,10 +32,17 @@ sub startup {
   # 1Mb max request
   $self->max_request_size(1048576);
 
+  $self->plugin(Minion => {SQLite => $config->{'minion_db_conn'}});
+  # FIXME DEBUG FIXME: open access to minion UI
+  ###$self->plugin('Minion::Admin');
+
   $self->plugin('Gwsyn::Plugin::Utils');
-  $self->plugin('Gwsyn::Plugin::Dhcp_utils');
+  $self->plugin('Gwsyn::Plugin::dhcp_utils');
+  $self->plugin('Gwsyn::Plugin::ipt_utils');
+  $self->plugin('Gwsyn::Plugin::tc_utils');
   $self->plugin('Gwsyn::Plugin::Loadclients');
-  $self->commands->namespaces(['Mojolicious::Command', 'Gwsyn::Command']);
+  $self->plugin('Gwsyn::Task::Loadclients');
+  $self->commands->namespaces(['Mojolicious::Command', 'Minion::Command', 'Gwsyn::Command']);
 
   my $subsys = $self->moniker.'@'.hostname.'['.$self->config('my_profile').']';
   $self->defaults(subsys => $subsys);

@@ -21,13 +21,12 @@ sub refresh {
           if ($v) {
             # add or update
             # actual data returned $v
-            #my $e = eval { $self->rt_add_replace($v) };
-            #if (defined $e) {
-            #  return $self->render(text => $e);
-            #} else {
-            #  return $self->render(text=>$@, status=>503);
-            #}
-            return $self->render(text => "WORKING!!!");
+            my $e = eval { $self->dhcp_add_replace($v) };
+            if (eval { $self->dhcp_apply } and defined($e)) {
+              return $self->render(text => $e);
+            } else {
+              return $self->render(text=>$@, status=>503);
+            }
 
           } else {
             return $self->render(text=>"Client response json error", status=>503);
@@ -35,13 +34,12 @@ sub refresh {
         } else {
           if ($res->code == 404) {
             # delete not found client $id
-            #my $e = eval { $self->rt_delete($id) };
-            #if (defined $e) {
-            #  return $self->render(text => $e);
-            #} else {
-            #  return $self->render(text=>$@, status=>503);
-            #}
-            return $self->render(text => "WORKING!!!");
+            my $e = eval { $self->dhcp_delete($id) };
+            if (eval { $self->dhcp_apply } and defined($e)) {
+              return $self->render(text => $e);
+            } else {
+              return $self->render(text=>$@, status=>503);
+            }
           }
           return $self->render(text=>"Client request error: ".$res->body, status=>503) if $res->is_error;
         }

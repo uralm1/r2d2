@@ -1,0 +1,3 @@
+#!/bin/sh
+
+sudo script/gwsyn minion worker -j 1
