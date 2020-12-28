@@ -1,0 +1,8 @@
+#!/bin/sh
+
+#make dist
+version=`perl -E 'use lib "lib";use Gwsyn;say $Gwsyn::VERSION'`
+
+rexlib=root@bikini:/var/www/net/rexlib
+scp gwsyn-$version.tar.gz $rexlib/lib/Deploy/Owrt/R2d2/files/gwsyn-latest.tar.gz
+#rm gwsyn-$version.tar.gz

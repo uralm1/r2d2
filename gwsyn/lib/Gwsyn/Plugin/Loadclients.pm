@@ -10,8 +10,6 @@ sub register {
   my ($self, $app, $args) = @_;
   $args ||= {};
 
-  # 1.Build dhcphosts file, then send SIGHUP to dnsmasq,
-  # 2.
   # (blocking)
   # doesn't log anything to remote log, returns 1-success, dies on error
   $app->helper(load_clients => sub {
@@ -26,12 +24,41 @@ sub register {
       if ($res->is_success) {
         if (my $v = $res->json) {
 
-            # FIXME exception processing
-            eval { $self->fwrules_create_full($v) } or die "firewall file creation failed: $@";
-            eval { $self->tcrules_create_full($v) } or die "tc file creation failed: $@";
+            my $err;
+            # part 1: firewall
+            if (eval { $self->fwrules_create_full($v) }) {
+              if (eval { $self->fwrules_apply }) {
+                $self->log->error("can't apply firewall changes: $@");
+                $err = 11;
+              }
+            } else {
+              $self->log->error("firewall file creation failed: $@");
+              $err = 1;
+            }
 
-            eval { $self->dhcp_create_full($v) } or die "dhcphosts file creation failed: $@";
-            eval { $self->dhcp_apply } or die "can't apply dhcp changes: $@";
+            # part 2: tc
+            if (eval { $self->tcrules_create_full($v) }) {
+              if (eval { $self->tcrules_apply }) {
+                $self->log->error("can't apply tc changes: $@");
+                $err = 12;
+              }
+            } else {
+              $self->log->error("tc file creation failed: $@");
+              $err = 2;
+            }
+
+            # part 3: dhcp
+            if (eval { $self->dhcp_create_full($v) }) {
+              if (eval { $self->dhcp_apply }) {
+                $self->log->error("can't apply dhcp changes: $@");
+                $err = 13;
+              }
+            } else {
+              $self->log->error("dhcphosts file creation failed: $@");
+              $err = 3;
+            }
+            die 'part of operation failed' if $err;
+            return 1; #success
 
         } else {
           die 'clients response json error';

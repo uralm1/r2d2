@@ -52,7 +52,13 @@ sub register {
   $app->helper(tcrules_apply => sub {
     my $self = shift;
 
-
+    # reload rules with script
+    my $tcfile = $self->config('tc_file');
+    if (!$self->system("INTR_IF=br-lan;EXTR_IF=vpn1;. $tcfile")) {
+      return 1; # success
+    } else {
+      die "Can't apply tc configuration";
+    }
   });
 
 }

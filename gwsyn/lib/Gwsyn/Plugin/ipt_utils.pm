@@ -69,7 +69,14 @@ sub register {
   $app->helper(fwrules_apply => sub {
     my $self = shift;
 
-
+    # reload rules with iptables_restore
+    my $rulefile = $self->config('firewall_file');
+    # note: iptables_restore still flushes user chains mentioned in file
+    if (!$self->system(iptables_restore => "--noflush < $rulefile")) {
+      return 1; # success
+    } else {
+      die "Can't apply firewall configuration";
+    }
   });
 
 }
