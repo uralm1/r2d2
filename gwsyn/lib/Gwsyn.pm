@@ -5,6 +5,7 @@ use Mojo::File qw(path);
 use Gwsyn::Command::loadclients;
 use Gwsyn::Command::printdhcp;
 use Gwsyn::Command::printrules;
+use Gwsyn::Command::cron;
 
 use Carp;
 use Sys::Hostname;

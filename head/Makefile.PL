@@ -24,7 +24,7 @@ WriteMakefile(
   #},
   INSTALLSCRIPT => "$inst_dir/script",
   INSTALLSITESCRIPT => "$inst_dir/script",
-  EXE_FILES => ['script/head', 'script/check_db_hosts', 'script/start_server'],
+  EXE_FILES => ['script/head', 'script/check_db_hosts', 'script/add_route', 'script/start_server'],
   MAN1PODS => {},
   MAN3PODS => {},
 );

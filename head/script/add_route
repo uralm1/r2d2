@@ -1,0 +1,4 @@
+#!/bin/sh
+# requires --cap-add = NET_ADMIN
+echo "Adding route to 10.2.0.0/16 network."
+ip route add 10.2.0.0/16 via 10.15.0.1

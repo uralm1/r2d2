@@ -131,7 +131,7 @@ sub register {
     die 'Dnsmasq pid is invalid!' unless $pid =~ /^\d+$/;
 
     #say "Dnsmasq PID: ".$pid;
-    die "Can not send hup signal to pid $pid!" unless kill('HUP', $pid) != 1;
+    die "error sending hup signal to pid $pid!" if kill('HUP', $pid) != 1;
     return 1;
   });
 

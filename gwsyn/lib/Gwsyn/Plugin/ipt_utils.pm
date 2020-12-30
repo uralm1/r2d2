@@ -29,7 +29,7 @@ sub register {
     print $fh ":$client_out_chain - [0:0]\n";
     print $fh ":ICMP_ONLY - [0:0]\n";
     print $fh ":HTTP_ICMP - [0:0]\n";
-    print $fh ":HTTP_IP_ICMP - [0:0]\n";
+    print $fh ":HTTP_IM_ICMP - [0:0]\n";
     print $fh "-A ICMP_ONLY -p icmp -j ACCEPT\n";
     print $fh "-A HTTP_ICMP -p icmp -j ACCEPT\n";
     print $fh "-A HTTP_ICMP -p tcp -m multiport --source-ports 80,8080,81,3128,443 -j ACCEPT\n";
@@ -75,7 +75,7 @@ sub register {
     if (!$self->system(iptables_restore => "--noflush < $rulefile")) {
       return 1; # success
     } else {
-      die "Can't apply firewall configuration";
+      die "iptables_restore error";
     }
   });
 

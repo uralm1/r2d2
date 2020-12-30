@@ -37,7 +37,8 @@ ENV HEAD_CONFIG /opt/head/head.conf
 # required for DateTime
 ENV TZ Asia/Yekaterinburg
 
-USER head:head
+#USER head:head
 EXPOSE 2271
 
-CMD ["sh", "-c", "script/check_db_hosts && script/start_server"]
+#CMD ["sh", "-c", "script/check_db_hosts && script/start_server"]
+CMD ["sh", "-c", "script/check_db_hosts && script/add_route && su -s /usr/bin/perl head script/start_server"]

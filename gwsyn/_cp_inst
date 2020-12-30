@@ -4,5 +4,21 @@
 version=`perl -E 'use lib "lib";use Gwsyn;say $Gwsyn::VERSION'`
 
 rexlib=root@bikini:/var/www/net/rexlib
-scp gwsyn-$version.tar.gz $rexlib/lib/Deploy/Owrt/R2d2/files/gwsyn-latest.tar.gz
+destdir=$rexlib/lib/Deploy/Owrt/R2d2/files
+
+# source tarball
+scp gwsyn-$version.tar.gz $destdir/gwsyn-latest.tar.gz
 #rm gwsyn-$version.tar.gz
+
+# copy keys
+cert_path="../cert"
+keys="$cert_path/ca.pem"
+for h in gwtest1
+do
+  keys="$keys $cert_path/$h-cert.pem $cert_path/$h-key.pem"
+done
+#echo $keys
+scp $keys $destdir
+
+# service scripts
+scp support/gwsyn support/gwsyn-minion support/gwsyn-cron $destdir

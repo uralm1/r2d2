@@ -27,7 +27,7 @@ sub register {
             my $err;
             # part 1: firewall
             if (eval { $self->fwrules_create_full($v) }) {
-              if (eval { $self->fwrules_apply }) {
+              unless (eval { $self->fwrules_apply }) {
                 $self->log->error("can't apply firewall changes: $@");
                 $err = 11;
               }
@@ -38,7 +38,7 @@ sub register {
 
             # part 2: tc
             if (eval { $self->tcrules_create_full($v) }) {
-              if (eval { $self->tcrules_apply }) {
+              unless (eval { $self->tcrules_apply }) {
                 $self->log->error("can't apply tc changes: $@");
                 $err = 12;
               }
@@ -49,7 +49,7 @@ sub register {
 
             # part 3: dhcp
             if (eval { $self->dhcp_create_full($v) }) {
-              if (eval { $self->dhcp_apply }) {
+              unless (eval { $self->dhcp_apply }) {
                 $self->log->error("can't apply dhcp changes: $@");
                 $err = 13;
               }
@@ -57,7 +57,7 @@ sub register {
               $self->log->error("dhcphosts file creation failed: $@");
               $err = 3;
             }
-            die 'part of operation failed' if $err;
+            die 'operation failed' if $err;
             return 1; #success
 
         } else {
