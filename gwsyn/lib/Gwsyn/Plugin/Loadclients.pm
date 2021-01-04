@@ -16,8 +16,8 @@ sub register {
     my $self = shift;
 
     my $res = eval {
-      my $pid = $self->config('my_profile');
-      my $tx = $self->ua->get($app->config('head_url')."/clients/$pid" => {Accept => 'application/json'});
+      my $prof = $self->config('my_profile');
+      my $tx = $self->ua->get($app->config('head_url')."/clients/$prof" => {Accept => 'application/json'});
       $tx->result;
     };
     if (defined $res) {

@@ -15,13 +15,13 @@ sub run {
   my $profiles = $app->config('profiles');
   my $dbconn = $app->mysql_inet->db;
   $app->log->info('Asyncronious refresh initiated');
-  $dbconn->query("SELECT profile_id FROM clients WHERE id = ?", $id =>
+  $dbconn->query("SELECT profile FROM clients WHERE id = ?", $id =>
     sub {
       my ($db, $err, $results) = @_;
       unless ($err) {
         my $n = $results->hash;
-        #say "profile_id: $n->{profile_id}";
-        if (my $profile = $profiles->{$n->{profile_id}}) {
+        #say "profile: $n->{profile}";
+        if (my $profile = $profiles->{$n->{profile}}) {
           # loop by agents
           for my $agent (@{$profile->{agents}}) {
             my $agent_type = $agent->{type};

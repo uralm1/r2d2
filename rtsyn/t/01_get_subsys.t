@@ -6,7 +6,7 @@ use Test::More;
 my $c = {
   disable_autoload => 1,
 
-  my_profile => 1,
+  my_profile => 'plk',
 
   local_cert => '../cert/localhost-cert.pem',
   local_key => '../cert/localhost-key.pem',

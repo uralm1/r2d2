@@ -8,7 +8,7 @@ use Rtsyn::Command::printrules;
 use Carp;
 use Sys::Hostname;
 
-our $VERSION = '2.50';
+our $VERSION = '2.52';
 
 # This method will run once at server start
 sub startup {
@@ -36,8 +36,7 @@ sub startup {
   $self->plugin('Rtsyn::Plugin::Rtops');
   $self->commands->namespaces(['Mojolicious::Command', 'Minion::Command', 'Rtsyn::Command']);
 
-  my $subsys = $self->moniker.'@'.hostname.'['.$self->config('my_profile').']';
-  $self->defaults(subsys => $subsys);
+  $self->defaults(subsys => $self->moniker.'@'.hostname);
   $self->defaults(version => $VERSION);
 
   # use text/plain in most responses
@@ -50,7 +49,7 @@ sub startup {
   # this should run only in server, not with commands
   $self->hook(before_server_start => sub {
     my ($server, $app) = @_;
-    
+
     # log startup
     $app->rlog("Rtsyn agent daemon ($VERSION) starting.");
 

@@ -6,12 +6,12 @@ use NetAddr::IP::Lite;
 
 sub clients {
   my $self = shift;
-  my $pid = $self->stash('id');
-  return $self->render(text=>'Bad parameter', status=>404) unless (defined($pid) && $pid =~ /^\d+$/);
+  my $prof = $self->stash('profile');
+  return $self->render(text=>'Bad parameter', status=>404) unless $prof;
 
   $self->render_later;
   $self->mysql_inet->db->query("SELECT id, login, clients.desc, ip, mac, rt, defjump, speed_in, speed_out, no_dhcp \
-FROM clients WHERE profile_id = ? ORDER BY ip ASC", $pid =>
+FROM clients WHERE profile = ? ORDER BY ip ASC", $prof =>
     sub {
       my ($db, $err, $results) = @_;
       if ($err) {

@@ -15,7 +15,7 @@ sub run {
   my $profiles = $app->config('profiles');
   my $dbconn = $app->mysql_inet->db;
   $app->log->info('Asyncronious update initiated');
-  $dbconn->query("SELECT clients.id, profile_id, s.sync_rt, s.sync_fw, s.sync_dhcp FROM clients, clients_sync s\
+  $dbconn->query("SELECT clients.id, profile, s.sync_rt, s.sync_fw, s.sync_dhcp FROM clients, clients_sync s\
 WHERE (s.sync_rt = 1 OR s.sync_fw = 1 OR s.sync_dhcp = 1) AND clients.login = s.login" =>
     sub {
       my ($db, $err, $results) = @_;
@@ -24,8 +24,8 @@ WHERE (s.sync_rt = 1 OR s.sync_fw = 1 OR s.sync_dhcp = 1) AND clients.login = s.
         while (my $n = $results->hash) {
           my $id = $n->{id};
 
-          #say "id: $id, profile_id: $n->{profile_id}";
-          if (my $profile = $profiles->{$n->{profile_id}}) {
+          #say "id: $id, profile: $n->{profile}";
+          if (my $profile = $profiles->{$n->{profile}}) {
             # loop by agents
             for my $agent (@{$profile->{agents}}) {
               my $agent_type = $agent->{type};

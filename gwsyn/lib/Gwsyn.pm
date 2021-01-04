@@ -10,7 +10,7 @@ use Gwsyn::Command::cron;
 use Carp;
 use Sys::Hostname;
 
-our $VERSION = '2.51';
+our $VERSION = '2.52';
 
 # This method will run once at server start
 sub startup {
@@ -45,8 +45,7 @@ sub startup {
   $self->plugin('Gwsyn::Task::Loadclients');
   $self->commands->namespaces(['Mojolicious::Command', 'Minion::Command', 'Gwsyn::Command']);
 
-  my $subsys = $self->moniker.'@'.hostname.'['.$self->config('my_profile').']';
-  $self->defaults(subsys => $subsys);
+  $self->defaults(subsys => $self->moniker.'@'.hostname);
   $self->defaults(version => $VERSION);
 
   # use text/plain in most responses

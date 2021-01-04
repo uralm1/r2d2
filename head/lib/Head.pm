@@ -61,7 +61,7 @@ sub startup {
   my $r = $self->routes;
 
   $r->get('/subsys')->to('utils#subsys');
-  $r->get('/clients/#id')->to('clients#clients');
+  $r->get('/clients/#profile')->to('clients#clients');
   $r->get('/client/#id')->to('clients#client');
 
   $r->post('/log/#rsubsys' => {rsubsys => 'none'})->to('log#log');
