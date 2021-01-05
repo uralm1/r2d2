@@ -24,5 +24,10 @@
   client_out_chain => 'pipe_out_inet_clients', #filter/mangle chains
 
   iptables_wait => 3,
+
+  # debug and testing
   #iptables_simulation => 1,
+  #rlog_local => 1,
+  #rlog_remote => 1, # default
+  #disable_autoload => 1,
 }

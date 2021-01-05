@@ -14,20 +14,20 @@ paths:
             text/plain:
               schema:
                 type: string
-                example: 'rtsyn@wispa[3] (3.00)'
+                example: 'rtsyn@wispa (3.00)'
             application/json:
               schema:
                 type: object
                 properties:
                   subsys:
                     type: string
-                    example: 'rtsyn@wispa[3]'
+                    example: 'rtsyn@wispa'
                   version:
                     type: string
                     example: '3.00'
                   profile:
-                    type: integer
-                    example: 3
+                    type: string
+                    example: 'gwtest1'
 
   /refresh/{id}:
     post:

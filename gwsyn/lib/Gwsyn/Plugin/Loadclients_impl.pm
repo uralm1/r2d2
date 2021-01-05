@@ -1,4 +1,4 @@
-package Gwsyn::Plugin::Loadclients;
+package Gwsyn::Plugin::Loadclients_impl;
 use Mojo::Base 'Mojolicious::Plugin';
 
 use Mojo::File qw(path);
@@ -28,36 +28,30 @@ sub register {
             # part 1: firewall
             if (eval { $self->fwrules_create_full($v) }) {
               unless (eval { $self->fwrules_apply }) {
-                $self->log->error("can't apply firewall changes: $@");
-                $err = 11;
+                $err = "can't apply firewall changes: $@";
               }
             } else {
-              $self->log->error("firewall file creation failed: $@");
-              $err = 1;
+              $err = "firewall file creation failed: $@";
             }
 
             # part 2: tc
             if (eval { $self->tcrules_create_full($v) }) {
               unless (eval { $self->tcrules_apply }) {
-                $self->log->error("can't apply tc changes: $@");
-                $err = 12;
+                $err = "can't apply tc changes: $@";
               }
             } else {
-              $self->log->error("tc file creation failed: $@");
-              $err = 2;
+              $err = "tc file creation failed: $@";
             }
 
             # part 3: dhcp
             if (eval { $self->dhcp_create_full($v) }) {
               unless (eval { $self->dhcp_apply }) {
-                $self->log->error("can't apply dhcp changes: $@");
-                $err = 13;
+                $err = "can't apply dhcp changes: $@";
               }
             } else {
-              $self->log->error("dhcphosts file creation failed: $@");
-              $err = 3;
+              $err = "dhcphosts file creation failed: $@";
             }
-            die 'operation failed' if $err;
+            die 'operation failed - $err' if $err;
             return 1; #success
 
         } else {

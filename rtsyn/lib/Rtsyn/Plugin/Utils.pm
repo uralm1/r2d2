@@ -12,19 +12,22 @@ sub register {
   # remote logger
   $app->helper(rlog => sub {
     my ($self, $m) = @_;
-    $self->log->info($m);
 
-    my $url = $self->config('head_url').'/log/'.$self->stash('subsys');
-    $self->ua->post($url => $m =>
-      sub {
-	my ($ua, $tx) = @_;
-	my $e = eval {
-	  my $res = $tx->result;
-          $self->log->error('Log request error: '.$res->body) if ($res->is_error);
-        };
-        $self->log->error("Log request failed: $@") unless defined $e;
-      }
-    );
+    $self->log->info($m) if $self->config('rlog_local');
+
+    if ($self->config('rlog_remote')) {
+      my $url = $self->config('head_url').'/log/'.$self->stash('subsys');
+      $self->ua->post($url => $m =>
+        sub {
+          my ($ua, $tx) = @_;
+          my $e = eval {
+            my $res = $tx->result;
+            $self->log->error('Log request error: '.$res->body) if ($res->is_error);
+          };
+          $self->log->error('Log request failed, probably connection refused') unless defined $e;
+        }
+      );
+    }
   });
 
 

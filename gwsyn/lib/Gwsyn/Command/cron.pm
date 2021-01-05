@@ -15,6 +15,11 @@ sub run {
   my $log = $app->log;
 
   say "NOT IMPLEMENTED";
+  $app->rlog("test1");
+  $app->rlog("test2");
+  $app->rlog("test3");
+
+  Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
 }
 
 

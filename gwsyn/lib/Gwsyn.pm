@@ -22,6 +22,7 @@ sub startup {
     iptables_path => '/usr/sbin/iptables',
     iptables_restore_path => '/usr/sbin/iptables-restore',
     client_out_chain => 'pipe_out_inet_clients',
+    rlog_remote => 1,
   }});
   delete $self->defaults->{config}; # safety - not to pass passwords to stashes
 
@@ -41,7 +42,7 @@ sub startup {
   $self->plugin('Gwsyn::Plugin::dhcp_utils');
   $self->plugin('Gwsyn::Plugin::ipt_utils');
   $self->plugin('Gwsyn::Plugin::tc_utils');
-  $self->plugin('Gwsyn::Plugin::Loadclients');
+  $self->plugin('Gwsyn::Plugin::Loadclients_impl');
   $self->plugin('Gwsyn::Task::Loadclients');
   $self->commands->namespaces(['Mojolicious::Command', 'Minion::Command', 'Gwsyn::Command']);
 
@@ -67,13 +68,13 @@ sub startup {
 
     # load clients data on startup
     unless ($config->{disable_autoload}) {
-      #$app->rlog('Loading and activating clients on agent startup');
-      #unless (eval { $app->load_clients }) {
-      #  $app->rlog('Updating clients failed: $@!');
-        # TODO reschedule this with timer to repeat later...
-      #}
+      $app->rlog('Loading and activating clients on agent startup');
+      until ($app->check_workers) {
+        $app->rlog('Updating clients failed: execution subsystem error.');
+        sleep(3);
+      }
+      $app->minion->enqueue('load_clients');
     }
-
   });
 
   # Router

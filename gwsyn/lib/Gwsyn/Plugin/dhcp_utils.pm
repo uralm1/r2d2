@@ -17,11 +17,11 @@ sub register {
     croak 'Bad argument' unless $v;
 
     my $dhcpfile = path($self->config('dhcphosts_file'));
-    my $fh = $dhcpfile->open('<') or die "Can't read dhcphost file: $!";
+    my $fh = eval { $dhcpfile->open('<') } or die "Can't read dhcphosts file: $!";
     chomp(my @content = <$fh>);
     $fh->close or die "Can't close dhcphosts file: $!";
 
-    $fh = $dhcpfile->open('>') or die "Can't reopen dhcphosts file: $!";
+    $fh = eval { $dhcpfile->open('>') } or die "Can't reopen dhcphosts file: $!";
     my $ff = 0;
     my $ret = 'NONE';
     for (@content) {
@@ -39,15 +39,15 @@ sub register {
           }
           $ff = 1;
         } elsif ($v->{mac} and $1 eq $v->{mac}) {
-          $self->log->error("Found duplicate MAC in dhcphosts file, conflicting line deleted.");
+          $self->rlog("Found duplicate MAC in dhcphosts file, conflicting line deleted.");
         } elsif ($3 eq $v->{ip}) {
-          $self->log->error("Found duplicate IP in dhcphosts file, conflicting line deleted.");
+          $self->rlog("Found duplicate IP in dhcphosts file, conflicting line deleted.");
         } else {
           print $fh "$_\n";
         }
       } else {
         # invalid format - skipped
-        $self->log->error("Found unparsable line in dhcphosts file, deleted.");
+        $self->rlog("Found unparsable line in dhcphosts file, deleted.");
       }
     }
     if (!$ff) { # if not found, add line
@@ -70,12 +70,12 @@ sub register {
     croak 'Bad argument' unless defined $id;
 
     my $dhcpfile = path($self->config('dhcphosts_file'));
-    my $fh = $dhcpfile->open('<') or die "Can't read dhcphosts file: $!";
+    my $fh = eval { $dhcpfile->open('<') } or die "Can't read dhcphosts file: $!";
     chomp(my @content = <$fh>);
     $fh->close or die "Can't close dhcphosts file: $!";
 
     my $ret = 'NONE';
-    $fh = $dhcpfile->open('>') or die "Can't reopen dhcphosts file: $!";
+    $fh = eval { $dhcpfile->open('>') } or die "Can't reopen dhcphosts file: $!";
     for (@content) {
       # 11:22:33:44:55:66,id:*,set:client123,192.168.33.22
       if (/set:client\Q$id\E/x) {
@@ -101,9 +101,12 @@ sub register {
     croak 'Bad argument' unless $va;
 
     my $dhcpfile = path($self->config('dhcphosts_file'));
-    my $fh = $dhcpfile->open('>') or die "Can't create dhcphosts file: $!";
+    my $prof = $self->config('my_profile');
+
+    my $fh = eval { $dhcpfile->open('>') } or die "Can't create dhcphosts file: $!";
     # data
     for (@$va) {
+      next if ($_->{profile} ne $prof); # skip clients from invalid profiles
       # 11:22:33:44:55:66,id:*,set:client123,192.168.33.22
       print $fh "$_->{mac},id:*,set:client$_->{id},$_->{ip}\n" if !$_->{no_dhcp} && $_->{mac};
     }

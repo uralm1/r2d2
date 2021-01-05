@@ -10,7 +10,7 @@ sub clients {
   return $self->render(text=>'Bad parameter', status=>404) unless $prof;
 
   $self->render_later;
-  $self->mysql_inet->db->query("SELECT id, login, clients.desc, ip, mac, rt, defjump, speed_in, speed_out, no_dhcp \
+  $self->mysql_inet->db->query("SELECT id, login, clients.desc, ip, mac, rt, defjump, speed_in, speed_out, no_dhcp, profile \
 FROM clients WHERE profile = ? ORDER BY ip ASC", $prof =>
     sub {
       my ($db, $err, $results) = @_;
@@ -37,7 +37,7 @@ sub client {
   return $self->render(text=>'Bad parameter', status=>404) unless (defined($id) && $id =~ /^\d+$/);
 
   $self->render_later;
-  $self->mysql_inet->db->query("SELECT id, login, clients.desc, ip, mac, rt, defjump, speed_in, speed_out, no_dhcp \
+  $self->mysql_inet->db->query("SELECT id, login, clients.desc, ip, mac, rt, defjump, speed_in, speed_out, no_dhcp, profile \
 FROM clients WHERE id = ?", $id =>
     sub {
       my ($db, $err, $results) = @_;
@@ -63,7 +63,7 @@ sub _build_client_rec {
   my $h = shift;
   my $ipo = NetAddr::IP::Lite->new($h->{ip}) || die 'IP adress failure';
   my $clr = { ip => $ipo->addr };
-  for (qw/id login mac rt defjump speed_in speed_out no_dhcp/) {
+  for (qw/id login mac rt defjump speed_in speed_out no_dhcp profile/) {
     die 'Undefined client record attribute' unless exists $h->{$_};
     $clr->{$_} = $h->{$_};
   }

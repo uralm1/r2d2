@@ -89,17 +89,17 @@ paths:
                 type: string
                 description: error message
 
-  /clients/{profile_id}:
+  /clients/{profile}:
     get:
       summary: load clients data for profile
       parameters:
-        - name: profile_id
+        - name: profile
           in: path
           required: true
-          description: profile id
+          description: profile name
           schema:
-            type: integer
-            example: 1
+            type: string
+            example: 'gwtest1'
             
       responses:
         '200':
@@ -220,3 +220,7 @@ components:
           type: string
           description: 'ul speed tc parameters'
           example: 'quantum 6400 rate 1mbit ceil 1280kbit prio 5'
+        profile:
+          type: string
+          description: 'client profile name'
+          example: 'gwtest1'

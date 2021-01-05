@@ -20,6 +20,7 @@ sub startup {
     iptables_path => '/usr/sbin/iptables',
     iptables_restore_path => '/usr/sbin/iptables-restore',
     client_out_chain => 'pipe_out_inet_clients',
+    rlog_remote => 1,
   }});
   delete $self->defaults->{config}; # safety - not to pass passwords to stashes
 
