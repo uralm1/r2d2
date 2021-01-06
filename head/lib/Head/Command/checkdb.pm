@@ -5,7 +5,7 @@ use Carp;
 use Head::Ural::Dblog;
 use Head::Ural::Rtref qw(rtsyn_refresh_id);
 
-has description => '* Run check for database changes manually';
+has description => '* Run check for database changes (run from cron cmd)';
 has usage => "Usage: APPLICATION checkdb\n";
 
 sub run {

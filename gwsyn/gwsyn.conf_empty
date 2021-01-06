@@ -23,6 +23,9 @@
   client_in_chain => 'pipe_in_inet_clients', #filter/mangle chains
   client_out_chain => 'pipe_out_inet_clients', #filter/mangle chains
 
+  # collect traffic statistics schedule
+  trafstat_schedule => '*/2 * * * *',
+
   iptables_wait => 3,
 
   # debug and testing

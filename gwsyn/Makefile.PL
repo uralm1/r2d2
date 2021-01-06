@@ -17,6 +17,7 @@ WriteMakefile(
     'IO::Socket::SSL' => '2.009',
     'Minion' => '10.03',
     'Minion::Backend::SQLite' => 0,
+    'Algorithm::Cron' => '0.10',
   },
   test => {TESTS => 't/*.t'},
   PREFIX => $inst_dir,

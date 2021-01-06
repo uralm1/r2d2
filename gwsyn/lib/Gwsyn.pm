@@ -6,6 +6,7 @@ use Gwsyn::Command::loadclients;
 use Gwsyn::Command::printdhcp;
 use Gwsyn::Command::printrules;
 use Gwsyn::Command::cron;
+use Gwsyn::Command::trafstat;
 
 use Carp;
 use Sys::Hostname;
@@ -44,6 +45,9 @@ sub startup {
   $self->plugin('Gwsyn::Plugin::tc_utils');
   $self->plugin('Gwsyn::Plugin::Loadclients_impl');
   $self->plugin('Gwsyn::Task::Loadclients');
+  $self->plugin('Gwsyn::Task::Addreplaceclient');
+  $self->plugin('Gwsyn::Task::Deleteclient');
+  $self->plugin('Gwsyn::Task::Trafficstat');
   $self->commands->namespaces(['Mojolicious::Command', 'Minion::Command', 'Gwsyn::Command']);
 
   $self->defaults(subsys => $self->moniker.'@'.hostname);
@@ -73,7 +77,7 @@ sub startup {
         $app->rlog('Updating clients failed: execution subsystem error.');
         sleep(3);
       }
-      $app->minion->enqueue('load_clients');
+      $app->minion->enqueue('load_clients' => {attempts => 5});
     }
   });
 

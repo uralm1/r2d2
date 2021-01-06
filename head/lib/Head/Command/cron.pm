@@ -17,17 +17,17 @@ sub run {
   binmode(STDOUT, ':utf8');
   #binmode(STDERR, ':utf8');
 
-  my $check_sh = $app->config('check_schedule');
-  my $sh = $app->config('stat_schedules');
-  if (!$check_sh && (!$sh || ref($sh) ne 'HASH')) {
-    $log->info('Config parameters check_schedule/stat_schedules are undefined or empty. Scheduler process will exit.');
+  my $check_sch = $app->config('check_schedule');
+  my $sch = $app->config('stat_schedules');
+  if (!$check_sch && (!$sch || ref($sch) ne 'HASH')) {
+    $log->warn('Config parameters check_schedule/stat_schedules are undefined or empty. Scheduler process will exit.');
     return 0;
   }
-  if (!$check_sh && !$sh->{daily} && !$sh->{monthly} && !$sh->{yearly}) {
-    $log->info('All config schedule parameters are undefined or empty. Scheduler process will exit.');
+  if (!$check_sch && !$sch->{daily} && !$sch->{monthly} && !$sch->{yearly}) {
+    $log->warn('All config schedule parameters are undefined or empty. Scheduler process will exit.');
     return 0;
   }
-  $sh->{check} = $check_sh;
+  $sch->{check} = $check_sch;
 
   $log->info('Internal scheduler process started.');
 
@@ -37,7 +37,7 @@ sub run {
   local $SIG{INT} = local $SIG{TERM} = sub { Mojo::IOLoop->stop };
 
   Mojo::IOLoop->next_tick(sub {
-    $self->_cron($sh->{$_},
+    $self->_cron($sch->{$_},
       ($_ eq 'check')?'checkdb' : "stat $_",
       ($_ eq 'check')?'checkdb' : (statprocess => "--$_")) for(qw/check daily monthly yearly/);
   });

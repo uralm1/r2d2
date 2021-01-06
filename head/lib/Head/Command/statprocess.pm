@@ -5,7 +5,7 @@ use Carp;
 use Mojo::mysql;
 use Head::Ural::Dblog;
 
-has description => '* Statistics processing: daily/monthly/yearly';
+has description => '* Statistics processing: daily/monthly/yearly (run from cron cmd)';
 has usage => "Usage: APPLICATION statprocess --daily|--monthly|--yearly\n";
 
 sub run {

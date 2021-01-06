@@ -1,7 +1,7 @@
 package Gwsyn::Command::loadclients;
 use Mojo::Base 'Mojolicious::Command';
 
-use Carp;
+#use Carp;
 
 has description => '* Reload all client data from the Head like on restart';
 has usage => "Usage: APPLICATION loadclients\n";
