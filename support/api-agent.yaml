@@ -43,13 +43,7 @@ paths:
             
       responses:
         '200':
-          description: Success
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: 'ADDED'
-                description: client status on agent - NONE/ADDED/REPLACED/DELETED
+          description: Successfully queued
         '503':
           description: Bad id, connection problems, etc
           content:

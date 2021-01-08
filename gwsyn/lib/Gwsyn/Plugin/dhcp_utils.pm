@@ -9,7 +9,7 @@ sub register {
   $args ||= {};
 
   # my $resp = dhcp_add_replace({id=>11, ip=>'1.2.3.4', mac=>'11:22:33:44:55'});
-  # returns 'NONE'/'ADDED'/'REPLACED'/'DELETED' on success,
+  # returns 1-need apply/0-not needed on success,
   #   dies with 'error string' on error,
   #   will check ip/mac/no_dhcp flag and skip line if not set.
   $app->helper(dhcp_add_replace => sub {
@@ -22,8 +22,9 @@ sub register {
     $fh->close or die "Can't close dhcphosts file: $!";
 
     $fh = eval { $dhcpfile->open('>') } or die "Can't reopen dhcphosts file: $!";
+    my $ret = 0;
     my $ff = 0;
-    my $ret = 'NONE';
+
     for (@content) {
       # 11:22:33:44:55:66,id:*,set:client123,192.168.33.22
       if (/([0-9a-fA-F:]+),id:\*,set:client(\d+),([0-9.]+)/x) {
@@ -32,28 +33,32 @@ sub register {
           # replace same id
           if (!$v->{no_dhcp} and $v->{mac}) {
             print $fh "$v->{mac},id:*,set:client$v->{id},$v->{ip}\n";
-            $ret = 'REPLACED';
+            $ret = 1;
           } else {
             # delete line if no_dhcp flag is set
-            $ret = 'DELETED';
+            $ret = 1;
           }
           $ff = 1;
         } elsif ($v->{mac} and $1 eq $v->{mac}) {
           $self->rlog("Found duplicate MAC in dhcphosts file, conflicting line deleted.");
+          $ret = 1;
         } elsif ($3 eq $v->{ip}) {
           $self->rlog("Found duplicate IP in dhcphosts file, conflicting line deleted.");
+          $ret = 1;
         } else {
-          print $fh "$_\n";
+          print $fh "$_\n"; # just copy other lines
         }
       } else {
         # invalid format - skipped
         $self->rlog("Found unparsable line in dhcphosts file, deleted.");
+        $ret = 1;
       }
     }
+
     if (!$ff) { # if not found, add line
-      if ($v->{mac}) {
+      if (!$v->{no_dhcp} and $v->{mac}) {
         print $fh "$v->{mac},id:*,set:client$v->{id},$v->{ip}\n";
-        $ret = 'ADDED';
+        $ret = 1;
       }
     }
     $fh->close or die "Can't close dhcphosts file: $!";
@@ -63,7 +68,7 @@ sub register {
 
 
   # my $resp = dhcp_delete($id);
-  # returns 'NONE'/'DELETED' on success,
+  # returns 1-need apply/0-not needed on success,
   #   dies with 'error string' on error
   $app->helper(dhcp_delete => sub {
     my ($self, $id) = @_;
@@ -74,26 +79,28 @@ sub register {
     chomp(my @content = <$fh>);
     $fh->close or die "Can't close dhcphosts file: $!";
 
-    my $ret = 'NONE';
     $fh = eval { $dhcpfile->open('>') } or die "Can't reopen dhcphosts file: $!";
+    my $ret = 0;
+
     for (@content) {
       # 11:22:33:44:55:66,id:*,set:client123,192.168.33.22
-      if (/set:client\Q$id\E/x) {
+      if (/set:client\Q$id\E,/x) {
         #say "Skipped line $_";
-        $ret = 'DELETED';
+        $ret = 1;
         next;
       }
       print $fh "$_\n";
     }
+
     $fh->close or die "Can't close dhcphosts file: $!";
 
     return $ret;
   });
 
 
-  # my $resp = dhcp_create_full([{id=>11, ip=>'1.2.3.4', mac=>'11:22:33:44:55'}, ...]);
+  # my $resp = dhcp_create_full([{id=>11, ip=>'1.2.3.4', mac=>'11:22:33:44:55',profile=>'gwtest1'}, ...]);
   # fully updates /var/r2d2/dhcphosts.clients file,
-  # returns 1 on success,
+  # returns 1-need apply/0-not needed on success,
   #   dies with 'error string' on error,
   #   will check ip/mac/no_dhcp flag and skip line if not set.
   $app->helper(dhcp_create_full => sub {
@@ -106,12 +113,13 @@ sub register {
     my $fh = eval { $dhcpfile->open('>') } or die "Can't create dhcphosts file: $!";
     # data
     for (@$va) {
-      next if ($_->{profile} ne $prof); # skip clients from invalid profiles
+      next if (!$_->{profile} or $_->{profile} ne $prof); # skip clients from invalid profiles
       # 11:22:33:44:55:66,id:*,set:client123,192.168.33.22
       print $fh "$_->{mac},id:*,set:client$_->{id},$_->{ip}\n" if !$_->{no_dhcp} && $_->{mac};
     }
     $fh->close or die "Can't close dhcphosts file: $!";
 
+    # always need apply
     return 1;
   });
 

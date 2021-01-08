@@ -14,7 +14,7 @@ sub run {
   if ($app->check_workers) {
     $app->minion->enqueue('traffic_stat');
   } else {
-    $app->log->error("Command cancelled. Execution subsystem error.");
+    $app->log->error("Command canceled. Execution subsystem error.");
     return 1;
   }
 

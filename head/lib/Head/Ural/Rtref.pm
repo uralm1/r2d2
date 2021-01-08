@@ -19,9 +19,7 @@ sub rtsyn_refresh_id {
   $app->ua->post("$agent_url/refresh/$id" =>
     sub {
       my ($ua, $tx) = @_;
-      my $res = eval {
-        $tx->result;
-      };
+      my $res = eval { $tx->result };
       if (defined $res) {
         if ($res->is_success) {
           # successful update

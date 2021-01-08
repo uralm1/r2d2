@@ -6,26 +6,34 @@ sub refresh {
   my $id = $self->stash('id');
   return $self->render(text=>'Bad parameter', status=>503) unless (defined($id) && $id =~ /^\d+$/);
 
+  unless ($self->check_workers) {
+    $self->rlog('Error adding/replacing client. Execution subsystem error.');
+    return $self->render(text=>'Error adding/replacing client, execution impossible', status=>503);
+  }
+
   $self->render_later;
 
+  my $prof = $self->config('my_profile');
   # request client record, continue in cb
   $self->ua->get($self->config('head_url')."/client/$id" =>
     sub {
       my ($ua, $tx) = @_;
-      my $res = eval {
-        $tx->result;
-      };
+      my $res = eval { $tx->result };
       if (defined $res) {
         if ($res->is_success) {
           my $v = $res->json;
           if ($v) {
-            # add or update
-            # actual data returned $v
-            my $e = eval { $self->dhcp_add_replace($v) };
-            if (eval { $self->dhcp_apply } and defined($e)) {
-              return $self->render(text => $e);
-            } else {
-              return $self->render(text=>$@, status=>503);
+            if ($v->{profile} && $v->{profile} eq $prof) {
+              # add or update
+              # actual data returned in $v
+              $self->minion->enqueue('addreplace_client' => [$v]);
+              return $self->rendered(200);
+
+            } else { # not our profile
+              # try to delete client $id
+              $self->minion->enqueue('delete_client' => [$id]);
+              return $self->rendered(200);
+
             }
 
           } else {
@@ -34,12 +42,9 @@ sub refresh {
         } else {
           if ($res->code == 404) {
             # delete not found client $id
-            my $e = eval { $self->dhcp_delete($id) };
-            if (eval { $self->dhcp_apply } and defined($e)) {
-              return $self->render(text => $e);
-            } else {
-              return $self->render(text=>$@, status=>503);
-            }
+            $self->minion->enqueue('delete_client' => [$id]);
+            return $self->rendered(200);
+
           }
           return $self->render(text=>"Client request error: ".$res->body, status=>503) if $res->is_error;
         }

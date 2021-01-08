@@ -3,8 +3,7 @@ use Mojo::Base 'Mojolicious';
 
 use Mojo::File qw(path);
 use Gwsyn::Command::loadclients;
-use Gwsyn::Command::printdhcp;
-use Gwsyn::Command::printrules;
+use Gwsyn::Command::dumpfiles;
 use Gwsyn::Command::cron;
 use Gwsyn::Command::trafstat;
 
@@ -22,6 +21,8 @@ sub startup {
     secrets => ['867da09855bcd84ff800ea38505a0b75c7399d32'],
     iptables_path => '/usr/sbin/iptables',
     iptables_restore_path => '/usr/sbin/iptables-restore',
+    tc_path => '/usr/sbin/tc',
+    client_in_chain => 'pipe_in_inet_clients',
     client_out_chain => 'pipe_out_inet_clients',
     rlog_remote => 1,
   }});
@@ -41,7 +42,7 @@ sub startup {
 
   $self->plugin('Gwsyn::Plugin::Utils');
   $self->plugin('Gwsyn::Plugin::dhcp_utils');
-  $self->plugin('Gwsyn::Plugin::ipt_utils');
+  $self->plugin('Gwsyn::Plugin::fw_utils');
   $self->plugin('Gwsyn::Plugin::tc_utils');
   $self->plugin('Gwsyn::Plugin::Loadclients_impl');
   $self->plugin('Gwsyn::Task::Loadclients');
@@ -64,8 +65,8 @@ sub startup {
   $self->hook(before_server_start => sub {
     my ($server, $app) = @_;
 
-    # create dhcpfile dirs
-    path($self->config('dhcphosts_file'))->dirname->make_path;
+    # create dirs
+    path($self->config($_))->dirname->make_path for qw/dhcphosts_file firewall_file tc_file/;
 
     # log startup
     $app->rlog("Gwsyn agent daemon ($VERSION) starting.");
