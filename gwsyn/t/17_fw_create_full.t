@@ -56,33 +56,33 @@ __DATA__
 -A HTTP_IM_ICMP -p tcp -m multiport --destination-ports 25,110,995,143,993,119,563,5190,5222,5223,1863 -j ACCEPT
 
 # 1
--A in_test -d 1.2.3.1 -j ACCEPT
--A out_test -s 1.2.3.1 -j ACCEPT
+-A in_test -d 1.2.3.1 -m comment --comment 1 -j ACCEPT
+-A out_test -s 1.2.3.1 -m comment --comment 1 -j ACCEPT
 # 2
--A in_test -d 1.2.3.2 -j ICMP_ONLY
--A out_test -s 1.2.3.2 -m mac --mac-source 11:22:33:44:55:66 -j ICMP_ONLY
+-A in_test -d 1.2.3.2 -m comment --comment 2 -j ICMP_ONLY
+-A out_test -s 1.2.3.2 -m comment --comment 2 -m mac --mac-source 11:22:33:44:55:66 -j ICMP_ONLY
 # 12
--A in_test -d 1.2.3.5 -j DROP
--A out_test -s 1.2.3.5 -m mac --mac-source 11:22:33:44:55:77 -j DROP
+-A in_test -d 1.2.3.5 -m comment --comment 12 -j DROP
+-A out_test -s 1.2.3.5 -m comment --comment 12 -m mac --mac-source 11:22:33:44:55:77 -j DROP
 # 13
--A in_test -d 1.2.3.6 -j HTTP_IM_ICMP
--A out_test -s 1.2.3.6 -m mac --mac-source 11:22:33:44:55:88 -j HTTP_IM_ICMP
+-A in_test -d 1.2.3.6 -m comment --comment 13 -j HTTP_IM_ICMP
+-A out_test -s 1.2.3.6 -m comment --comment 13 -m mac --mac-source 11:22:33:44:55:88 -j HTTP_IM_ICMP
 COMMIT
 
 *mangle
 :in_test - [0:0]
 :out_test - [0:0]
 # 1
--A in_test -d 1.2.3.1
--A out_test -s 1.2.3.1
+-A in_test -d 1.2.3.1 -m comment --comment 1
+-A out_test -s 1.2.3.1 -m comment --comment 1
 # 2
--A in_test -d 1.2.3.2
--A out_test -s 1.2.3.2
+-A in_test -d 1.2.3.2 -m comment --comment 2
+-A out_test -s 1.2.3.2 -m comment --comment 2
 # 12
--A in_test -d 1.2.3.5
--A out_test -s 1.2.3.5
+-A in_test -d 1.2.3.5 -m comment --comment 12
+-A out_test -s 1.2.3.5 -m comment --comment 12
 # 13
--A in_test -d 1.2.3.6
--A out_test -s 1.2.3.6
+-A in_test -d 1.2.3.6 -m comment --comment 13
+-A out_test -s 1.2.3.6 -m comment --comment 13
 COMMIT
 __END__
