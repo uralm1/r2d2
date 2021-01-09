@@ -1,4 +1,4 @@
-package Rtsyn::Plugin::Rtops;
+package Rtsyn::Plugin::rt_utils;
 use Mojo::Base 'Mojolicious::Plugin';
 
 use Carp;
@@ -138,4 +138,3 @@ sub register {
 }
 
 1;
-__END__

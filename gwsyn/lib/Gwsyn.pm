@@ -7,7 +7,7 @@ use Gwsyn::Command::dumpfiles;
 use Gwsyn::Command::cron;
 use Gwsyn::Command::trafstat;
 
-use Carp;
+#use Carp;
 use Sys::Hostname;
 
 our $VERSION = '2.52';

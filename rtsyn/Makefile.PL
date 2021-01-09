@@ -18,6 +18,11 @@ WriteMakefile(
     'Minion' => '10.03',
     'Minion::Backend::SQLite' => 0,
   },
+  TEST_REQUIRES => {
+    'Test::More' => 0,
+    'Test::Files' => 0,
+    'Test::Mojo' => 0,
+  },
   test => {TESTS => 't/*.t'},
   PREFIX => $inst_dir,
   LIB => "$inst_dir/lib",

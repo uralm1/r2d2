@@ -7,8 +7,8 @@ sub refresh {
   return $self->render(text=>'Bad parameter', status=>503) unless (defined($id) && $id =~ /^\d+$/);
 
   unless ($self->check_workers) {
-    $self->rlog('Error adding/replacing client. Execution subsystem error.');
-    return $self->render(text=>'Error adding/replacing client, execution impossible', status=>503);
+    $self->rlog('Error refreshing client. Execution subsystem error.');
+    return $self->render(text=>'Error refreshing client, execution impossible', status=>503);
   }
 
   $self->render_later;

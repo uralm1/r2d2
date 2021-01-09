@@ -5,12 +5,14 @@
   local_key => '../cert/localhost-key.pem',
   ca => '../cert/ca.pem',
 
+  minion_db_conn => 'sqlite:/tmp/rtsynminion.db',
+
   head_url => 'https://localhost:2271',
 
   iptables_path => '/usr/sbin/iptables',
   iptables_restore_path => '/usr/sbin/iptables-restore',
 
-  client_out_chain => 'pipe_out_inet_clients', # mangle chain name
+  client_out_chain => 'pipe_out_inet_clients', # mangle chain
 
   iptables_wait => 3,
 

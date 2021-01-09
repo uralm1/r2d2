@@ -31,6 +31,14 @@ sub register {
   });
 
 
+  # my $bool = $self->check_workers
+  $app->helper(check_workers => sub {
+    my $self = shift;
+    my $stats = $self->minion->stats;
+    return ($stats->{active_workers} != 0 || $stats->{inactive_workers} != 0);
+  });
+
+
   # my $ret = $app->system("command args")
   # my $ret = $app->system(iptables => "args")
   # my $ret = $app->system(iptables_restore => "args")

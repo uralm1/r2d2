@@ -2,10 +2,10 @@ package Rtsyn;
 use Mojo::Base 'Mojolicious';
 
 use Mojo::File qw(path);
-use Rtsyn::Command::loadrules;
-use Rtsyn::Command::printrules;
+use Rtsyn::Command::loadclients;
+use Rtsyn::Command::dumprules;
 
-use Carp;
+#use Carp;
 use Sys::Hostname;
 
 our $VERSION = '2.52';
@@ -32,9 +32,16 @@ sub startup {
   # 1Mb max request
   $self->max_request_size(1048576);
 
+  $self->plugin(Minion => {SQLite => $config->{'minion_db_conn'}});
+  # FIXME DEBUG FIXME: open access to minion UI
+  ###$self->plugin('Minion::Admin');
+
   $self->plugin('Rtsyn::Plugin::Utils');
-  $self->plugin('Rtsyn::Plugin::Loadrules');
-  $self->plugin('Rtsyn::Plugin::Rtops');
+  $self->plugin('Rtsyn::Plugin::rt_utils');#
+  $self->plugin('Rtsyn::Plugin::Loadclients_impl');
+  $self->plugin('Rtsyn::Task::Loadclients');
+  $self->plugin('Rtsyn::Task::Addreplaceclient');
+  $self->plugin('Rtsyn::Task::Deleteclient');
   $self->commands->namespaces(['Mojolicious::Command', 'Minion::Command', 'Rtsyn::Command']);
 
   $self->defaults(subsys => $self->moniker.'@'.hostname);
@@ -57,10 +64,11 @@ sub startup {
     # load rules on startup
     unless ($config->{disable_autoload}) {
       $app->rlog("Loading and activating clients rules on agent startup");
-      unless (eval { $app->load_rules }) {
-        $app->rlog("Updating rules failed: $@!");
-        # TODO reschedule this with timer to repeat later...
+      until ($app->check_workers) {
+        $app->rlog('Updating clients failed: execution subsystem error.');
+        sleep(3);
       }
+      $app->minion->enqueue('load_clients' => {attempts => 5});
     }
 
   });
