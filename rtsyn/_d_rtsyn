@@ -9,6 +9,6 @@ MOJO_LISTEN="https://*:3001$SP"
 #echo $MOJO_LISTEN
 export MOJO_LISTEN
 
-sudo morbo script/rtsyn -l $MOJO_LISTEN
-#sudo script/rtsyn daemon -l $MOJO_LISTEN
-#sudo script/rtsyn prefork -l $MOJO_LISTEN
+morbo script/rtsyn -l $MOJO_LISTEN
+#script/rtsyn daemon -l $MOJO_LISTEN
+#script/rtsyn prefork -l $MOJO_LISTEN

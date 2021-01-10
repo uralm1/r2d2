@@ -1,3 +1,4 @@
 #!/bin/sh
 
+# worker runs from root
 sudo script/gwsyn minion worker -j 1

@@ -3,14 +3,14 @@ use Mojo::Base 'Mojolicious::Command';
 
 #use Carp;
 
-has description => '* Dump iptables mangle rules';
+has description => '* Dump iptables clients mangle rules';
 has usage => "Usage: APPLICATION dumprules\n";
 
 sub run {
   my $self = shift;
   my $app = $self->app;
 
-  if (my $dump = $app->rt_get_dump) {
+  if (my $dump = $app->rt_dump) {
     say @$dump;
   } else {
     $app->log->error('Error dumping client rules.');

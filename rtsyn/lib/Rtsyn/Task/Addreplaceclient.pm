@@ -12,11 +12,8 @@ sub register {
     $app->rlog("Start addreplace_client $$: ".$job->id);
 
     my @err;
-    if (my $r = eval { $app->rt_add_replace($v) }) {
-      #FIXME push @err, "Error applying rule changes: $@" unless eval { $app->rt_apply };
-    } elsif (!defined $r) {
-      push @err, "Error adding/replacing client rule: $@";
-    }
+    my $r = eval { $app->rt_add_replace($v) };
+    push @err, "Error adding/replacing client rule: $@" unless defined $r;
 
     if (@err) {
       $app->rlog(join(',', @err));

@@ -20,31 +20,16 @@ sub register {
   });
 
 
-  # [iptables_dump_lines] = rt_get_dump;
+  # [iptables_dump_lines] = rt_dump;
   # returns undef on error.
-  $app->helper(rt_get_dump => sub {
+  $app->helper(rt_dump => sub {
     my $self = shift;
-    my $iptables_path = $self->config('iptables_path');
-    my $client_out_chain = $self->config('client_out_chain');
-    my $w_opt = '';
-    if (my $w = $self->config('iptables_wait')) {
-      $w_opt = " --wait $w";
-    }
-
-    my $c = "${iptables_path}${w_opt} -t mangle -nvx --line-numbers -L $client_out_chain";
-    if ($self->config('iptables_simulation')) {
-      $self->log->debug("SIMULATE: `$c`");
-      return []; # simulation is always success
-    } else {
-      my @dump = `$c`;
-      return undef if $?;
-      return \@dump;
-    }
+    return $self->system(iptables_dump => '-t mangle -nvx --line-numbers -L '.$self->config('client_out_chain'));
   });
 
 
   # my $resp = rt_add_replace({id=>11, ip=>'1.2.3.4', rt=>0});
-  # returns 'ADDED'/'REPLACED' on success,
+  # returns 1-added or replaced/0-(not returned) on success,
   #   dies with 'error string' on error
   $app->helper(rt_add_replace => sub {
     my ($self, $v) = @_;
@@ -52,7 +37,7 @@ sub register {
 
     my $client_out_chain = $self->config('client_out_chain');
     # create rule dump
-    my $dump_m_out = $self->rt_get_dump;
+    my $dump_m_out = $self->rt_dump;
     die "Error dumping rules $client_out_chain in mangle table!" unless $dump_m_out;
 
     my $ip = $v->{ip};
@@ -66,24 +51,24 @@ sub register {
         my $ri = $1;
         if (!$ff) {
           $self->rlog("Marking-rules sync. Replacing rule #$ri ip $ip in mangle table.");
-	  $ff = 1;
+          $ff = 1;
           if ($self->system(iptables => "-t mangle -R $client_out_chain $ri -s $ip -m comment --comment $v->{id} ".$self->rt_marks($v->{rt}) )) {
             $failure = "Marking-rules sync error. Can't replace rule #$ri in mangle table.";
-	  }
-	} else {
+          }
+        } else {
           $self->rlog("Marking-rules sync. Deleting duplicate rule #$ri ip $ip in mangle table.");
-	  if ($self->system(iptables => "-t mangle -D $client_out_chain $ri")) {
-	    # just warn, count it non-fatal
-	    $self->rlog("Marking-rules sync error. Can't delete rule #$ri from mangle table.");
-	  }
-	}
+          if ($self->system(iptables => "-t mangle -D $client_out_chain $ri")) {
+            # just warn, count it non-fatal
+            $self->rlog("Marking-rules sync error. Can't delete rule #$ri from mangle table.");
+          }
+        }
       } # if regex
     } # for dump
     if (!$ff) { # if not found, add rule
       $self->rlog("Marking-rules sync. Appending rule ip $ip to mangle table.");
       if (!$self->system(iptables => "-t mangle -A $client_out_chain -s $ip -m comment --comment $v->{id} ".$self->rt_marks($v->{rt}) )) {
-	# successful add
-        return 'ADDED';
+        # successfully added
+        return 1;
 
       } else {
         $failure = "Marking-rules sync error. Can't append rule ip $ip to mangle table.";
@@ -92,13 +77,13 @@ sub register {
 
     die $failure if $failure;
 
-    # successful replace
-    return 'REPLACED';
+    # successfully replaced
+    return 1;
   });
 
 
   # my $resp = rt_delete($id);
-  # returns 'NONE'/'DELETED' on success,
+  # returns 1-deleted/0-not found on success,
   #   dies with 'error string' on error
   $app->helper(rt_delete => sub {
     my ($self, $id) = @_;
@@ -106,10 +91,10 @@ sub register {
 
     my $client_out_chain = $self->config('client_out_chain');
     # create rule dump
-    my $dump_m_out = $self->rt_get_dump;
+    my $dump_m_out = $self->rt_dump;
     die "Error dumping rules $client_out_chain in mangle table!" unless $dump_m_out;
 
-    my $ff = 0;
+    my $ret = 0;
     my $failure = undef;
     for (my $i = 2; $i < @$dump_m_out; $i++) { # skip first 2 lines
       $_ = $dump_m_out->[$i];
@@ -118,21 +103,21 @@ sub register {
       if (/^\s*(\d+)\s+ \S+\s+ \S+\s+ \S*\s+ \S+\s+ \-\-\s+ \S+\s+ \S+\s+ (\S+)\s+ \S+\s+ \/\*\s+ \Q$id\E\s+ \*\/.*/x) {
         my $ri = $1;
         $self->rlog("Marking-rules sync. Rule #$ri ip $2 has been requested to delete. Deleting.");
-	$ff = 1;
+        $ret = 1;
         if ($self->system(iptables => "-t mangle -D $client_out_chain $ri")) {
-	  my $msg = "Marking-rules sync error. Can't delete rule from mangle table.";
-	  if ($failure) {
-	    $self->rlog($msg); # count not first errors non-fatal
-	  } else {
-	    $failure = $msg;
-	  }
+          my $msg = "Marking-rules sync error. Can't delete rule from mangle table.";
+          if ($failure) {
+            $self->rlog($msg); # count not first errors non-fatal
+          } else {
+            $failure = $msg;
+          }
         }
       } # if regex
     } # for dump
 
     die $failure if $failure;
 
-    return ($ff) ? 'DELETED' : 'NONE';
+    return $ret;
   });
 
 }

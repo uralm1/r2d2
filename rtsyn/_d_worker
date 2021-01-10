@@ -1,3 +1,4 @@
 #!/bin/sh
 
+# worker runs from root
 sudo script/rtsyn minion worker -j 1

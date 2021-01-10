@@ -8,6 +8,126 @@ sub register {
   my ($self, $app, $args) = @_;
   $args ||= {};
 
+
+  # {matanga} = fw_matang($id);
+  $app->helper(fw_matang => sub {
+    my ($self, $id) = @_;
+    croak 'Bad argument' unless defined $id;
+    my $client_in_chain = $self->config('client_in_chain');
+    my $client_out_chain = $self->config('client_out_chain');
+    return {
+      'f_in' => {
+        table => 'filter',
+        chain => $client_in_chain,
+        dump_sub => sub {
+          $self->system(iptables_dump => "-t filter -nvx --line-numbers -L $client_in_chain")
+        },
+        # n pkt bytes ACCEPT all -- * * 0.0.0.0/0 1.2.3.4 /* id */
+        # n pkt bytes DROP   all -- * * 0.0.0.0/0 1.2.3.5 /* id */
+        re1 => qr/^\s*(\d+)\s+ \S+\s+ \S+\s+ \S*\s+ \S+\s+ \-\-\s+ \S+\s+ \S+\s+ \S+\s+ (\S+)\s+ \/\*\s+ \Q$id\E\s+ \*\/.*/x,
+        re2 => undef,
+        rule_desc => 'In-rules',
+      },
+      'f_out' => {
+        table => 'filter',
+        chain => $client_out_chain,
+        dump_sub => sub {
+          $self->system(iptables_dump => "-t filter -nvx --line-numbers -L $client_out_chain")
+        },
+        # n pkt bytes ACCEPT all -- * * 1.2.3.4 0.0.0.0/0 /* id */ MAC 11:22:33:44:55:66
+        # n pkt bytes DROP   all -- * * 1.2.3.5 0.0.0.0/0 /* id */
+        re1 => qr/^\s*(\d+)\s+ \S+\s+ \S+\s+ \S*\s+ \S+\s+ \-\-\s+ \S+\s+ \S+\s+ (\S+)\s+ \S+\s+ \/\*\s+ \Q$id\E\s+ \*\/.*/x,
+        re2 => undef,
+        rule_desc => 'Out-rules',
+      },
+      'm_in' => {
+        table => 'mangle',
+        chain => $client_in_chain,
+        dump_sub => sub {
+          $self->system(iptables_dump => "-t mangle -nvx --line-numbers -L $client_in_chain")
+        },
+        # n pkt bytes MARK all -- * * 0.0.0.0/0 1.2.3.4 /* id */ MARK set 0x4
+        # n pkt bytes      all -- * * 0.0.0.0/0 1.2.3.5 /* id */
+        re1 => qr/^\s*(\d+)\s+ \S+\s+ \S+\s+ \S*\s+ \S+\s+ \-\-\s+ \S+\s+ \S+\s+ \S+\s+ (\S+)\s+ \/\*\s+ \Q$id\E\s+ \*\/.*/x,
+        re2 => undef,
+        rule_desc => 'In-rules',
+      },
+      'm_out' => {
+        table => 'mangle',
+        chain => $client_out_chain,
+        dump_sub => sub {
+          $self->system(iptables_dump => "-t mangle -nvx --line-numbers -L $client_out_chain")
+        },
+        # n pkt bytes MARK all -- * * 1.2.3.4 0.0.0.0/0 /* id */ MARK set 0x4
+        # n pkt bytes      all -- * * 1.2.3.5 0.0.0.0/0 /* id */
+        re1 => qr/^\s*(\d+)\s+ \S+\s+ \S+\s+ \S*\s+ \S+\s+ \-\-\s+ \S+\s+ \S+\s+ (\S+)\s+ \S+\s+ \/\*\s+ \Q$id\E\s+ \*\/.*/x,
+        re2 => undef,
+        rule_desc => 'Out-rules',
+      },
+    }
+  });
+
+
+  # my $resp = fw_add_replace_rules({id=>11, ip=>'1.2.3.4', mac=>'11:22:33:44:55', defjump=>'ACCEPT'});
+  # returns 1-added or replaced/0-(not returned) on success,
+  #   dies with 'error string' on error,
+  $app->helper(fw_add_replace_rules => sub {
+    my ($self, $v) = @_;
+    croak 'Bad argument' unless $v;
+
+    my $client_in_chain = $self->config('client_in_chain');
+    my $client_out_chain = $self->config('client_out_chain');
+
+  });
+
+
+  # my $resp = fw_delete_rules($id);
+  # returns 1-deleted/0-not found on success,
+  #   dies with 'error string' on error
+  $app->helper(fw_delete_rules => sub {
+    my ($self, $id) = @_;
+    croak 'Bad argument' unless defined $id;
+
+    my $matang = $self->fw_matang($id);
+    my $ret = 0;
+    my $failure = undef;
+    my @found_check;
+    for my $n (qw/f_in f_out m_in m_out/) {
+      my $m = $matang->{$n};
+      croak "Matang $n matanga!" unless $m;
+
+      my $dump = $m->{dump_sub}();
+      die "Error dumping rules $m->{chain} in $m->{table} table!" unless $dump;
+
+      for (my $i = 2; $i < @$dump; $i++) { # skip first 2 lines
+        $_ = $dump->[$i];
+        if (/$m->{re1}/) {
+          my $ri = $1;
+          $self->rlog("$m->{rule_desc} sync. Rule #$ri ip $2 has been requested to delete. Deleting.");
+          $ret = 1;
+          push @found_check, $n;
+          if ($self->system(iptables => "-t $m->{table} -D $m->{chain} $ri")) {
+            my $msg = "$m->{rule_desc} sync error. Can't delete rule from $m->{table} table.";
+            if ($failure) {
+              $self->rlog($msg); # count not first errors non-fatal
+            } else {
+              $failure = $msg;
+            }
+          }
+        } # if regex
+      } # for dump
+    } # for filter in/out, mangle in/out
+
+    die $failure if $failure;
+
+    if ($ret && @found_check < 4) {
+      $self->rlog('Deleted only '.join('/', @found_check).' tables/chains. This is not normal, just warn you.');
+    }
+
+    return $ret;
+  });
+
+
   # my $resp = fw_add_replace({id=>11, ip=>'1.2.3.4', mac=>'11:22:33:44:55', defjump=>'ACCEPT'});
   # returns 1-need apply/0-not needed on success,
   #   dies with 'error string' on error,

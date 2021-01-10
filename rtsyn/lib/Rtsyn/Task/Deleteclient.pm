@@ -12,11 +12,8 @@ sub register {
     $app->rlog("Start delete_client $$: ".$job->id);
 
     my @err;
-    if (my $r = eval { $app->rt_delete($id) }) {
-      #FIXME push @err, "Error applying rule changes: $@" unless eval { $app->rt_apply };
-    } elsif (!defined $r) {
-      push @err, "Error deleting client rule: $@";
-    }
+    my $r = eval { $app->rt_delete($id) };
+    push @err, "Error deleting client rule: $@" unless defined $r;
 
     if (@err) {
       $app->rlog(join(',', @err));

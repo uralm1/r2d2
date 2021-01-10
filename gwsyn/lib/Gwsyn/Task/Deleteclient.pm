@@ -12,22 +12,23 @@ sub register {
     $app->rlog("Start delete_client $$: ".$job->id);
 
     my @err;
-    # part 1: firewall
-    if (my $r = eval { $app->fw_delete($id) }) {
-      push @err, "Error applying firewall changes: $@" unless eval { $app->fw_apply };
-    } elsif (!defined $r) {
-      push @err, "Error deleting client firewall rules: $@";
-    }
+    # part 1: firewall file, no need to apply
+    my $r = eval { $app->fw_delete($id) };
+    push @err, "Error deleting client rules from firewall file: $@" unless defined $r;
+
+    # part 1a: firewall rules directly
+    $r = eval { $app->fw_delete_rules($id) };
+    push @err, "Error deleting client rules from iptables: $@" unless defined $r;
 
     # part 2: tc
-    if (my $r = eval { $app->tc_delete($id) }) {
+    if ($r = eval { $app->tc_delete($id) }) {
       push @err, "Error applying tc changes: $@" unless eval { $app->tc_apply };
     } elsif (!defined $r) {
       push @err, "Error deleting client tc rules: $@";
     }
 
     # part 3: dhcp
-    if (my $r = eval { $app->dhcp_delete($id) }) {
+    if ($r = eval { $app->dhcp_delete($id) }) {
       push @err, "Error applying dhcp changes: $@" unless eval { $app->dhcp_apply };
     } elsif (!defined $r) {
       push @err, "Error deleting client dhcp: $@";

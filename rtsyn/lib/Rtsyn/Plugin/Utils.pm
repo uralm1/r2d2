@@ -42,6 +42,7 @@ sub register {
   # my $ret = $app->system("command args")
   # my $ret = $app->system(iptables => "args")
   # my $ret = $app->system(iptables_restore => "args")
+  # my [dump] = $app->system(iptables_dump => "args"), runs iptables actually, return undef on error
   $app->helper(system => sub {
     my ($self, @cmd) = @_;
     croak "Invalid argument" if @cmd < 1;
@@ -51,7 +52,13 @@ sub register {
       $w_opt = " --wait $w";
     }
 
-    if ($cmd[0] eq 'iptables') {
+    my $dumping;
+    if ($cmd[0] eq 'iptables_dump') {
+      shift @cmd;
+      unshift @cmd, $self->config('iptables_path').$w_opt;
+      $dumping = 1;
+
+    } elsif ($cmd[0] eq 'iptables') {
       shift @cmd;
       unshift @cmd, $self->config('iptables_path').$w_opt;
 
@@ -63,10 +70,15 @@ sub register {
     my $c = join ' ', @cmd;
     if ($self->config('iptables_simulation')) {
       $self->log->debug("SIMULATE: $c");
-      return 0; # simulation is always success
+      return ($dumping ? [] : 0); # simulation is always success
     } else {
       # run
-      return system $c;
+      if ($dumping) {
+        my @r = `$c`;
+        return (($?) ? undef : \@r);
+      } else {
+        return system $c;
+      }
     }
   });
 }

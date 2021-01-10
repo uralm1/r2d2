@@ -4,6 +4,7 @@ use Mojo::Base 'Mojolicious';
 use Mojo::File qw(path);
 use Gwsyn::Command::loadclients;
 use Gwsyn::Command::dumpfiles;
+use Gwsyn::Command::dumprules;
 use Gwsyn::Command::cron;
 use Gwsyn::Command::trafstat;
 
