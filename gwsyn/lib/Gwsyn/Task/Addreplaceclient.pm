@@ -12,13 +12,13 @@ sub register {
     $app->rlog("Start addreplace_client $$: ".$job->id);
 
     my @err;
-    # part 1: firewall file, no need to apply
-    my $r = eval { $app->fw_add_replace($v) };
-    push @err, "Error adding/replacing client rules in firewall file: $@" unless defined $r;
-
-    # part 1a: firewall rules directly
-    $r = eval { $app->fw_add_replace_rules($v) };
+    # part 1: firewall rules directly
+    my $r = eval { $app->fw_add_replace_rules($v) };
     push @err, "Error adding/replacing client rules in iptables: $@" unless defined $r;
+
+    # part 1a: firewall file, no need to apply
+    $r = eval { $app->fw_add_replace($v) };
+    push @err, "Error adding/replacing client rules in firewall file: $@" unless defined $r;
 
     # part 2: tc
     if ($r = eval { $app->tc_add_replace($v) }) {

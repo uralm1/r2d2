@@ -10,10 +10,13 @@ sub run {
   my $self = shift;
   my $app = $self->app;
 
-  if (my $dump = $app->rt_dump) {
-    say @$dump;
+  my $m = $app->rt_matang(1)->{m_out};
+  if (my $d = $m->{dump_sub}()) {
+    say "** DUMP $m->{rule_desc} table $m->{table} **";
+    say @$d;
+    say '';
   } else {
-    $app->log->error('Error dumping client rules.');
+    $app->log->error("Error dumping $m->{rule_desc} table $m->{table}.");
   }
 
   return 0;

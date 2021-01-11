@@ -22,17 +22,44 @@ sub register {
         dump_sub => sub {
           $self->system(iptables_dump => "-t filter -nvx --line-numbers -L $client_in_chain")
         },
+        add_sub => sub {
+          my $v = shift; # {id=>1, etc}
+          $self->system(iptables => "-t filter -A $client_in_chain -d $v->{ip} -m comment --comment $v->{id} -j $v->{defjump}")
+        },
+        replace_sub => sub {
+          my ($ri, $v) = @_; # rule index, {id=>1, etc}
+          $self->system(iptables => "-t filter -R $client_in_chain $ri -d $v->{ip} -m comment --comment $v->{id} -j $v->{defjump}")
+        },
+        delete_sub => sub {
+          my $ri = shift; # rule index
+          $self->system(iptables => "-t fliter -D $client_in_chain $ri")
+        },
         # n pkt bytes ACCEPT all -- * * 0.0.0.0/0 1.2.3.4 /* id */
         # n pkt bytes DROP   all -- * * 0.0.0.0/0 1.2.3.5 /* id */
         re1 => qr/^\s*(\d+)\s+ \S+\s+ \S+\s+ \S*\s+ \S+\s+ \-\-\s+ \S+\s+ \S+\s+ \S+\s+ (\S+)\s+ \/\*\s+ \Q$id\E\s+ \*\/.*/x,
         re2 => undef,
         rule_desc => 'In-rules',
       },
+
       'f_out' => {
         table => 'filter',
         chain => $client_out_chain,
         dump_sub => sub {
           $self->system(iptables_dump => "-t filter -nvx --line-numbers -L $client_out_chain")
+        },
+        add_sub => sub {
+          my $v = shift; # {id=>1, etc}
+          my $m = ($v->{mac}) ? "-m mac --mac-source $v->{mac} " : '';
+          $self->system(iptables => "-t filter -A $client_out_chain -s $v->{ip} -m comment --comment $v->{id} ${m}-j $v->{defjump}")
+        },
+        replace_sub => sub {
+          my ($ri, $v) = @_; # rule index, {id=>1, etc}
+          my $m = ($v->{mac}) ? "-m mac --mac-source $v->{mac} " : '';
+          $self->system(iptables => "-t filter -R $client_out_chain $ri -s $v->{ip} -m comment --comment $v->{id} ${m}-j $v->{defjump}")
+        },
+        delete_sub => sub {
+          my $ri = shift; # rule index
+          $self->system(iptables => "-t filter -D $client_out_chain $ri")
         },
         # n pkt bytes ACCEPT all -- * * 1.2.3.4 0.0.0.0/0 /* id */ MAC 11:22:33:44:55:66
         # n pkt bytes DROP   all -- * * 1.2.3.5 0.0.0.0/0 /* id */
@@ -40,11 +67,24 @@ sub register {
         re2 => undef,
         rule_desc => 'Out-rules',
       },
+
       'm_in' => {
         table => 'mangle',
         chain => $client_in_chain,
         dump_sub => sub {
           $self->system(iptables_dump => "-t mangle -nvx --line-numbers -L $client_in_chain")
+        },
+        add_sub => sub {
+          my $v = shift; # {id=>1, etc}
+          $self->system(iptables => "-t mangle -A $client_in_chain -d $v->{ip} -m comment --comment $v->{id}")
+        },
+        replace_sub => sub {
+          my ($ri, $v) = @_; # rule index, {id=>1, etc}
+          $self->system(iptables => "-t mangle -R $client_in_chain $ri -d $v->{ip} -m comment --comment $v->{id}")
+        },
+        delete_sub => sub {
+          my $ri = shift; # rule index
+          $self->system(iptables => "-t mangle -D $client_in_chain $ri")
         },
         # n pkt bytes MARK all -- * * 0.0.0.0/0 1.2.3.4 /* id */ MARK set 0x4
         # n pkt bytes      all -- * * 0.0.0.0/0 1.2.3.5 /* id */
@@ -52,11 +92,24 @@ sub register {
         re2 => undef,
         rule_desc => 'In-rules',
       },
+
       'm_out' => {
         table => 'mangle',
         chain => $client_out_chain,
         dump_sub => sub {
           $self->system(iptables_dump => "-t mangle -nvx --line-numbers -L $client_out_chain")
+        },
+        add_sub => sub {
+          my $v = shift; # {id=>1, etc}
+          $self->system(iptables => "-t mangle -A $client_out_chain -s $v->{ip} -m comment --comment $v->{id}")
+        },
+        replace_sub => sub {
+          my ($ri, $v) = @_; # rule index, {id=>1, etc}
+          $self->system(iptables => "-t mangle -R $client_out_chain $ri -s $v->{ip} -m comment --comment $v->{id}")
+        },
+        delete_sub => sub {
+          my $ri = shift; # rule index
+          $self->system(iptables => "-t mangle -D $client_out_chain $ri")
         },
         # n pkt bytes MARK all -- * * 1.2.3.4 0.0.0.0/0 /* id */ MARK set 0x4
         # n pkt bytes      all -- * * 1.2.3.5 0.0.0.0/0 /* id */
@@ -64,6 +117,7 @@ sub register {
         re2 => undef,
         rule_desc => 'Out-rules',
       },
+
     }
   });
 
@@ -75,9 +129,73 @@ sub register {
     my ($self, $v) = @_;
     croak 'Bad argument' unless $v;
 
-    my $client_in_chain = $self->config('client_in_chain');
-    my $client_out_chain = $self->config('client_out_chain');
+    my $matang = $self->fw_matang($v->{id});
+    my $failure = undef;
+    my @replaced_check;
+    my @added_check;
+    for my $n (qw/f_in f_out m_in m_out/) {
+      my $m = $matang->{$n};
+      croak "Matang $n matanga!" unless $m;
 
+      my $ff = 0;
+
+      my $dump = $m->{dump_sub}();
+      die "Error dumping rules $m->{chain} in $m->{table} table!" unless $dump;
+
+      for (my $i = 2; $i < @$dump; $i++) { # skip first 2 lines
+        $_ = $dump->[$i];
+        if (/$m->{re1}/) {
+          my $ri = $1;
+          if (!$ff) {
+            $self->rlog("$m->{rule_desc} sync. Replacing rule #$ri id $v->{id} ip $2 in $m->{table} table.");
+            $ff = 1;
+            push @replaced_check, $n;
+            if ( $m->{replace_sub}($ri, $v) ) {
+              my $msg = "$m->{rule_desc} sync error. Can't replace rule #$ri in $m->{table} table.";
+              if ($failure) {
+                $self->rlog($msg); # count not first errors non-fatal
+              } else {
+                $failure = $msg;
+              }
+            }
+          } else {
+            $self->rlog("$m->{rule_desc} sync. Deleting duplicate rule #$ri id $v->{id} ip $2 in $m->{table} table.");
+            if ( $m->{delete_sub}($ri) ) {
+              # just warn, count it non-fatal
+              $self->rlog("$m->{rule_desc} sync error. Can't delete rule #$ri from $m->{table} table.");
+            }
+          }
+        } # if regex
+      } # for dump
+
+      if (!$ff) { # if not found, add rule
+        $self->rlog("$m->{rule_desc} sync. Appending rule id $v->{id} ip $v->{ip} to $m->{table} table.");
+        if ( !$m->{add_sub}($v) ) {
+          # successfully added
+          push @added_check, $n;
+
+        } else {
+          my $msg = "$m->{rule_desc} sync error. Can't append rule id $v->{id} to $m->{table} table.";
+          if ($failure) {
+            $self->rlog($msg); # count not first errors non-fatal
+          } else {
+            $failure = $msg;
+          }
+        }
+      }
+
+    } # for filter in/out, mangle in/out
+
+    die $failure if $failure;
+
+    if (@added_check && @added_check < 4) {
+      $self->rlog('Added only '.join('/', @added_check).' tables/chains. This is not normal, just warn you.');
+    }
+    if (@replaced_check && @replaced_check < 4) {
+      $self->rlog('Replaced only '.join('/', @added_check).' tables/chains. This is not normal, just warn you.');
+    }
+
+    return 1;
   });
 
 
@@ -106,7 +224,7 @@ sub register {
           $self->rlog("$m->{rule_desc} sync. Rule #$ri ip $2 has been requested to delete. Deleting.");
           $ret = 1;
           push @found_check, $n;
-          if ($self->system(iptables => "-t $m->{table} -D $m->{chain} $ri")) {
+          if ( $m->{delete_sub}($ri) ) {
             my $msg = "$m->{rule_desc} sync error. Can't delete rule from $m->{table} table.";
             if ($failure) {
               $self->rlog($msg); # count not first errors non-fatal

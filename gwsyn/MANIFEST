@@ -6,6 +6,7 @@ gwsyn.conf_empty
 lib/Gwsyn.pm
 lib/Gwsyn/Command/cron.pm
 lib/Gwsyn/Command/dumpfiles.pm
+lib/Gwsyn/Command/dumprules.pm
 lib/Gwsyn/Command/loadclients.pm
 lib/Gwsyn/Command/trafstat.pm
 lib/Gwsyn/Controller/Refresh.pm
@@ -32,6 +33,7 @@ t/12_dhcp_create_full.t
 t/15_fw_delete.t
 t/16_fw_add_replace.t
 t/17_fw_create_full.t
+t/18_matang_regexps.t
 t/20_tc_delete.t
 t/21_tc_add_replace.t
 t/22_tc_create_full.t
