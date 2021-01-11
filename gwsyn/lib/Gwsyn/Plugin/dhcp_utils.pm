@@ -30,15 +30,21 @@ sub register {
       if (/([0-9a-fA-F:]+),id:\*,set:client(\d+),([0-9.]+)/x) {
         #say "$_, MAC: $1, ID: $2, IP: $3";
         if ($2 == $v->{id}) {
-          # replace same id
-          if (!$v->{no_dhcp} and $v->{mac}) {
-            print $fh "$v->{mac},id:*,set:client$v->{id},$v->{ip}\n";
-            $ret = 1;
+          if (!$ff) {
+            # replace same id
+            if (!$v->{no_dhcp} and $v->{mac}) {
+              print $fh "$v->{mac},id:*,set:client$v->{id},$v->{ip}\n";
+              $ret = 1;
+            } else {
+              # delete line if no_dhcp flag is set
+              $ret = 1;
+            }
+            $ff = 1;
           } else {
-            # delete line if no_dhcp flag is set
+            # skip duplicate id line
+            $self->rlog("Found duplicate ID in dhcphosts file, conflicting line deleted.");
             $ret = 1;
           }
-          $ff = 1;
         } elsif ($v->{mac} and $1 eq $v->{mac}) {
           $self->rlog("Found duplicate MAC in dhcphosts file, conflicting line deleted.");
           $ret = 1;
@@ -86,6 +92,7 @@ sub register {
       # 11:22:33:44:55:66,id:*,set:client123,192.168.33.22
       if (/set:client\Q$id\E,/x) {
         #say "Skipped line $_";
+        $self->rlog("Found duplicate ID in dhcphosts file, conflicting line deleted.") if $ret;
         $ret = 1;
         next;
       }
