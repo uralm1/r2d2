@@ -79,6 +79,7 @@ sub startup {
   $r->get('/subsys')->to('utils#subsys');
 
   $r->post('/refresh/#id')->to('refresh#refresh');
+  $r->post('/runstat')->to('stat#runstat');
 }
 
 1;

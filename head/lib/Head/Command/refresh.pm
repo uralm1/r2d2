@@ -4,7 +4,7 @@ use Mojo::Base 'Mojolicious::Command';
 use Head::Ural::Rtref qw(rtsyn_refresh_id);
 use Carp;
 
-has description => '* Manually refresh client by id';
+has description => '* Manually refresh client by <id>';
 has usage => "Usage: APPLICATION refresh <client-id>\n";
 
 sub run {

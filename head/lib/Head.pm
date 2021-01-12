@@ -6,6 +6,7 @@ use Head::Command::cron;
 use Head::Command::cleanlog;
 use Head::Command::refresh;
 use Head::Command::checkdb;
+use Head::Command::runstat;
 use Head::Ural::Dblog;
 
 use Sys::Hostname;

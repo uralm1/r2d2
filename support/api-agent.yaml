@@ -52,6 +52,21 @@ paths:
                 type: string
                 description: error message
 
+  /runstat:
+    post:
+      summary: request traffic statistic collection
+      responses:
+        '200':
+          description: Successfully queued
+        '501':
+          description: Not implemented
+        '503':
+          description: Task run problems
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
 
 servers:
   # Added by API Auto Mocking Plugin
