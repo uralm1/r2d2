@@ -7,11 +7,11 @@ use NetAddr::IP::Lite;
 sub clients {
   my $self = shift;
   my $prof = $self->stash('profile');
-  return $self->render(text=>'Bad parameter', status=>404) unless $prof;
+  return $self->render(text=>'Bad parameter', status=>503) unless $prof;
 
   $self->render_later;
   $self->mysql_inet->db->query("SELECT id, login, clients.desc, ip, mac, rt, defjump, speed_in, speed_out, no_dhcp, profile \
-FROM clients WHERE profile = ? ORDER BY ip ASC", $prof =>
+FROM clients WHERE profile = ? ORDER BY id ASC", $prof =>
     sub {
       my ($db, $err, $results) = @_;
       if ($err) {

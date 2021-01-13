@@ -22,26 +22,25 @@ my $t = Test::Mojo->new('Gwsyn', {client_in_chain=>'in_test', client_out_chain=>
 
 my ($ri, $ip);
 
-my $m = $t->app->fw_matang(12);
+my $m = $t->app->fw_matang;
 for my $n (qw/f_in f_out m_in m_out/) {
   my $c = 0;
-  $ri = undef;
+  $ri = 0;
   $ip = undef;
   for (@{$td{ $n }}) {
     next if ++$c < 3;
-    if (/$m->{ $n }{re1}/) { $ri = $1; $ip = $2; }
+    if ($_ =~ $m->{ $n }{re1}(12)) { $ri = $1; $ip = $2; }
   }
   ok($ri == 3 && $ip eq '1.2.3.5', "$n grepping for id 12");
 }
 
-$m = $t->app->fw_matang(1);
 for my $n (qw/f_in f_out m_in m_out/) {
   my $c = 0;
-  $ri = undef;
+  $ri = 0;
   $ip = undef;
   for (@{$td{ $n }}) {
     next if ++$c < 3;
-    if (/$m->{ $n }{re1}/) { $ri = $1; $ip = $2; }
+    if ($_ =~ $m->{ $n }{re1}(1)) { $ri = $1; $ip = $2; }
   }
   ok($ri == 1 && $ip eq '1.2.3.1', "$n grepping for id 1");
 }

@@ -11,7 +11,7 @@ sub run {
   my $app = $self->app;
 
   for my $n (qw/f_in f_out m_in m_out/) {
-    my $m = $app->fw_matang(1);
+    my $m = $app->fw_matang;
     if (my $d = $m->{$n}{dump_sub}()) {
       say "** DUMP $m->{$n}{rule_desc} table $m->{$n}{table} **";
       say @$d;

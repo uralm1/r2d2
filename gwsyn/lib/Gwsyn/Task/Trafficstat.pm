@@ -9,12 +9,11 @@ sub register {
     my $job = shift;
     $job->app->rlog("Start traffic_stat $$: ".$job->id);
 
-    say "NOT IMPLEMENTED";
-    #unless (eval { $job->app->load_clients }) {
-    #  $job->app->rlog("Loading clients failed: $@");
-    #  $job->fail;
-    #  return 1;
-    #}
+    unless (eval { $job->app->traffic_stat }) {
+      $job->app->rlog("Traffic statistics collection failed: $@");
+      #$job->fail; # do not fail this job
+      #return 1;
+    }
 
     $job->app->rlog("Finish traffic_stat $$: ".$job->id);
     $job->finish;

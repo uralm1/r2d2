@@ -10,7 +10,7 @@ sub run {
   my $self = shift;
   my $app = $self->app;
 
-  my $m = $app->rt_matang(1)->{m_out};
+  my $m = $app->rt_matang->{m_out};
   if (my $d = $m->{dump_sub}()) {
     say "** DUMP $m->{rule_desc} table $m->{table} **";
     say @$d;

@@ -46,6 +46,7 @@ sub startup {
   $self->plugin('Gwsyn::Plugin::fw_utils');
   $self->plugin('Gwsyn::Plugin::tc_utils');
   $self->plugin('Gwsyn::Plugin::Loadclients_impl');
+  $self->plugin('Gwsyn::Plugin::Trafficstat_impl');
   $self->plugin('Gwsyn::Task::Loadclients');
   $self->plugin('Gwsyn::Task::Addreplaceclient');
   $self->plugin('Gwsyn::Task::Deleteclient');

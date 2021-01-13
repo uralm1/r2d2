@@ -159,6 +159,41 @@ paths:
                 type: string
                 description: error message
 
+  /trafstat/{profile}:
+    post:
+      parameters:
+        - name: profile
+          in: path
+          required: true
+          description: profile that submitting stats
+          schema:
+            type: string
+            example: 'gwtest1'
+      requestBody:
+        description: traffic statistics
+        required: true
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/traf_stats'
+      responses:
+        '200':
+          description: Success
+        '404':
+          description: Bad parameter
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error, bad json etc
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+      
 # Added by API Auto Mocking Plugin
 servers:
   # Added by API Auto Mocking Plugin
@@ -224,3 +259,26 @@ components:
           type: string
           description: 'client profile name'
           example: 'gwtest1'
+    
+    traf_stats:
+      description: Traffic statistics
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/traf_record'
+      example:
+        1: {in: 100, out: 200}
+        2: {in: 10, out: 20}
+        10: {in: 110, out: 220}
+
+    traf_record:
+      description: Traffic statistics record for client id
+      type: object
+      properties:
+        in:
+          type: integer
+          description: input traffic (in bytes)
+          example: 100
+        out:
+          type: integer
+          description: output traffic (in bytes)
+          example: 200

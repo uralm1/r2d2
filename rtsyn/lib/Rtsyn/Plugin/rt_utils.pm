@@ -20,18 +20,15 @@ sub register {
   });
 
 
-  # {matanga} = rt_matang($id);
+  # {} = rt_matang;
   $app->helper(rt_matang => sub {
-    my ($self, $id) = @_;
-    croak 'Bad argument' unless defined $id;
+    my $self = shift;
     my $client_out_chain = $self->config('client_out_chain');
     return {
       'm_out' => {
         table => 'mangle',
         chain => $client_out_chain,
-        dump_sub => sub {
-          $self->system(iptables_dump => "-t mangle -nvx --line-numbers -L $client_out_chain")
-        },
+        dump_sub => sub { $self->system(iptables_dump => "-t mangle -nvx --line-numbers -L $client_out_chain") },
         add_sub => sub {
           my $v = shift; # {id=>1, etc}
           $self->system(iptables => "-t mangle -A $client_out_chain -s $v->{ip} -m comment --comment $v->{id} ".$self->rt_marks($v->{rt}))
@@ -44,10 +41,14 @@ sub register {
           my $ri = shift; # rule index
           $self->system(iptables => "-t mangle -D $client_out_chain $ri")
         },
+        zero_sub => sub {},
         # n pkt bytes MARK all -- * * 10.15.0.2 0.0.0.0/0 /* id */ MARK set 0x2
         # n pkt bytes      all -- * * 10.15.0.2 0.0.0.0/0 /* id */
-        re1 => qr/^\s*(\d+)\s+ \S+\s+ \S+\s+ \S*\s+ \S+\s+ \-\-\s+ \S+\s+ \S+\s+ (\S+)\s+ \S+\s+ \/\*\s+ \Q$id\E\s+ \*\/.*/x,
-        re2 => undef,
+        re1 => sub {
+          my $id = shift;
+          qr/^\s*(\d+)\s+ \S+\s+ \S+\s+ \S*\s+ \S+\s+ \-\-\s+ \S+\s+ \S+\s+ (\S+)\s+ \S+\s+ \/\*\s+ \Q$id\E\s+ \*\/.*/x
+        },
+        re_stat => sub {},
         rule_desc => 'Marking-rules',
       },
     }
@@ -61,7 +62,7 @@ sub register {
     my ($self, $v) = @_;
     croak 'Bad argument' unless $v;
 
-    my $m = $self->rt_matang($v->{id})->{m_out};
+    my $m = $self->rt_matang->{m_out};
     croak "Matang m_out matanga!" unless $m;
 
     my $ff = 0;
@@ -71,8 +72,7 @@ sub register {
     die "Error dumping rules $m->{chain} in $m->{table} table!" unless $dump;
 
     for (my $i = 2; $i < @$dump; $i++) { # skip first 2 lines
-      $_ = $dump->[$i];
-      if (/$m->{re1}/) {
+      if ($dump->[$i] =~ $m->{re1}($v->{id})) {
         my $ri = $1;
         if (!$ff) {
           $self->rlog("$m->{rule_desc} sync. Replacing rule #$ri id $v->{id} ip $2 in $m->{table} table.");
@@ -115,7 +115,7 @@ sub register {
     my ($self, $id) = @_;
     croak 'Bad argument' unless defined $id;
 
-    my $m = $self->rt_matang($id)->{m_out};
+    my $m = $self->rt_matang->{m_out};
     croak "Matang m_out matanga!" unless $m;
     my $ret = 0;
     my $failure = undef;
@@ -124,8 +124,7 @@ sub register {
     die "Error dumping rules $m->{chain} in $m->{table} table!" unless $dump;
 
     for (my $i = 2; $i < @$dump; $i++) { # skip first 2 lines
-      $_ = $dump->[$i];
-      if (/$m->{re1}/) {
+      if ($dump->[$i] =~ $m->{re1}($id)) {
         my $ri = $1;
         $self->rlog("$m->{rule_desc} sync. Rule #$ri id $id ip $2 has been requested to delete. Deleting.");
         $ret = 1;
