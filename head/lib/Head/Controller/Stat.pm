@@ -14,7 +14,17 @@ sub trafstat {
     return $self->render(text=>'Bad json format', status=>503) unless $j;
 
     $self->render_later;
-    $self->_submit_traf_stats($prof, $j);
+
+    say $self->dumper($j);
+    # update database in single transaction
+    my $tx = eval { $self->mysql_inet->db->begin };
+    unless ($tx) {
+      $self->log->error("Database begin transaction failure $@");
+      return $self->render(text=>"Database begin transaction failure", status=>503);
+    }
+
+    $self->_submit_traf_stats($tx, $prof, $j);
+    # now exit, execution continue asyncroniously
 
   } else {
     return $self->render(text=>'Unsupported content', status=>503);
@@ -22,37 +32,43 @@ sub trafstat {
 }
 
 
-# internal, starts syncronious submit process
+# internal, starts recursive asyncronious submit process
 sub _submit_traf_stats {
-  my ($self, $prof, $j) = @_;
-  croak 'Bad parameter' unless $j or $prof;
+  my ($self, $tx, $prof, $j, $s) = @_;
+  croak 'Bad parameter' unless $tx or $prof or $j;
+  $s //= [0, 0]; # reset counters on first run
 
-  say $self->dumper($j);
-
-  # update database in single transaction
-  my $db = $self->mysql_inet->db;
-  eval {
-    my $tx = $db->begin;
-
-    while (my ($id, $v) = each %$j) {
-      my $inb = $v->{in};
-      my $outb = $v->{out};
-
-      if ($inb > 0 or $outb > 0) {
-        my $res = $db->query("UPDATE clients SET sum_in = sum_in + ?, sum_out = sum_out + ?, \
-sum_limit_in = IF(qs != 0, IF(sum_limit_in > ?, sum_limit_in - ?, 0), sum_limit_in) \
-WHERE profile = ? AND id = ?", $inb, $outb, $inb, $inb, $prof, $id);
-      }
-
-    } # loop by submitted ids
-    $tx->commit;
-  };
-  if ($@) {
-    $self->log->error("Database update failure: $@");
-    return $self->render(text=>"Database update failure", status=>503);
+  my ($id, $v);
+  unless (($id, $v) = each %$j) {
+    eval { $tx->commit };
+    if ($@) {
+      $self->log->error("Database update transaction commit failure $@");
+      return $self->render(text=>"Database update transaction failure", status=>503);
+    }
+    # finished
+    $self->log->debug("UPDATE FINISHED, submitted: $s->[0], updated: $s->[1]");
+    return $self->render(text=>"DONE $s->[1]/$s->[0]", status=>200); # SUCCESS
   }
 
-  return $self->rendered(200); # SUCCESS
+  my $inb = $v->{in};
+  my $outb = $v->{out};
+  $s->[0]++; # count submitted
+  if ($inb > 0 or $outb > 0) {
+    $tx->db->query_p("UPDATE clients SET sum_in = sum_in + ?, sum_out = sum_out + ?, \
+sum_limit_in = IF(qs != 0, IF(sum_limit_in > ?, sum_limit_in - ?, 0), sum_limit_in) \
+WHERE profile = ? AND id = ?", $inb, $outb, $inb, $inb, $prof, $id)->then(sub {
+      my $results = shift;
+      $s->[1] += $results->affected_rows; # count updated
+    })->then(sub {
+      $self->_submit_traf_stats($tx, $prof, $j, $s);
+    })->catch(sub {
+      my $err = shift;
+      $self->log->error("Database update failure id $id: $err");
+      return $self->render(text=>"Database update failure", status=>503);
+    });
+  } else {
+    $self->_submit_traf_stats($tx, $prof, $j, $s);
+  }
 }
 
 
