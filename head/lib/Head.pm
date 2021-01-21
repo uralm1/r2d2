@@ -11,7 +11,7 @@ use Head::Ural::Dblog;
 
 use Sys::Hostname;
 
-our $VERSION = '2.51';
+our $VERSION = '2.52';
 
 # This method will run once at server start
 sub startup {
@@ -20,6 +20,7 @@ sub startup {
   # Load configuration from hash returned by config file
   my $config = $self->plugin('Config', { default => {
     secrets => ['6ac63578bb604df4865ae802de3098b80c082740'],
+    duplicate_rlogs => 0,
   }});
   delete $self->defaults->{config}; # safety - not to pass passwords to stashes
 
@@ -32,6 +33,7 @@ sub startup {
   $self->max_request_size(1048576);
 
   $self->plugin('Head::Plugin::Utils');
+  $self->plugin('Head::Plugin::Refresh_impl');
   $self->commands->namespaces(['Mojolicious::Command', 'Head::Command']);
 
   my $subsys = $self->moniker.'@'.hostname;

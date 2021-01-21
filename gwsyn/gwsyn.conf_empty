@@ -25,7 +25,7 @@
   client_out_chain => 'pipe_out_inet_clients',
 
   # collect traffic statistics schedule
-  trafstat_schedule => '*/2 * * * *',
+  trafstat_schedule => '0,30 * * * *',
 
   iptables_wait => 3,
 

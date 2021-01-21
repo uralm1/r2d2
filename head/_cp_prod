@@ -5,5 +5,6 @@ destdir=ural@srv-echo:r2d2-head/
 # copy keys
 cert_path="../cert"
 keys="$cert_path/ca.pem $cert_path/r2d2-head-cert.pem $cert_path/r2d2-head-key.pem"
-scp $keys docker-compose.yml $destdir
+
+scp $keys docker-compose.yml _r_cmd head.conf_empty $destdir
 

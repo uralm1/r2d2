@@ -15,7 +15,6 @@ sub run {
     if (my $d = $m->{$n}{dump_sub}()) {
       say "** DUMP $m->{$n}{rule_desc} table $m->{$n}{table} **";
       say @$d;
-      say '';
     } else {
       $app->log->error("Error dumping $m->{$n}{rule_desc} table $m->{$n}{table}.");
     }

@@ -10,11 +10,13 @@ lib/Gwsyn/Command/dumprules.pm
 lib/Gwsyn/Command/loadclients.pm
 lib/Gwsyn/Command/trafstat.pm
 lib/Gwsyn/Controller/Refresh.pm
+lib/Gwsyn/Controller/Stat.pm
 lib/Gwsyn/Controller/Utils.pm
 lib/Gwsyn/Plugin/dhcp_utils.pm
 lib/Gwsyn/Plugin/fw_utils.pm
 lib/Gwsyn/Plugin/Loadclients_impl.pm
 lib/Gwsyn/Plugin/tc_utils.pm
+lib/Gwsyn/Plugin/Trafficstat_impl.pm
 lib/Gwsyn/Plugin/Utils.pm
 lib/Gwsyn/Task/Addreplaceclient.pm
 lib/Gwsyn/Task/Deleteclient.pm

@@ -20,6 +20,8 @@ sub log {
     return $self->render(text=>'Bad log info data', status=>415) unless defined $info;
   }
 
+  $self->app->log->debug("[[$rsubsys]] $info") if $self->config('duplicate_rlogs');
+
   $self->stash('dblog')->l(subsys => $rsubsys, info => $info);
 
   # empty response on success

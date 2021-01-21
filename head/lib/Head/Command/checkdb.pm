@@ -3,7 +3,6 @@ use Mojo::Base 'Mojolicious::Command';
 
 use Carp;
 use Head::Ural::Dblog;
-use Head::Ural::Rtref qw(rtsyn_refresh_id);
 
 has description => '* Run check for database changes (run from cron cmd)';
 has usage => "Usage: APPLICATION checkdb\n";
@@ -23,28 +22,25 @@ WHERE (s.sync_rt = 1 OR s.sync_fw = 1 OR s.sync_dhcp = 1) AND clients.login = s.
         # loop by clients
         while (my $n = $results->hash) {
           my $id = $n->{id};
+          my %oldflags = (rtsyn=>$n->{sync_rt}, dhcpsyn=>$n->{sync_dhcp}, fwsyn=>$n->{sync_fw});
 
           #say "id: $id, profile: $n->{profile}";
           if (my $profile = $profiles->{$n->{profile}}) {
             # loop by agents
             for my $agent (@{$profile->{agents}}) {
               my $agent_type = $agent->{type};
-              my $agent_url = $agent->{url};
-              if ($agent_type eq 'rtsyn' && $n->{sync_rt}) {
-                $app->log->info("Client id $id refreshing $agent_type\@[$agent_url]");
-                rtsyn_refresh_id($app, $dbconn, $id, $agent_url);
-              } elsif ($agent_type eq 'dhcpsyn' && $n->{sync_dhcp}) {
-                $app->log->info("Client id $id refreshing $agent_type\@[$agent_url]");
-                #TODO
-              } elsif ($agent_type eq 'fwsyn' && $n->{sync_fw}) {
-                $app->log->info("Client id $id refreshing $agent_type\@[$agent_url]");
-                #TODO
+
+              if (exists $oldflags{$agent_type}) {
+                # rtsyn/dhcpsyn/fwsyn use the only corresponding flag
+                $app->refresh_id_bytype($agent_type, $agent->{url}, $id) if $oldflags{$agent_type};
               } else {
-                $app->log->warn("Client id $id refresh unsupported agent!");
+                # gwsyn and others use any of the flags
+                $app->refresh_id_bytype($agent_type, $agent->{url}, $id);
               }
+
             }
           } else {
-            $app->log->error("Client id $id refresh failed invalid profile!");
+            $app->log->error("Refresh client id $id failed: invalid profile!");
           }
         } # while
       } else {

@@ -1,8 +1,7 @@
 package Head::Command::refresh;
 use Mojo::Base 'Mojolicious::Command';
 
-use Head::Ural::Rtref qw(rtsyn_refresh_id);
-use Carp;
+#use Carp;
 
 has description => '* Manually refresh client by <id>';
 has usage => "Usage: APPLICATION refresh <client-id>\n";
@@ -10,7 +9,7 @@ has usage => "Usage: APPLICATION refresh <client-id>\n";
 sub run {
   my ($self, $id) = @_;
   my $app = $self->app;
-  croak("Bad <client-id> argument\n") unless (defined($id) && $id =~ /^\d+$/);
+  die "Bad <client-id> argument.\n" unless (defined($id) && $id =~ /^\d+$/);
 
   my $profiles = $app->config('profiles');
   my $dbconn = $app->mysql_inet->db;
@@ -24,23 +23,12 @@ sub run {
         if (my $profile = $profiles->{$n->{profile}}) {
           # loop by agents
           for my $agent (@{$profile->{agents}}) {
-            my $agent_type = $agent->{type};
-            my $agent_url = $agent->{url};
-            if ($agent_type eq 'rtsyn') {
-              $app->log->info("Client id $id refreshing $agent_type\@[$agent_url]");
-              rtsyn_refresh_id($app, $dbconn, $id, $agent_url);
-            } elsif ($agent_type eq 'dhcpsyn') {
-              $app->log->info("Client id $id refreshing $agent_type\@[$agent_url]");
-              #TODO
-            } elsif ($agent_type eq 'fwsyn') {
-              $app->log->info("Client id $id refreshing $agent_type\@[$agent_url]");
-              #TODO
-            } else {
-              $app->log->warn("Client id $id refresh unsupported agent!");
-            }
+
+            $app->refresh_id_bytype($agent->{type}, $agent->{url}, $id);
+
           }
         } else {
-          $app->log->error("Client id $id refresh failed invalid profile!");
+          $app->log->error("Refresh client id $id failed: invalid profile!");
         }
       } else {
         $app->log->error('Client refresh: database operation error.');

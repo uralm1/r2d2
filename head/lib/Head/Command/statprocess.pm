@@ -1,7 +1,7 @@
 package Head::Command::statprocess;
 use Mojo::Base 'Mojolicious::Command';
 
-use Carp;
+#use Carp;
 use Mojo::mysql;
 use Head::Ural::Dblog;
 
@@ -19,7 +19,7 @@ sub run {
   } elsif ($op eq '-y' || $op eq '--yearly') {
     $self->do_yearly;
   } else {
-    croak "Bad argument. See statprocess --help.\n";
+    die "Bad argument. See statprocess --help.\n";
   }
 
   return 0;
@@ -29,12 +29,12 @@ sub run {
 sub do_daily {
   my $self = shift;
   my $app = $self->app;
-  my $procstr = 'Daily';
+  my $procstr = 'DAILY';
   $self->_startup($procstr);
 
   # archive traffic statistics
-  $app->mysql_inet->db->query("INSERT INTO adaily (login, date, d_in, d_out) \
-SELECT login, CURDATE(), sum_in, sum_out \
+  $app->mysql_inet->db->query("INSERT INTO adaily (client_id, login, date, d_in, d_out) \
+SELECT id, login, CURDATE(), sum_in, sum_out \
 FROM clients \
 ON DUPLICATE KEY UPDATE d_in = sum_in, d_out = sum_out" =>
     sub {
@@ -56,7 +56,7 @@ sub do_monthly {
   my $self = shift;
   my $app = $self->app;
   my $dblog = $app->defaults('dblog');
-  my $procstr = 'Monthly';
+  my $procstr = 'MONTHLY';
   $self->_startup($procstr);
 
   my $db = $app->mysql_inet->db;
@@ -64,8 +64,8 @@ sub do_monthly {
     # archive traffic statistics
     sub {
       my $delay = shift;
-      $db->query("INSERT INTO amonthly (login, date, m_in, m_out) \
-SELECT login, CURDATE(), sum_in, sum_out \
+      $db->query("INSERT INTO amonthly (client_id, login, date, m_in, m_out) \
+SELECT id, login, CURDATE(), sum_in, sum_out \
 FROM clients \
 ON DUPLICATE KEY UPDATE m_in = sum_in, m_out = sum_out" =>  $delay->begin);
     },
@@ -125,10 +125,10 @@ ON DUPLICATE KEY UPDATE m_in = sum_in, m_out = sum_out" =>  $delay->begin);
 sub do_yearly {
   my $self = shift;
   my $app = $self->app;
-  my $procstr = 'Yearly';
+  my $procstr = 'YEARLY';
   $self->_startup($procstr);
 
-  # archive traffic statistics
+  # reset traffic statistics
   $app->mysql_inet->db->query("UPDATE clients SET sum_in = 0, sum_out = 0" =>
     sub {
       my ($db, $err, $results) = @_;

@@ -29,9 +29,9 @@ sub register {
         },
         delete_sub => sub {
           my $ri = shift; # rule index
-          $self->system(iptables => "-t fliter -D $client_in_chain $ri")
+          $self->system(iptables => "-t filter -D $client_in_chain $ri")
         },
-        zero_sub => sub { $self->system(iptables => "-t fliter -Z $client_in_chain") },
+        zero_sub => sub { $self->system(iptables => "-t filter -Z $client_in_chain") },
         # n pkt bytes ACCEPT all -- * * 0.0.0.0/0 1.2.3.4 /* id */
         # n pkt bytes DROP   all -- * * 0.0.0.0/0 1.2.3.5 /* id */
         re1 => sub {
@@ -62,7 +62,7 @@ sub register {
           my $ri = shift; # rule index
           $self->system(iptables => "-t filter -D $client_out_chain $ri")
         },
-        zero_sub => sub { $self->system(iptables => "-t fliter -Z $client_out_chain") },
+        zero_sub => sub { $self->system(iptables => "-t filter -Z $client_out_chain") },
         # n pkt bytes ACCEPT all -- * * 1.2.3.4 0.0.0.0/0 /* id */ MAC 11:22:33:44:55:66
         # n pkt bytes DROP   all -- * * 1.2.3.5 0.0.0.0/0 /* id */
         re1 => sub {

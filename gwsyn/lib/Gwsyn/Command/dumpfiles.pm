@@ -16,7 +16,7 @@ sub run {
     my $fh = eval { $fobj->open('<') };
     if ($fh) {
       say '** DUMP of '.$fobj->basename." **";
-      print while <$fh>;
+      while (my $l = <$fh>) { print $l };
       $fh->close;
       say "** End of ".$fobj->basename." dump **.\n";
     } else {

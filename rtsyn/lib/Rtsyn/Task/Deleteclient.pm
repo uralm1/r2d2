@@ -9,7 +9,7 @@ sub register {
     my ($job, $id) = @_;
     croak 'Bad job parameter' unless $id;
     my $app = $job->app;
-    $app->rlog("Start delete_client $$: ".$job->id);
+    $app->rlog('Started delete_client task '.$job->id." pid $$");
 
     my @err;
     my $r = eval { $app->rt_delete($id) };
@@ -21,7 +21,7 @@ sub register {
       return 1;
     }
 
-    $app->rlog("Finish delete_client $$: ".$job->id);
+    $app->rlog('Finished delete_client task '.$job->id);
     $job->finish;
   });
 }

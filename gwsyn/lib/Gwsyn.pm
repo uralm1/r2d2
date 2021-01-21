@@ -2,6 +2,7 @@ package Gwsyn;
 use Mojo::Base 'Mojolicious';
 
 use Mojo::File qw(path);
+use Mojo::SQLite;
 use Gwsyn::Command::loadclients;
 use Gwsyn::Command::dumpfiles;
 use Gwsyn::Command::dumprules;
@@ -37,7 +38,12 @@ sub startup {
   # 1Mb max request
   $self->max_request_size(1048576);
 
-  $self->plugin(Minion => {SQLite => $config->{'minion_db_conn'}});
+  my $mdb = Mojo::SQLite->new($config->{'minion_db_conn'});
+  $mdb->on(connection => sub {
+    my ($sql, $dbh) = @_;
+    $dbh->do('PRAGMA wal_autocheckpoint=250');
+  });
+  $self->plugin(Minion => { SQLite => $mdb });
   # FIXME DEBUG FIXME: open access to minion UI
   ###$self->plugin('Minion::Admin');
 
@@ -71,7 +77,7 @@ sub startup {
     path($self->config($_))->dirname->make_path for qw/dhcphosts_file firewall_file tc_file/;
 
     # log startup
-    $app->rlog("Gwsyn agent daemon ($VERSION) starting.");
+    $app->rlog("GWSYN agent daemon ($VERSION) starting.");
 
     # load clients data on startup
     unless ($config->{disable_autoload}) {
@@ -80,7 +86,7 @@ sub startup {
         $app->rlog('Updating clients failed: execution subsystem error.');
         sleep(3);
       }
-      $app->minion->enqueue('load_clients' => {attempts => 5});
+      $app->minion->enqueue(load_clients => [] => {attempts => 5});
     }
   });
 

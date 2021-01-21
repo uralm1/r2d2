@@ -27,6 +27,7 @@ sub register {
           $self->log->error('Log request failed, probably connection refused') unless defined $e;
         }
       );
+      Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
     }
   });
 

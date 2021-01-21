@@ -9,7 +9,7 @@ sub register {
     my ($job, $v) = @_;
     croak 'Bad job parameter' unless $v;
     my $app = $job->app;
-    $app->rlog("Start addreplace_client $$: ".$job->id);
+    $app->rlog('Started addreplace_client task '.$job->id." pid $$");
 
     my @err;
     my $r = eval { $app->rt_add_replace($v) };
@@ -21,7 +21,7 @@ sub register {
       return 1;
     }
 
-    $app->rlog("Finish addreplace_client $$: ".$job->id);
+    $app->rlog('Finished addreplace_client task '.$job->id);
     $job->finish;
   });
 }

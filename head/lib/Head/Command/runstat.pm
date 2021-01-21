@@ -1,7 +1,7 @@
 package Head::Command::runstat;
 use Mojo::Base 'Mojolicious::Command';
 
-use Carp;
+#use Carp;
 
 has description => '* Manually run traffic statistics collection for <profile>';
 has usage => "Usage: APPLICATION runstat <profile>\n";
@@ -9,10 +9,10 @@ has usage => "Usage: APPLICATION runstat <profile>\n";
 sub run {
   my ($self, $p) = @_;
   my $app = $self->app;
-  croak("Bad <profile> argument\n") unless (defined $p);
+  die "Bad <profile> argument\n" unless defined $p;
 
   my $profile = $app->config('profiles')->{$p};
-  croak("Given <profile> is not found in config file!\n") unless (defined $profile);
+  die "Given <profile> is not found in config file!\n" unless defined $profile;
 
   # loop by agents
   for my $agent (@{$profile->{agents}}) {
@@ -37,7 +37,7 @@ sub run {
             }
           } else {
             # connection failed
-            $app->log->error("Connection to agent failed: $@");
+            $app->log->error("Connection to agent failed, probably connect timeout");
           }
         }
       );
