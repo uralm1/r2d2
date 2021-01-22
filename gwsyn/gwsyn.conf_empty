@@ -12,6 +12,7 @@
   firewall_file => '/var/r2d2/firewall.clients',
   tc_file => '/var/r2d2/traf.clients',
   dhcphosts_file => '/var/r2d2/dhcphosts.clients',
+  boot_dhcphosts_file => '/etc/r2d2/dhcphosts.clients',
 
   dnsmasq_pid_dir => '/var/run/dnsmasq',
   dnsmasq_pidfile_regexp => qr{dnsmasq\.\w*\.pid},

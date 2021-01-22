@@ -136,6 +136,22 @@ sub register {
   # returns 1-success, dies on error
   $app->helper(dhcp_apply => sub {
     my $self = shift;
+
+    # compare boot_dhcphosts_file with dhcphosts_file and rewrite it
+    my $dhcpfile = path($self->config('dhcphosts_file'));
+    my $bootdhcpfile = path($self->config('boot_dhcphosts_file'));
+    if (-f $dhcpfile) {
+      my $d = eval { $dhcpfile->slurp } or die "Can't read dhcphosts file: $!";
+      my $d2 = undef;
+      if (-f $bootdhcpfile) {
+        $d2 = eval { $bootdhcpfile->slurp } or die "Can't read boot dhcphosts file: $!";
+      }
+      if (!defined($d2) or $d2 ne $d) {
+        eval { $bootdhcpfile->spurt($d) } or die "Can't write boot dhcphosts file: $!";
+        $self->log->debug('Boot dhcphosts file is updated.');
+      }
+    }
+
     my $pidfile;
     my $pid_re = $self->config('dnsmasq_pidfile_regexp');
     for (@{path($self->config('dnsmasq_pid_dir'))->list}) {
