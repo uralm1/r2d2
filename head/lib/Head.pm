@@ -3,7 +3,7 @@ use Mojo::Base 'Mojolicious';
 
 use Head::Command::statprocess;
 use Head::Command::cron;
-use Head::Command::cleanlog;
+use Head::Command::rotatelog;
 use Head::Command::refresh;
 use Head::Command::checkdb;
 use Head::Command::runstat;

@@ -8,6 +8,9 @@
   # db check schedule
   check_schedule => '*/2 * * * *',
 
+  # log rotation (weekly)
+  logrotate_schedule => '50 2 * * 7',
+
   # stats rotation
   # set to undef to disable scheduling
   stat_schedules => {

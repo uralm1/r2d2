@@ -11,9 +11,9 @@ Dockerfile
 head.conf_empty
 lib/Head.pm
 lib/Head/Command/checkdb.pm
-lib/Head/Command/cleanlog.pm
 lib/Head/Command/cron.pm
 lib/Head/Command/refresh.pm
+lib/Head/Command/rotatelog.pm
 lib/Head/Command/runstat.pm
 lib/Head/Command/statprocess.pm
 lib/Head/Controller/Clients.pm
