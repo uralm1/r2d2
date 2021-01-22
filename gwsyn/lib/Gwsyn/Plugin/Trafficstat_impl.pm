@@ -24,7 +24,7 @@ sub register {
 
       for (my $i = 2; $i < @$dump; $i++) { # skip first 2 lines
         if ($dump->[$i] =~ $m->{re_stat}()) {
-          say "rule $1 $n $2 ip $3 id $4";
+          $self->log->info("rule $1 $n $2 ip $3 id $4");
           $buf{$4}{$n} = $2 if defined($2) and defined($4) and $2 > 0;
         }
       } # for dump
@@ -52,7 +52,7 @@ sub register {
         }
 
       } else {
-        die 'Stats submit request error: '.($res->is_error ? $res->body : '');
+        die 'Stats submit request error: '.($res->is_error ? substr($res->body, 0, 40) : '');
       }
     } else {
       die "Stats submit to head failed: $@";

@@ -13,7 +13,7 @@ sub run {
 
   my $profiles = $app->config('profiles');
   my $dbconn = $app->mysql_inet->db;
-  $app->log->info('Asyncronious update initiated');
+  $app->log->info('Asyncronious update - checking db for changes');
   $dbconn->query("SELECT clients.id, profile, s.sync_rt, s.sync_fw, s.sync_dhcp FROM clients, clients_sync s\
 WHERE (s.sync_rt = 1 OR s.sync_fw = 1 OR s.sync_dhcp = 1) AND clients.login = s.login" =>
     sub {

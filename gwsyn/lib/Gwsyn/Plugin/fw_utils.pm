@@ -157,7 +157,7 @@ sub register {
         if ($dump->[$i] =~ $m->{re1}($v->{id})) {
           my $ri = $1;
           if (!$ff) {
-            $self->rlog("$m->{rule_desc} sync. Replacing rule #$ri id $v->{id} ip $2 in $m->{table} table.");
+            $self->rlog("$m->{rule_desc} $m->{table} sync. Replacing rule #$ri id $v->{id} ip $2 in $m->{table} table.");
             $ff = 1;
             push @replaced_check, $n;
             if ( $m->{replace_sub}($ri, $v) ) {
@@ -169,7 +169,7 @@ sub register {
               }
             }
           } else {
-            $self->rlog("$m->{rule_desc} sync. Deleting duplicate rule #$ri id $v->{id} ip $2 in $m->{table} table.");
+            $self->rlog("$m->{rule_desc} $m->{table} sync. Deleting duplicate rule #$ri id $v->{id} ip $2 in $m->{table} table.");
             if ( $m->{delete_sub}($ri) ) {
               # just warn, count it non-fatal
               $self->rlog("$m->{rule_desc} sync error. Can't delete rule #$ri from $m->{table} table.");
@@ -179,7 +179,7 @@ sub register {
       } # for dump
 
       if (!$ff) { # if not found, add rule
-        $self->rlog("$m->{rule_desc} sync. Appending rule id $v->{id} ip $v->{ip} to $m->{table} table.");
+        $self->rlog("$m->{rule_desc} $m->{table} sync. Appending rule id $v->{id} ip $v->{ip} to $m->{table} table.");
         if ( !$m->{add_sub}($v) ) {
           # successfully added
           push @added_check, $n;

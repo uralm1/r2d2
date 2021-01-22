@@ -15,9 +15,10 @@ sub trafstat {
 
     $self->render_later;
 
-    say $self->dumper($j);
+    #$self->log->debug($self->dumper($j));
     # update database in single transaction
-    my $tx = eval { $self->mysql_inet->db->begin };
+    my $db = $self->mysql_inet->db;
+    my $tx = eval { $db->begin };
     unless ($tx) {
       $self->log->error("Database begin transaction failure $@");
       return $self->render(text=>"Database begin transaction failure", status=>503);

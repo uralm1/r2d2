@@ -8,7 +8,6 @@ _r_head
 cpanfile
 docker-compose.yml
 Dockerfile
-head.conf
 head.conf_empty
 lib/Head.pm
 lib/Head/Command/checkdb.pm

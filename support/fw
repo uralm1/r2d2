@@ -9,13 +9,16 @@ iptables -t nat -A prerouting_wan_rule -i $UFANET_INTERFACE -d 10.2.13.130 -p tc
 # pf_snat_config
 # r2d2 head
 IP_R2D2HEAD=10.14.72.5
+IP_R2D2HEADCRON=10.14.72.6
 iptables -t nat -A postrouting_wan_rule -o $UFANET_INTERFACE -s $IP_R2D2HEAD -d 10.2.0.0/16 -p tcp --dport 2272:2275 -j SNAT --to 10.2.13.130
+iptables -t nat -A postrouting_wan_rule -o $UFANET_INTERFACE -s $IP_R2D2HEADCRON -d 10.2.0.0/16 -p tcp --dport 2272:2275 -j SNAT --to 10.2.13.130
 
 
 #
 # fw firewall settings to head container access
 #
 ip_r2d2head=10.14.72.5
+ip_r2d2headcron=10.14.72.6
 # r2d2 head
 $ipt -N pipe_in_r2d2head
 $ipt -N pipe_out_r2d2head
@@ -27,4 +30,6 @@ $ipt -A pipe_in_r2d2head -p tcp --sport 2272:2275 -j ACCEPT
 $ipt -A pipe_out_r2d2head -p tcp --dport 2272:2275 -j ACCEPT
 $ipt -A FORWARD -d $ip_r2d2head -j pipe_in_r2d2head
 $ipt -A FORWARD -s $ip_r2d2head -j pipe_out_r2d2head
+$ipt -A FORWARD -d $ip_r2d2headcron -j pipe_in_r2d2head
+$ipt -A FORWARD -s $ip_r2d2headcron -j pipe_out_r2d2head
 

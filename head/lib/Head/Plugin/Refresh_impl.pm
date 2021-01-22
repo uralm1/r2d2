@@ -25,7 +25,7 @@ sub register {
         if (defined $res) {
           if ($res->is_success) {
             # successful update
-            my $m = "Refresh request for $id successful: ".$res->body;
+            my $m = "Client id $id refresh successful".($res->body ? ': '.$res->body : '');
             $self->log->info($m);
             $self->stash('dblog')->l(info => $m);
 
@@ -34,14 +34,14 @@ sub register {
           } else {
             # request error 503
             if ($res->is_error) {
-              my $m = "Refresh client id $id error: ".$res->body;
+              my $m = "Client id $id error: ".$res->body;
               $self->log->error($m);
               $self->stash('dblog')->l(info => $m);
             }
           }
         } else {
           # connection to agent failed
-          my $m = "Refresh client id $id error: ";
+          my $m = "Client id $id error: ";
           $self->log->error("Connection to agent failed: $@");
           $self->stash('dblog')->l(info => $m.'connection to agent failed');
         }
@@ -114,7 +114,7 @@ SET s.sync_rt = 0, s.sync_dhcp = 0, s.sync_fw = 0 WHERE clients.id = ? AND clien
       });
 
     } else {
-      my $m = "Refresh client id $id skipped: unsupported agent $agent_type!";
+      my $m = "Skipped client id $id: unsupported agent $agent_type!";
       $app->log->warn($m);
       $self->stash('dblog')->l(info => $m);
     }
