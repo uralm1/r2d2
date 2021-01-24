@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# worker runs from root
+sudo script/dhcpsyn minion worker -j 1

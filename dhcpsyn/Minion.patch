@@ -1,0 +1,11 @@
+--- Minion.pm.old	2021-01-24 16:26:00.020981899 +0500
++++ Minion.pm	2021-01-24 16:26:32.185407337 +0500
+@@ -132,7 +132,7 @@
+   my $self = shift;
+ 
+   # No fork emulation support
+-  croak 'Minion workers do not support fork emulation' if $Config{d_pseudofork};
++  #croak 'Minion workers do not support fork emulation' if $Config{d_pseudofork};
+ 
+   my $worker = Minion::Worker->new(minion => $self);
+   $self->emit(worker => $worker);

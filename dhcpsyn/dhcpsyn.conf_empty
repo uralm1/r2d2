@@ -1,0 +1,18 @@
+{
+  my_profile => 'plk',
+
+  local_cert => '../cert/localhost-cert.pem',
+  local_key => '../cert/localhost-key.pem',
+  ca => '../cert/ca.pem',
+
+  minion_db_conn => 'sqlite:dhcpsyn.db',
+
+  head_url => 'https://localhost:2271',
+
+  iptables_path => '/usr/sbin/iptables',
+
+  # debug and testing
+  #rlog_local => 1,
+  #rlog_remote => 1, # default
+  #disable_autoload => 1,
+}

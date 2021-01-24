@@ -1,0 +1,16 @@
+_d_cmd
+_d_dhcpsyn
+_d_worker
+_i.cmd
+_i_deps.cmd
+dhcpsyn.conf_empty
+lib/Dhcpsyn.pm
+lib/Dhcpsyn/Command/loadclients.pm
+lib/Dhcpsyn/Controller/Utils.pm
+lib/Dhcpsyn/Plugin/Utils.pm
+lib/Dhcpsyn/Task/Loadclients.pm
+Makefile.PL
+MANIFEST			This list of files
+Minion.patch
+script/dhcpsyn
+t/01_get_subsys.t

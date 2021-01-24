@@ -23,7 +23,7 @@ sub register {
           my ($ua, $tx) = @_;
           my $e = eval {
             my $res = $tx->result;
-            $self->log->error('Log request error: '.$res->body) if ($res->is_error);
+            $self->log->error('Log request error: '.substr($res->body, 0, 40)) if ($res->is_error);
           };
           $self->log->error('Log request failed, probably connection refused') unless defined $e;
         }

@@ -1,4 +1,4 @@
-package Rtsyn::Plugin::Utils;
+package Dhcpsyn::Plugin::Utils;
 use Mojo::Base 'Mojolicious::Plugin';
 
 use Mojo::UserAgent;
@@ -31,7 +31,6 @@ sub register {
     }
   });
 
-
   # my $bool = $self->check_workers
   $app->helper(check_workers => sub {
     my $self = shift;
@@ -40,6 +39,7 @@ sub register {
   });
 
 
+=for comments
   # my $ret = $app->system("command args")
   # my $ret = $app->system(iptables => "args")
   # my $ret = $app->system(iptables_restore => "args")
@@ -82,7 +82,9 @@ sub register {
       }
     }
   });
+=cut
 }
+
 
 1;
 __END__
