@@ -43,7 +43,7 @@ sub register {
     };
     if (defined $res) {
       if ($res->is_success) {
-        $self->rlog("Traffic stat submitted. Resetting rule counters.");
+        $self->rlog('Traffic stat submitted: '.substr($res->body, 0, 20).'. Resetting rule counters.');
         for (qw/f_in f_out/) {
           my $m = $matang->{$_};
           if ($m->{zero_sub}()) {

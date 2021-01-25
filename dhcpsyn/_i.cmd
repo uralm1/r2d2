@@ -13,6 +13,7 @@ gmake install
 copy /y dhcpsyn.conf_empty %inst_dir%
 cd ..
 rmdir /s /q dhcpsyn-%ver%
+rmdir /q %inst_dir%\log
 
 @echo.
 @echo Dhcpsyn is installed to %inst_dir%

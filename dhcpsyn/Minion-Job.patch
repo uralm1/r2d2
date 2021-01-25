@@ -1,0 +1,18 @@
+--- Job.pm.old.pm	2021-01-25 12:11:20.929448000 +0500
++++ Job.pm	2021-01-25 12:24:35.742333000 +0500
+@@ -80,12 +80,13 @@
+   # Reset event loop
+   Mojo::IOLoop->reset;
+   local $SIG{CHLD} = local $SIG{INT}  = local $SIG{TERM} = local $SIG{QUIT} = 'DEFAULT';
+-  local $SIG{USR1} = local $SIG{USR2} = 'IGNORE';
++  #local $SIG{USR1} = local $SIG{USR2} = 'IGNORE';
+ 
+   # Child
+   if (defined(my $err = $self->execute)) { $self->fail($err) }
+   $self->emit('cleanup');
+-  POSIX::_exit(0);
++  #POSIX::_exit(0);
++  exit(0);
+ }
+ 
+ sub stop { shift->kill('KILL') }
