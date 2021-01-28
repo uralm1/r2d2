@@ -4,7 +4,7 @@ use Mojo::Base 'Mojolicious';
 use Mojo::File qw(path);
 use Mojo::SQLite;
 use Dhcpsyn::Command::loadclients;
-#use Dhcpsyn::Command::dumprules;
+use Dhcpsyn::Command::dumprules;
 
 #use Carp;
 use Sys::Hostname;
@@ -41,8 +41,8 @@ sub startup {
   ###$self->plugin('Minion::Admin');
 
   $self->plugin('Dhcpsyn::Plugin::Utils');
-  #$self->plugin('Dhcpsyn::Plugin::rt_utils');#
-  #$self->plugin('Dhcpsyn::Plugin::Loadclients_impl');
+  $self->plugin('Dhcpsyn::Plugin::wdhcp_utils');
+  $self->plugin('Dhcpsyn::Plugin::Loadclients_impl');
   $self->plugin('Dhcpsyn::Task::Loadclients');
   #$self->plugin('Dhcpsyn::Task::Addreplaceclient');
   #$self->plugin('Dhcpsyn::Task::Deleteclient');
@@ -82,7 +82,7 @@ sub startup {
   $r->get('/subsys')->to('utils#subsys');
 
   #$r->post('/refresh/#id')->to('refresh#refresh');
-  #$r->post('/runstat')->to('stat#runstat');
+  $r->post('/runstat')->to('stat#runstat');
 }
 
 1;

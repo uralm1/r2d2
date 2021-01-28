@@ -9,9 +9,11 @@
 
   head_url => 'https://localhost:2271',
 
-  iptables_path => '/usr/sbin/iptables',
+  dhcpservers => ['10.x.x.1'],
+  dhcpscope => '10.0.0.0',
 
   # debug and testing
+  #netsh_simulation => 1,
   #rlog_local => 1,
   #rlog_remote => 1, # default
   #disable_autoload => 1,

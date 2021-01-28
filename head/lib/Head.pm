@@ -7,6 +7,7 @@ use Head::Command::rotatelog;
 use Head::Command::refresh;
 use Head::Command::checkdb;
 use Head::Command::runstat;
+use Head::Command::connectivity;
 use Head::Ural::Dblog;
 
 use Sys::Hostname;

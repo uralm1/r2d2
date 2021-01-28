@@ -57,10 +57,10 @@ sub register {
             die "Can't create temporary file: $!";
           }
         } else {
-          die 'Clients response json error';
+          die 'clients response json error';
         }
       } else {
-        die "Clients request error: ".(($res->is_error) ? $res->body : '');
+        die "clients request error: ".(($res->is_error) ? substr($res->body, 0, 40) : '');
       }
     } else {
       die "connection to head failed: $@";

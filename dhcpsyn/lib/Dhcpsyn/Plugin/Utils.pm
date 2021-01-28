@@ -39,37 +39,26 @@ sub register {
   });
 
 
-=for comments
   # my $ret = $app->system("command args")
-  # my $ret = $app->system(iptables => "args")
-  # my $ret = $app->system(iptables_restore => "args")
-  # my [dump] = $app->system(iptables_dump => "args"), runs iptables actually, return undef on error
+  # my $ret = $app->system(netsh => "args")
+  # my [dump] = $app->system(netsh_dump => "args"), runs netsh actually, return undef on error
   $app->helper(system => sub {
     my ($self, @cmd) = @_;
     croak "Invalid argument" if @cmd < 1;
 
-    my $w_opt = '';
-    if (my $w = $self->config('iptables_wait')) {
-      $w_opt = " --wait $w";
-    }
-
     my $dumping;
-    if ($cmd[0] eq 'iptables_dump') {
+    if ($cmd[0] eq 'netsh_dump') {
       shift @cmd;
-      unshift @cmd, $self->config('iptables_path').$w_opt;
+      unshift @cmd, 'netsh';
       $dumping = 1;
 
-    } elsif ($cmd[0] eq 'iptables') {
+    } elsif ($cmd[0] eq 'netsh') {
       shift @cmd;
-      unshift @cmd, $self->config('iptables_path').$w_opt;
-
-    } elsif ($cmd[0] eq 'iptables_restore') {
-      shift @cmd;
-      unshift @cmd, $self->config('iptables_restore_path').$w_opt;
+      unshift @cmd, 'netsh';
     }
 
     my $c = join ' ', @cmd;
-    if ($self->config('iptables_simulation')) {
+    if ($self->config('netsh_simulation')) {
       $self->log->debug("SIMULATE: $c");
       return ($dumping ? [] : 0); # simulation is always success
     } else {
@@ -82,7 +71,7 @@ sub register {
       }
     }
   });
-=cut
+
 }
 
 
