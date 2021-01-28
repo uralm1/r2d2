@@ -34,12 +34,16 @@ sub startup {
   $self->max_request_size(1048576);
 
   $self->plugin('Head::Plugin::Utils');
+  $self->plugin('Head::Plugin::Migrations');
   $self->plugin('Head::Plugin::Refresh_impl');
   $self->commands->namespaces(['Mojolicious::Command', 'Head::Command']);
 
   my $subsys = $self->moniker.'@'.hostname;
   $self->defaults(subsys => $subsys);
   $self->defaults(version => $VERSION);
+
+  # update database
+  $self->migrate_database;
 
   $self->defaults(dblog => Head::Ural::Dblog->new($self->mysql_inet, subsys=>$subsys));
   unless ($self->defaults('dblog')) {
