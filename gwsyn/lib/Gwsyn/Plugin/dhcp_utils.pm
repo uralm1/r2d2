@@ -8,7 +8,7 @@ sub register {
   my ($self, $app, $args) = @_;
   $args ||= {};
 
-  # my $resp = dhcp_add_replace({id=>11, ip=>'1.2.3.4', mac=>'11:22:33:44:55'});
+  # my $resp = dhcp_add_replace({id=>11, ip=>'1.2.3.4', mac=>'11:22:33:44:55:66'});
   # returns 1-need apply/0-not needed on success,
   #   dies with 'error string' on error,
   #   will check ip/mac/no_dhcp flag and skip line if not set.
@@ -105,7 +105,7 @@ sub register {
   });
 
 
-  # my $resp = dhcp_create_full([{id=>11, ip=>'1.2.3.4', mac=>'11:22:33:44:55',profile=>'gwtest1'}, ...]);
+  # my $resp = dhcp_create_full([{id=>11, ip=>'1.2.3.4', mac=>'11:22:33:44:55:66',profile=>'gwtest1'}, ...]);
   # fully updates /var/r2d2/dhcphosts.clients file,
   # returns 1-need apply/0-not needed on success,
   #   dies with 'error string' on error,

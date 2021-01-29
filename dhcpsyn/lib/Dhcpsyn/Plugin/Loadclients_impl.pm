@@ -24,20 +24,20 @@ sub register {
       if ($res->is_success) {
         if (my $v = $res->json) {
 
-          for my $dhcpserver (@{$self->config('dhcpservers')}) {
+          my $m = $self->dhcp_matang->{win_dhcp};
+          croak "Matang win_dhcp matanga!" unless $m;
 
-            my $m = $self->dhcp_matang->{win_dhcp};
-            croak "Matang win_dhcp matanga!" unless $m;
+          for my $dhcpserver (@{$self->config('dhcpservers')}) {
 
             # get dump and parse
             my $dump = $m->{dump_sub}($dhcpserver);
-            die "Error dumping reservedip dhcpserver: $dhcpserver" unless $dump;
+            die "Error dumping $m->{rule_desc} dhcpserver: $dhcpserver" unless $dump;
 
             my %reservations;
             for (@$dump) {
-              if ($_ =~ $m->{re_dump}($dhcpserver)) {
+              if ($_ =~ $m->{re2}($dhcpserver)) {
                 $self->log->warn("Duplicate ip $1 in dhcpserver: $dhcpserver dump") if exists $reservations{$1};
-                $reservations{$1} = $2;
+                $reservations{$1} = {mac => $2, comment=> $3};
               }
             }
 
@@ -58,11 +58,11 @@ sub register {
                 }
                 my $bmac = $maco->as_basic;
 
-                if (my $old_bmac = $reservations{$ip}) {
-                  if ($old_bmac ne $bmac) {
+                if (my $rh = $reservations{$ip}) {
+                  if ($bmac ne $rh->{mac} || $rh->{comment} !~ /^client\Q$_->{id}\E$/) {
                     # delete
-                    if ( $m->{delete_sub}($dhcpserver, $ip, $old_bmac) ) {
-                      $self->rlog("Error deleting old reservedip $ip mac $old_bmac on dhcp server $dhcpserver.");
+                    if ( $m->{delete_sub}($dhcpserver, $ip, $rh->{mac}) ) {
+                      $self->rlog("Error deleting old reservedip $ip mac $rh->{mac} on dhcp server $dhcpserver.");
                     }
                     # add
                     if ( $m->{add_sub}($dhcpserver, $ip, $bmac, $_->{id}) ) {

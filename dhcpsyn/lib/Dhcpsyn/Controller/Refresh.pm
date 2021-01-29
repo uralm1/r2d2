@@ -1,4 +1,4 @@
-package Rtsyn::Controller::Refresh;
+package Dhcpsyn::Controller::Refresh;
 use Mojo::Base 'Mojolicious::Controller';
 
 sub refresh {

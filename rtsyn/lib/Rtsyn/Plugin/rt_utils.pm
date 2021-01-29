@@ -46,6 +46,7 @@ sub register {
         # n pkt bytes      all -- * * 10.15.0.2 0.0.0.0/0 /* id */
         re1 => sub {
           my $id = shift;
+          # $1 - n, $2 - ip
           qr/^\s*(\d+)\s+ \S+\s+ \S+\s+ \S*\s+ \S+\s+ \-\-\s+ \S+\s+ \S+\s+ (\S+)\s+ \S+\s+ \/\*\s+ \Q$id\E\s+ \*\/.*/x
         },
         re_stat => sub {},

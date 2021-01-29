@@ -1,6 +1,9 @@
 package Dhcpsyn::Plugin::wdhcp_utils;
 use Mojo::Base 'Mojolicious::Plugin';
 
+use NetAddr::IP::Lite;
+use NetAddr::MAC;
+
 use Carp;
 
 sub register {
@@ -19,120 +22,156 @@ sub register {
         },
         add_sub => sub {
           my ($ds, $ip, $bmac, $id) = @_; # dhcp_server_ip, ip, basic_mac, client_id
-          $self->system(netsh => "dhcp server $ds scope $dhcpscope add reservedip $ip $bmac client$id")
+          $self->system(netsh => "dhcp server $ds scope $dhcpscope add reservedip $ip $bmac client$id client$id")
         },
-        replace_sub => sub {
-          #my ($ri, $v) = @_; # rule index, {id=>1, etc}
-          #$self->system(iptables => "-t mangle -R $client_out_chain $ri -s $v->{ip} -m comment --comment $v->{id} ".$self->rt_marks($v->{rt}))
-        },
+        replace_sub => sub {},
         delete_sub => sub {
           my ($ds, $ip, $bmac) = @_; # dhcp_server_ip, ip, basic_mac
           $self->system(netsh => "dhcp server $ds scope $dhcpscope delete reservedip $ip $bmac")
         },
         zero_sub => sub {},
         # Dhcp Server 10.0.0.1 Scope 10.0.0.0 Add iprange 10.1.2.3 10.10.255.255 <- ignore this lines and others
-        # Dhcp Server 10.0.0.1 Scope 10.0.0.0 Add reservedip 10.1.2.3 112233445566 "hostname.dom" "" "DHCP"
-        # Dhcp Server \\10.0.0.1 Scope 10.0.0.0 Add reservedip 10.1.2.3 112233445566 "hostname.dom" "" "DHCP"
-        re_dump => sub {
+        # Dhcp Server 10.0.0.1 Scope 10.0.0.0 Add reservedip 10.1.2.3 112233445566 "hostname.dom" "client1" "DHCP"
+        # Dhcp Server \\10.0.0.1 Scope 10.0.0.0 Add reservedip 10.1.2.3 112233445566 "hostname.dom" "client2" "DHCP"
+        re1 => sub {
+          my ($ds, $id) = @_; # dhcp_server_ip, id
+          # $1 - ip, $2 - mac
+          qr/^dhcp\s+ server\s+ (?:\\\\)?\Q$ds\E\s+ scope\s+ \Q$dhcpscope\E\s+ add\s+ reservedip\s+ (\S+)\s+ (\S+)\s+ \S+\s+ "client\Q$id\E"\s+/ix
+        },
+        re2 => sub {
           my $ds = shift; # dhcp_server_ip
-          qr/^dhcp\s+ server\s+ (?:\\\\)?\Q$ds\E\s+ scope\s+ \Q$dhcpscope\E\s+ add\s+ reservedip\s+ (\S+)\s+ (\S+)\s+/ix
+          # $1 - ip, $2 - mac, $3 - comment
+          qr/^dhcp\s+ server\s+ (?:\\\\)?\Q$ds\E\s+ scope\s+ \Q$dhcpscope\E\s+ add\s+ reservedip\s+ (\S+)\s+ (\S+)\s+ \S+\s+ "(\S*)"\s+/ix
         },
         re_stat => sub {},
-        rule_desc => 'Reservedip-list',
+        rule_desc => 'Reservedip',
       },
     }
   });
 
-=for comment
-  # my $resp = rt_add_replace({id=>11, ip=>'1.2.3.4', rt=>0});
+
+  # my $resp = dhcp_add_replace({id=>11, ip=>'1.2.3.4', mac=>'11:22:33:44:55:66'});
   # returns 1-added or replaced/0-(not returned) on success,
   #   dies with 'error string' on error
-  $app->helper(rt_add_replace => sub {
+  #   will check ip/mac/no_dhcp flag and skip line if not set.
+  $app->helper(dhcp_add_replace => sub {
     my ($self, $v) = @_;
     croak 'Bad argument' unless $v;
 
-    my $m = $self->rt_matang->{m_out};
-    croak "Matang m_out matanga!" unless $m;
+    my $ipo = NetAddr::IP::Lite->new($v->{ip});
+    die "Invalid ip address $v->{ip}, client $v->{id}!" unless $ipo;
+    my $ip = $ipo->addr;
+    my $bmac;
+    if (!$v->{no_dhcp} && $v->{mac}) {
+      my $maco = eval { NetAddr::MAC->new($_->{mac}) };
+      die "Invalid mac address $v->{mac}, client $v->{id}!" if $@;
+      $bmac = $maco->as_basic;
+    }
 
-    my $ff = 0;
+    my $m = $self->dhcp_matang->{win_dhcp};
+    croak "Matang win_dhcp matanga!" unless $m;
+
     my $failure = undef;
 
-    my $dump = $m->{dump_sub}();
-    die "Error dumping rules $m->{chain} in $m->{table} table!" unless $dump;
+    for my $dhcpserver (@{$self->config('dhcpservers')}) {
 
-    for (my $i = 2; $i < @$dump; $i++) { # skip first 2 lines
-      if ($dump->[$i] =~ $m->{re1}($v->{id})) {
-        my $ri = $1;
-        if (!$ff) {
-          $self->rlog("$m->{rule_desc} sync. Replacing rule #$ri id $v->{id} ip $2 in $m->{table} table.");
-          $ff = 1;
-          if ( $m->{replace_sub}($ri, $v) ) {
-            $failure = "$m->{rule_desc} sync error. Can't replace rule #$ri in $m->{table} table.";
+      my $dump = $m->{dump_sub}($dhcpserver);
+      unless ($dump) {
+        $self->rlog($failure) if $failure;
+        $failure = "Error dumping $m->{rule_desc} dhcpserver: $dhcpserver";
+        next;
+      }
+
+      my $ff = 0;
+
+      for (@$dump) {
+        if ($_ =~ $m->{re1}($dhcpserver, $v->{id})) {
+          if (!$ff) {
+            if (!$v->{no_dhcp} && $v->{mac}) {
+              $self->rlog("Replacing client id $v->{id} $m->{rule_desc} $1 mac $2 on dhcp server $dhcpserver.");
+              if ( $m->{delete_sub}($dhcpserver, $1, $2) ) {
+                $self->rlog("Error deleting $m->{rule_desc} $1 mac $2 on dhcp server $dhcpserver.");
+              }
+              if ( $m->{add_sub}($dhcpserver, $ip, $bmac, $v->{id}) ) {
+                $self->rlog($failure) if $failure;
+                $failure = "Can't append client id $v->{id} $m->{rule_desc} $ip mac $bmac on dhcp server $dhcpserver.";
+              }
+            } else {
+              # delete reservedip if no_dhcp flag is set
+              $self->rlog("Deleting client id $v->{id} $m->{rule_desc} $1 mac $2 on dhcp server $dhcpserver.");
+              if ( $m->{delete_sub}($dhcpserver, $1, $2) ) {
+                $self->rlog($failure) if $failure;
+                $failure = "Error deleting $m->{rule_desc} $1 mac $2 on dhcp server $dhcpserver.";
+              }
+            }
+            $ff = 1;
+          } else {
+            $self->rlog("Deleting duplicate client id $v->{id} $m->{rule_desc} $1 mac $2 on dhcp server $dhcpserver.");
+            if ( $m->{delete_sub}($dhcpserver, $1, $2) ) {
+              $self->rlog("Error deleting $m->{rule_desc} $1 mac $2 on dhcp server $dhcpserver.");
+            }
           }
-        } else {
-          $self->rlog("$m->{rule_desc} sync. Deleting duplicate rule #$ri id $v->{id} ip $2 in $m->{table} table.");
-          if ( $m->{delete_sub}($ri) ) {
-            # just warn, count it non-fatal
-            $self->rlog("$m->{rule_desc} sync error. Can't delete rule #$ri from $m->{table} table.");
+        } # if regex
+      } # for dump
+
+      if (!$ff) { # if not found, add reservedip
+        if (!$v->{no_dhcp} && $v->{mac}) {
+          $self->rlog("Appending client id $v->{id} $m->{rule_desc} $ip mac $bmac on dhcp server $dhcpserver.");
+          if ( $m->{add_sub}($dhcpserver, $ip, $bmac, $v->{id}) ) {
+            $self->rlog($failure) if $failure;
+            $failure = "Can't append client id $v->{id} $m->{rule_desc} $ip mac $bmac on dhcp server $dhcpserver.";
           }
         }
-      } # if regex
-    } # for dump
-
-    if (!$ff) { # if not found, add rule
-      $self->rlog("$m->{rule_desc} sync. Appending rule id $v->{id} ip $v->{ip} to $m->{table} table.");
-      if ( !$m->{add_sub}($v) ) {
-        # successfully added
-        return 1;
-
-      } else {
-        $failure = "$m->{rule_desc} sync error. Can't append rule id $v->{id} to $m->{table} table.";
       }
-    }
+
+    } # loop by dhcpservers
 
     die $failure if $failure;
 
-    # successfully replaced
     return 1;
   });
 
 
-  # my $resp = rt_delete($id);
+  # my $resp = dhcp_delete($id);
   # returns 1-deleted/0-not found on success,
   #   dies with 'error string' on error
-  $app->helper(rt_delete => sub {
+  $app->helper(dhcp_delete => sub {
     my ($self, $id) = @_;
     croak 'Bad argument' unless defined $id;
 
-    my $m = $self->rt_matang->{m_out};
-    croak "Matang m_out matanga!" unless $m;
-    my $ret = 0;
+    my $m = $self->dhcp_matang->{win_dhcp};
+    croak "Matang win_dhcp matanga!" unless $m;
+
     my $failure = undef;
+    my $ret = 0;
+    for my $dhcpserver (@{$self->config('dhcpservers')}) {
 
-    my $dump = $m->{dump_sub}();
-    die "Error dumping rules $m->{chain} in $m->{table} table!" unless $dump;
+      my $dump = $m->{dump_sub}($dhcpserver);
+      unless ($dump) {
+        $self->rlog($failure) if $failure;
+        $failure = "Error dumping $m->{rule_desc} dhcpserver: $dhcpserver";
+        next;
+      }
 
-    for (my $i = 2; $i < @$dump; $i++) { # skip first 2 lines
-      if ($dump->[$i] =~ $m->{re1}($id)) {
-        my $ri = $1;
-        $self->rlog("$m->{rule_desc} sync. Rule #$ri id $id ip $2 has been requested to delete. Deleting.");
-        $ret = 1;
-        if ( $m->{delete_sub}($ri) ) {
-          my $msg = "$m->{rule_desc} sync error. Can't delete rule from $m->{table} table.";
-          if ($failure) {
-            $self->rlog($msg); # count not first errors non-fatal
-          } else {
-            $failure = $msg;
+      for (@$dump) {
+        if ($_ =~ $m->{re1}($dhcpserver, $id)) {
+          $self->rlog("Deleting client id $id $m->{rule_desc} $1 mac $2 on dhcp server $dhcpserver.");
+          $ret = 1;
+          # delete
+          if ( $m->{delete_sub}($dhcpserver, $1, $2) ) {
+            $self->rlog($failure) if $failure;
+            $failure = "Error deleting $m->{rule_desc} $1 mac $2 on dhcp server $dhcpserver.";
           }
         }
-      } # if regex
-    } # for dump
+      }
+
+    } # loop by dhcpservers
 
     die $failure if $failure;
 
     return $ret;
   });
-=cut
+
 }
 
 1;

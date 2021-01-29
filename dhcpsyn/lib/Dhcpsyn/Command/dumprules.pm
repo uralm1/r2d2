@@ -16,7 +16,7 @@ sub run {
     if (my $d = $m->{dump_sub}($dhcpserver)) {
       say "** DUMP dhcpserver $dhcpserver $m->{rule_desc} **";
       for (@$d) {
-        if ($_ =~ $m->{re_dump}($dhcpserver)) {
+        if ($_ =~ $m->{re2}($dhcpserver)) {
           print $_;
         }
       }

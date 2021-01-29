@@ -36,9 +36,11 @@ sub register {
         # n pkt bytes DROP   all -- * * 0.0.0.0/0 1.2.3.5 /* id */
         re1 => sub {
           my $id = shift;
+          # $1 - n, $2 - ip
           qr/^\s*(\d+)\s+ \S+\s+ \S+\s+ \S*\s+ \S+\s+ \-\-\s+ \S+\s+ \S+\s+ \S+\s+ (\S+)\s+ \/\*\s+ \Q$id\E\s+ \*\/.*/x
         },
         re_stat => sub {
+          # $1 - n, $2 - bytes, $3 - ip, $4 - id
           qr/^\s*(\d+)\s+ \S+\s+ (\S+)\s+ \S*\s+ \S+\s+ \-\-\s+ \S+\s+ \S+\s+ \S+\s+ (\S+)\s+ \/\*\s+ (\d+)\s+ \*\/.*/x
         },
         rule_desc => 'In-rules',
@@ -67,9 +69,11 @@ sub register {
         # n pkt bytes DROP   all -- * * 1.2.3.5 0.0.0.0/0 /* id */
         re1 => sub {
           my $id = shift;
+          # $1 - n, $2 - ip
           qr/^\s*(\d+)\s+ \S+\s+ \S+\s+ \S*\s+ \S+\s+ \-\-\s+ \S+\s+ \S+\s+ (\S+)\s+ \S+\s+ \/\*\s+ \Q$id\E\s+ \*\/.*/x
         },
         re_stat => sub {
+          # $1 - n, $2 - bytes, $3 - ip, $4 - id
           qr/^\s*(\d+)\s+ \S+\s+ (\S+)\s+ \S*\s+ \S+\s+ \-\-\s+ \S+\s+ \S+\s+ (\S+)\s+ \S+\s+ \/\*\s+ (\d+)\s+ \*\/.*/x
         },
         rule_desc => 'Out-rules',
@@ -96,6 +100,7 @@ sub register {
         # n pkt bytes      all -- * * 0.0.0.0/0 1.2.3.5 /* id */
         re1 => sub {
           my $id = shift;
+          # $1 - n, $2 - ip
           qr/^\s*(\d+)\s+ \S+\s+ \S+\s+ \S*\s+ \S+\s+ \-\-\s+ \S+\s+ \S+\s+ \S+\s+ (\S+)\s+ \/\*\s+ \Q$id\E\s+ \*\/.*/x
         },
         re_stat => sub {},
@@ -123,6 +128,7 @@ sub register {
         # n pkt bytes      all -- * * 1.2.3.5 0.0.0.0/0 /* id */
         re1 => sub {
           my $id = shift;
+          # $1 - n, $2 - ip
           qr/^\s*(\d+)\s+ \S+\s+ \S+\s+ \S*\s+ \S+\s+ \-\-\s+ \S+\s+ \S+\s+ (\S+)\s+ \S+\s+ \/\*\s+ \Q$id\E\s+ \*\/.*/x
         },
         re_stat => sub {},

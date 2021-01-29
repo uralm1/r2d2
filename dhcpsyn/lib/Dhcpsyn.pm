@@ -18,7 +18,8 @@ sub startup {
   # Load configuration from hash returned by config file
   my $config = $self->plugin('Config', { default => {
     secrets => ['74567aab492c9873f456fd3ee46713476d45a35'],
-    iptables_path => '/usr/sbin/iptables',
+    dhcpservers => [],
+    dhcpscope => '10.0.0.0',
     rlog_remote => 1,
   }});
   delete $self->defaults->{config}; # safety - not to pass passwords to stashes
@@ -81,7 +82,7 @@ sub startup {
 
   $r->get('/subsys')->to('utils#subsys');
 
-  #$r->post('/refresh/#id')->to('refresh#refresh');
+  $r->post('/refresh/#id')->to('refresh#refresh');
   $r->post('/runstat')->to('stat#runstat');
 }
 
