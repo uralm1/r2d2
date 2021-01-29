@@ -27,11 +27,17 @@ sub register {
           my $m = $self->dhcp_matang->{win_dhcp};
           croak "Matang win_dhcp matanga!" unless $m;
 
+          my $failure = undef;
+
           for my $dhcpserver (@{$self->config('dhcpservers')}) {
 
             # get dump and parse
             my $dump = $m->{dump_sub}($dhcpserver);
-            die "Error dumping $m->{rule_desc} dhcpserver: $dhcpserver" unless $dump;
+            unless ($dump) {
+              $self->rlog($failure) if $failure;
+              $failure = "dump failed dhcpserver $dhcpserver";
+              next;
+            }
 
             my %reservations;
             for (@$dump) {
@@ -79,6 +85,10 @@ sub register {
             } # clients json loop
 
           } # loop by dhcpservers
+
+          die $failure if $failure;
+
+          return 1;
 
         } else {
           die 'clients response json error';
