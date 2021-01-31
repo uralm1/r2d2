@@ -19,39 +19,32 @@ sub refresh {
     sub {
       my ($ua, $tx) = @_;
       my $res = eval { $tx->result };
-      if (defined $res) {
-        if ($res->is_success) {
-          my $v = $res->json;
-          if ($v) {
-            if ($v->{profile} && $v->{profile} eq $prof) {
-              # add or update
-              # actual data returned in $v
-              $self->minion->enqueue('addreplace_client' => [$v]);
-              return $self->rendered(200);
+      return $self->render(text=>"Connection to head failed: $@", status=>503) unless defined $res;
 
-            } else { # not our profile
-              # try to delete client $id
-              $self->minion->enqueue('delete_client' => [$id]);
-              return $self->rendered(200);
+      if ($res->is_success) {
+        my $v = $res->json;
+        return $self->render(text=>"Client response json error", status=>503) unless $v;
 
-            }
+        if ($v->{profile} && $v->{profile} eq $prof) {
+          # add or update
+          # actual data returned in $v
+          $self->minion->enqueue('addreplace_client' => [$v]);
 
-          } else {
-            return $self->render(text=>"Client response json error", status=>503);
-          }
-        } else {
-          if ($res->code == 404) {
-            # delete not found client $id
-            $self->minion->enqueue('delete_client' => [$id]);
-            return $self->rendered(200);
-
-          }
-          return $self->render(text=>"Client request error: ".$res->body, status=>503) if $res->is_error;
+        } else { # not our profile
+          # try to delete client $id
+          $self->minion->enqueue('delete_client' => [$id]);
         }
+        return $self->rendered(200);
+
+      } elsif ($res->code == 404) {
+        # delete not found client $id
+        $self->minion->enqueue('delete_client' => [$id]);
+        return $self->rendered(200);
+
       } else {
-        return $self->render(text=>"Connection to head failed: $@", status=>503);
+        return $self->render(text=>"Client request error: ".(($res->is_error) ? substr($res->body, 0, 40) : 'none'), status=>503);
       }
-    }
+    } # closure
   );
 }
 

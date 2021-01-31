@@ -19,44 +19,36 @@ sub register {
       my $tx = $self->ua->get($app->config('head_url')."/clients/$prof" => {Accept => 'application/json'});
       $tx->result;
     };
-    if (defined $res) {
-      if ($res->is_success) {
-        if (my $v = $res->json) {
+    die "connection to head failed: $@" unless defined $res;
+    die "clients request error: ".(($res->is_error) ? substr($res->body, 0, 40) : 'none') unless $res->is_success;
 
-          my @err;
-          # part 1: firewall
-          if (my $r = eval { $self->fw_create_full($v) }) {
-            push @err, "Error applying firewall changes: $@" unless eval { $self->fw_apply };
-          } elsif (!defined $r) {
-            push @err, "Firewall file creation failed: $@";
-          }
+    my $v = $res->json;
+    die 'clients response json error' unless $v;
 
-          # part 2: tc
-          if (my $r = eval { $self->tc_create_full($v) }) {
-            push @err, "Error applying tc changes: $@" unless eval { $self->tc_apply };
-          } elsif (!defined $r) {
-            push @err, "Tc file creation failed: $@";
-          }
-
-          # part 3: dhcp
-          if (my $r = eval { $self->dhcp_create_full($v) }) {
-            push @err, "Error applying dhcp changes: $@" unless eval { $self->dhcp_apply };
-          } elsif (!defined $r) {
-            push @err, "Dhcphosts file creation failed: $@";
-          }
-
-          die join(',', @err) if @err;
-          return 1; #success
-
-        } else {
-          die 'clients response json error';
-        }
-      } else {
-        die "clients request error: ".(($res->is_error) ? substr($res->body, 0, 40) : '');
-      }
-    } else {
-      die "connection to head failed: $@";
+    my @err;
+    # part 1: firewall
+    if (my $r = eval { $self->fw_create_full($v) }) {
+      push @err, "Error applying firewall changes: $@" unless eval { $self->fw_apply };
+    } elsif (!defined $r) {
+      push @err, "Firewall file creation failed: $@";
     }
+
+    # part 2: tc
+    if (my $r = eval { $self->tc_create_full($v) }) {
+      push @err, "Error applying tc changes: $@" unless eval { $self->tc_apply };
+    } elsif (!defined $r) {
+      push @err, "Tc file creation failed: $@";
+    }
+
+    # part 3: dhcp
+    if (my $r = eval { $self->dhcp_create_full($v) }) {
+      push @err, "Error applying dhcp changes: $@" unless eval { $self->dhcp_apply };
+    } elsif (!defined $r) {
+      push @err, "Dhcphosts file creation failed: $@";
+    }
+
+    die join(',', @err) if @err;
+    return 1; #success
   });
 }
 

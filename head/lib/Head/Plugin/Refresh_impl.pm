@@ -41,9 +41,8 @@ sub register {
           }
         } else {
           # connection to agent failed
-          my $m = "Client id $id error: ";
           $self->log->error("Connection to agent failed: $@");
-          $self->stash('dblog')->l(info => $m.'connection to agent failed');
+          $self->stash('dblog')->l(info => "Client id $id error: connection to agent failed");
         }
 
       } # request closure
@@ -121,7 +120,6 @@ SET s.sync_rt = 0, s.sync_dhcp = 0, s.sync_fw = 0 WHERE clients.id = ? AND clien
     # end of switch by agent_type
 
   });
-
 
 }
 

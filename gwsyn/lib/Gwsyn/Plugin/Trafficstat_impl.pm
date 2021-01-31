@@ -41,21 +41,15 @@ sub register {
       my $tx = $self->ua->post($self->config('head_url')."/trafstat/$prof" => json => \%buf);
       $tx->result;
     };
-    if (defined $res) {
-      if ($res->is_success) {
-        $self->rlog('Traffic stat submitted: '.substr($res->body, 0, 20).'. Resetting rule counters.');
-        for (qw/f_in f_out/) {
-          my $m = $matang->{$_};
-          if ($m->{zero_sub}()) {
-            $self->rlog("Stat $m->{rule_desc}. Can't reset counters.");
-          }
-        }
+    die "Stats submit to head failed: $@" unless defined $res;
+    die 'Stats submit request error: '.($res->is_error ? substr($res->body, 0, 40) : 'none') unless $res->is_success;
 
-      } else {
-        die 'Stats submit request error: '.($res->is_error ? substr($res->body, 0, 40) : '');
+    $self->rlog('Traffic stat submitted: '.substr($res->body, 0, 20).'. Resetting rule counters.');
+    for (qw/f_in f_out/) {
+      my $m = $matang->{$_};
+      if ($m->{zero_sub}()) {
+        $self->rlog("Stat $m->{rule_desc}. Can't reset counters.");
       }
-    } else {
-      die "Stats submit to head failed: $@";
     }
 
     return 1;
