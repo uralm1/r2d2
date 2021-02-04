@@ -1,8 +1,6 @@
 package Head::Controller::Log;
 use Mojo::Base 'Mojolicious::Controller';
 
-use Head::Ural::Dblog;
-
 sub log {
   my $self = shift;
   my $rsubsys = $self->stash('rsubsys');
@@ -22,7 +20,7 @@ sub log {
 
   $self->app->log->debug("[[$rsubsys]] $info") if $self->config('duplicate_rlogs');
 
-  $self->stash('dblog')->l(subsys => $rsubsys, info => $info);
+  $self->app->dblog->l(subsys => $rsubsys, info => $info);
 
   # empty response on success
   $self->rendered(200);

@@ -8,11 +8,14 @@ dhcpsyn.conf_empty
 lib/Dhcpsyn.pm
 lib/Dhcpsyn/Command/dumprules.pm
 lib/Dhcpsyn/Command/loadclients.pm
+lib/Dhcpsyn/Controller/Refresh.pm
 lib/Dhcpsyn/Controller/Stat.pm
 lib/Dhcpsyn/Controller/Utils.pm
 lib/Dhcpsyn/Plugin/Loadclients_impl.pm
 lib/Dhcpsyn/Plugin/Utils.pm
 lib/Dhcpsyn/Plugin/wdhcp_utils.pm
+lib/Dhcpsyn/Task/Addreplaceclient.pm
+lib/Dhcpsyn/Task/Deleteclient.pm
 lib/Dhcpsyn/Task/Loadclients.pm
 Makefile.PL
 MANIFEST			This list of files

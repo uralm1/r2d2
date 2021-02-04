@@ -17,19 +17,27 @@ sub run {
   binmode(STDOUT, ':utf8');
   #binmode(STDERR, ':utf8');
 
-  my $check_sch = $app->config('check_schedule');
-  my $log_sch = $app->config('logrotate_schedule');
   my $sch = $app->config('stat_schedules');
-  if (!$check_sch && !$log_sch && (!$sch || ref($sch) ne 'HASH')) {
-    $log->warn('Config parameters *_schedules are undefined or empty. Scheduler process will exit.');
-    return 0;
-  }
-  if (!$check_sch && !$log_sch && !$sch->{daily} && !$sch->{monthly} && !$sch->{yearly}) {
+  $sch = {} if (!$sch || ref($sch) ne 'HASH');
+  $sch->{checkdb} = $app->config('check_compat_schedule');
+  $sch->{checkdbdel} = $app->config('checkdel_compat_schedule');
+  $sch->{rotatelog} = $app->config('logrotate_schedule');
+
+  my $xxx = {
+    checkdb => { name=>'checkdb', cmd=>['checkdb'] },
+    checkdbdel => { name=>'checkdbdel', cmd=>['checkdbdel'] },
+    rotatelog => { name=>'rotatelog', cmd=>['rotatelog'] },
+    daily => { name=>'stat daily', cmd=>[statprocess => '--daily'] },
+    monthly => { name=>'stat monthly', cmd=>[statprocess => '--monthly'] },
+    yearly => { name=>'stat yearly', cmd=>[statprocess => '--yearly'] },
+  };
+
+  my $b = 0;
+  $b ||= $sch->{$_} for (keys %$xxx);
+  unless ($b) {
     $log->warn('All config schedule parameters are undefined or empty. Scheduler process will exit.');
     return 0;
   }
-  $sch->{checkdb} = $check_sch;
-  $sch->{rotatelog} = $log_sch;
 
   $log->info('Internal scheduler process started.');
 
@@ -40,8 +48,9 @@ sub run {
 
   Mojo::IOLoop->next_tick(sub {
     $self->_cron($sch->{$_},
-      ($_ eq 'checkdb' || $_ eq 'rotatelog')?$_ : "stat $_",
-      ($_ eq 'checkdb' || $_ eq 'rotatelog')?$_ : (statprocess => "--$_")) for(qw/checkdb rotatelog daily monthly yearly/);
+      $xxx->{$_}{name},
+      @{$xxx->{$_}{cmd}}
+    ) for (keys %$xxx);
   });
 
   Mojo::IOLoop->start unless Mojo::IOLoop->is_running;

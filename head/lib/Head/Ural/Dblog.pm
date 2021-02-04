@@ -14,6 +14,7 @@ sub new {
     subsys => undef,
   }, $class;
   $self->{subsys} = $logdata{subsys} if defined $logdata{subsys};
+  #say 'Ural::Dblog constructor!';
   return $self;
 }
 
@@ -28,14 +29,12 @@ sub l {
   $logdata->{info} = 'н/д' unless $logdata->{info};
   $subsys = 'н/д' unless $subsys;
   $self->{mysql}->db->query("INSERT INTO op_log \
-    (date, subsys, info) VALUES (NOW(), ?, ?)",
-    $subsys, $logdata->{info} =>
+(date, subsys, info) VALUES (NOW(), ?, ?)", $subsys, $logdata->{info} =>
     sub {
       my ($db, $err, $result) = @_;
       carp "Log record ($subsys) hasn't been inserted." if $err;
     }
   );
-  Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
 }
 
 

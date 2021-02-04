@@ -3,7 +3,6 @@ use Mojo::Base 'Mojolicious::Command';
 
 #use Carp;
 use Mojo::mysql;
-use Head::Ural::Dblog;
 
 has description => '* Statistics processing: daily/monthly/yearly (run from cron cmd)';
 has usage => "Usage: APPLICATION statprocess --daily|--monthly|--yearly\n";
@@ -42,7 +41,7 @@ ON DUPLICATE KEY UPDATE d_in = sum_in, d_out = sum_out" =>
       if ($err) {
         my $m = 'Daily archive SQL operation failed.';
         $app->log->error($m);
-        $app->defaults('dblog')->l(info=>$m);
+        $app->dblog->l(info=>$m);
       }
       $self->_finish($procstr);
     }
@@ -55,7 +54,6 @@ ON DUPLICATE KEY UPDATE d_in = sum_in, d_out = sum_out" =>
 sub do_monthly {
   my $self = shift;
   my $app = $self->app;
-  my $dblog = $app->defaults('dblog');
   my $procstr = 'MONTHLY';
   $self->_startup($procstr);
 
@@ -74,7 +72,7 @@ ON DUPLICATE KEY UPDATE m_in = sum_in, m_out = sum_out" =>  $delay->begin);
       if ($err) {
         my $m = 'Monthly archive SQL operation failed.';
         $app->log->error($m);
-        $dblog->l(info=>$m);
+        $app->dblog->l(info=>$m);
       }
       $delay->pass;
     },
@@ -84,7 +82,7 @@ ON DUPLICATE KEY UPDATE m_in = sum_in, m_out = sum_out" =>  $delay->begin);
       my $delay = shift;
       my $m = 'Restoring quota limits.';
       $app->log->info($m);
-      $dblog->l(info=>$m);
+      $app->dblog->l(info=>$m);
 
       $db->query("UPDATE clients SET sum_limit_in = limit_in" => $delay->begin);
     },
@@ -93,7 +91,7 @@ ON DUPLICATE KEY UPDATE m_in = sum_in, m_out = sum_out" =>  $delay->begin);
       if ($err) {
         my $m = 'Restoring quota limits failed.';
         $app->log->error($m);
-        $dblog->l(info=>$m);
+        $app->dblog->l(info=>$m);
       }
       $delay->pass;
     },
@@ -103,7 +101,7 @@ ON DUPLICATE KEY UPDATE m_in = sum_in, m_out = sum_out" =>  $delay->begin);
       my $delay = shift;
       my $m = 'Resetting notification flags.';
       $app->log->info($m);
-      $dblog->l(info=>$m);
+      $app->dblog->l(info=>$m);
 
       $db->query("UPDATE clients_sync SET email_notified = 0" => $delay->begin);
     },
@@ -112,7 +110,7 @@ ON DUPLICATE KEY UPDATE m_in = sum_in, m_out = sum_out" =>  $delay->begin);
       if ($err) {
         my $m = 'Resetting notification flags failed.';
         $app->log->error($m);
-        $dblog->l(info=>$m);
+        $app->dblog->l(info=>$m);
       }
       $self->_finish($procstr);
     }
@@ -135,7 +133,7 @@ sub do_yearly {
       if ($err) {
         my $m = 'Yearly archive SQL operation failed.';
         $app->log->error($m);
-        $app->defaults('dblog')->l(info=>$m);
+        $app->dblog->l(info=>$m);
       }
       $self->_finish($procstr);
     }
@@ -151,7 +149,7 @@ sub _startup {
 
   my $m = "$procstr processing started.";
   $app->log->info($m);
-  $app->defaults('dblog')->l(info=>$m);
+  $app->dblog->l(info=>$m);
 }
 
 sub _finish {
@@ -160,7 +158,7 @@ sub _finish {
 
   my $m = "$procstr processing finished.";
   $app->log->info($m);
-  $app->defaults('dblog')->l(info=>$m);
+  $app->dblog->l(info=>$m);
 }
 
 

@@ -6,9 +6,9 @@ use Head::Command::cron;
 use Head::Command::rotatelog;
 use Head::Command::refresh;
 use Head::Command::checkdb;
+use Head::Command::checkdbdel;
 use Head::Command::runstat;
 use Head::Command::connectivity;
-use Head::Ural::Dblog;
 
 use Sys::Hostname;
 
@@ -21,6 +21,7 @@ sub startup {
   # Load configuration from hash returned by config file
   my $config = $self->plugin('Config', { default => {
     secrets => ['6ac63578bb604df4865ae802de3098b80c082740'],
+    delcheck_compat_file => 'compat_chk.dat',
     duplicate_rlogs => 0,
   }});
   delete $self->defaults->{config}; # safety - not to pass passwords to stashes
@@ -45,11 +46,6 @@ sub startup {
   # update database
   $self->migrate_database;
 
-  $self->defaults(dblog => Head::Ural::Dblog->new($self->mysql_inet, subsys=>$subsys));
-  unless ($self->defaults('dblog')) {
-    die 'Fatal: Database logger creation failure!';
-  }
-
   # use text/plain in most responses
   $self->renderer->default_format('txt');
 
@@ -62,7 +58,7 @@ sub startup {
     my ($server, $app) = @_;
 
     # log startup
-    $app->defaults('dblog')->l(info=>"Head of R2D2 ($VERSION) starting.");
+    $app->dblog->l(info=>"Head of R2D2 ($VERSION) starting.");
   });
 
   # Router

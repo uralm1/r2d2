@@ -2,9 +2,8 @@ package Head::Command::checkdb;
 use Mojo::Base 'Mojolicious::Command';
 
 use Carp;
-use Head::Ural::Dblog;
 
-has description => '* Run check for database changes (run from cron cmd)';
+has description => '* Run check for database changes (run from cron cmd, compatibility)';
 has usage => "Usage: APPLICATION checkdb\n";
 
 sub run {

@@ -6,7 +6,10 @@
   inet_db_conn => 'mysql://user:pass@srv/inet',
 
   # db check schedule
-  check_schedule => '*/2 * * * *',
+  check_compat_schedule => '*/2 * * * *',
+  checkdel_compat_schedule => '2,32 * * * *',
+
+  checkdel_compat_file => 'compat_chk.dat',
 
   # log rotation (weekly)
   logrotate_schedule => '50 2 * * 7',
