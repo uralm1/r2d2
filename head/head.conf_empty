@@ -9,10 +9,10 @@
   check_compat_schedule => '*/2 * * * *',
   checkdel_compat_schedule => '2,32 * * * *',
 
-  checkdel_compat_file => 'compat_chk.dat',
+  checkdel_compat_file => '/tmp/compat_chk.dat',
 
-  # log rotation (weekly)
-  logrotate_schedule => '50 2 * * 7',
+  # log truncation (weekly)
+  logtruncate_schedule => '50 2 * * 7',
 
   # stats rotation
   # set to undef to disable scheduling

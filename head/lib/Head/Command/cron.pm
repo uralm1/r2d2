@@ -21,12 +21,12 @@ sub run {
   $sch = {} if (!$sch || ref($sch) ne 'HASH');
   $sch->{checkdb} = $app->config('check_compat_schedule');
   $sch->{checkdbdel} = $app->config('checkdel_compat_schedule');
-  $sch->{rotatelog} = $app->config('logrotate_schedule');
+  $sch->{truncatelog} = $app->config('logtruncate_schedule');
 
   my $xxx = {
     checkdb => { name=>'checkdb', cmd=>['checkdb'] },
     checkdbdel => { name=>'checkdbdel', cmd=>['checkdbdel'] },
-    rotatelog => { name=>'rotatelog', cmd=>['rotatelog'] },
+    truncatelog => { name=>'truncatelog', cmd=>['truncatelog'] },
     daily => { name=>'stat daily', cmd=>[statprocess => '--daily'] },
     monthly => { name=>'stat monthly', cmd=>[statprocess => '--monthly'] },
     yearly => { name=>'stat yearly', cmd=>[statprocess => '--yearly'] },
@@ -50,7 +50,7 @@ sub run {
     $self->_cron($sch->{$_},
       $xxx->{$_}{name},
       @{$xxx->{$_}{cmd}}
-    ) for (keys %$xxx);
+    ) for (sort keys %$xxx);
   });
 
   Mojo::IOLoop->start unless Mojo::IOLoop->is_running;

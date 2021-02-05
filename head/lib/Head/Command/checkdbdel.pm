@@ -26,7 +26,7 @@ sub run {
         my $agent_url = $agent->{url};
         my $m = "REFRESH deleted client id $id $agent_url";
         $app->log->info($m);
-        $self->dblog->l(info => $m);
+        $app->dblog->info($m);
 
         $app->refresh_id($agent_url, $id, sub {});
       }

@@ -41,7 +41,7 @@ ON DUPLICATE KEY UPDATE d_in = sum_in, d_out = sum_out" =>
       if ($err) {
         my $m = 'Daily archive SQL operation failed.';
         $app->log->error($m);
-        $app->dblog->l(info=>$m);
+        $app->dblog->error($m);
       }
       $self->_finish($procstr);
     }
@@ -72,7 +72,7 @@ ON DUPLICATE KEY UPDATE m_in = sum_in, m_out = sum_out" =>  $delay->begin);
       if ($err) {
         my $m = 'Monthly archive SQL operation failed.';
         $app->log->error($m);
-        $app->dblog->l(info=>$m);
+        $app->dblog->error($m);
       }
       $delay->pass;
     },
@@ -82,7 +82,7 @@ ON DUPLICATE KEY UPDATE m_in = sum_in, m_out = sum_out" =>  $delay->begin);
       my $delay = shift;
       my $m = 'Restoring quota limits.';
       $app->log->info($m);
-      $app->dblog->l(info=>$m);
+      $app->dblog->info($m);
 
       $db->query("UPDATE clients SET sum_limit_in = limit_in" => $delay->begin);
     },
@@ -91,7 +91,7 @@ ON DUPLICATE KEY UPDATE m_in = sum_in, m_out = sum_out" =>  $delay->begin);
       if ($err) {
         my $m = 'Restoring quota limits failed.';
         $app->log->error($m);
-        $app->dblog->l(info=>$m);
+        $app->dblog->error($m);
       }
       $delay->pass;
     },
@@ -101,7 +101,7 @@ ON DUPLICATE KEY UPDATE m_in = sum_in, m_out = sum_out" =>  $delay->begin);
       my $delay = shift;
       my $m = 'Resetting notification flags.';
       $app->log->info($m);
-      $app->dblog->l(info=>$m);
+      $app->dblog->error($m);
 
       $db->query("UPDATE clients_sync SET email_notified = 0" => $delay->begin);
     },
@@ -110,7 +110,7 @@ ON DUPLICATE KEY UPDATE m_in = sum_in, m_out = sum_out" =>  $delay->begin);
       if ($err) {
         my $m = 'Resetting notification flags failed.';
         $app->log->error($m);
-        $app->dblog->l(info=>$m);
+        $app->dblog->error($m);
       }
       $self->_finish($procstr);
     }
@@ -133,7 +133,7 @@ sub do_yearly {
       if ($err) {
         my $m = 'Yearly archive SQL operation failed.';
         $app->log->error($m);
-        $app->dblog->l(info=>$m);
+        $app->dblog->error($m);
       }
       $self->_finish($procstr);
     }
@@ -149,7 +149,7 @@ sub _startup {
 
   my $m = "$procstr processing started.";
   $app->log->info($m);
-  $app->dblog->l(info=>$m);
+  $app->dblog->info($m);
 }
 
 sub _finish {
@@ -158,7 +158,7 @@ sub _finish {
 
   my $m = "$procstr processing finished.";
   $app->log->info($m);
-  $app->dblog->l(info=>$m);
+  $app->dblog->info($m);
 }
 
 

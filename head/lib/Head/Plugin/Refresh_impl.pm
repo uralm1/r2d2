@@ -25,7 +25,7 @@ sub register {
             # successful update
             my $m = "Client id $id refresh successful".($res->body ? ': '.$res->body : '');
             $self->log->info($m);
-            $self->dblog->l(info => $m);
+            $self->dblog->info($m);
 
             $upd_flag_sub->($self, $id);
 
@@ -34,13 +34,13 @@ sub register {
             if ($res->is_error) {
               my $m = "Client id $id error: ".$res->body;
               $self->log->error($m);
-              $self->dblog->l(info => $m);
+              $self->dblog->error($m);
             }
           }
         } else {
           # connection to agent failed
           $self->log->error("Connection to agent failed: $@");
-          $self->dblog->l(info => "Client id $id error: connection to agent failed");
+          $self->dblog->error("Client id $id error: connection to agent failed");
         }
 
       } # request closure
@@ -59,7 +59,7 @@ sub register {
     # RTSYN
     if ($agent_type eq 'rtsyn') {
       $self->log->info($m);
-      $self->dblog->l(info => $m);
+      $self->dblog->info($m);
 
       $self->refresh_id($agent_url, $id, sub {
         my ($self, $id) = @_;
@@ -72,7 +72,7 @@ SET s.sync_rt = '0' WHERE clients.id = ? AND clients.login = s.login", $id =>
             if ($err) {
               my $m = "Database sync_rt flag update failed for client id $id";
               $self->log->error("$m: $err");
-              $self->dblog->l(info => $m);
+              $self->dblog->error($m);
             }
           }
         );
@@ -81,7 +81,7 @@ SET s.sync_rt = '0' WHERE clients.id = ? AND clients.login = s.login", $id =>
     # DHCPSYN
     } elsif ($agent_type eq 'dhcpsyn') {
       $self->log->info($m);
-      $self->dblog->l(info => $m);
+      $self->dblog->info($m);
 
       $self->refresh_id($agent_url, $id, sub {
         my ($self, $id) = @_;
@@ -94,7 +94,7 @@ SET s.sync_dhcp = '0' WHERE clients.id = ? AND clients.login = s.login", $id =>
             if ($err) {
               my $m = "Database sync_dhcp flag update failed for client id $id";
               $self->log->error("$m: $err");
-              $self->dblog->l(info => $m);
+              $self->dblog->error($m);
             }
           }
         );
@@ -109,7 +109,7 @@ SET s.sync_dhcp = '0' WHERE clients.id = ? AND clients.login = s.login", $id =>
     # GWSYN
     } elsif ($agent_type eq 'gwsyn') {
       $self->log->info($m);
-      $self->dblog->l(info => $m);
+      $self->dblog->info($m);
 
       $self->refresh_id($agent_url, $id, sub {
         my ($self, $id) = @_;
@@ -122,7 +122,7 @@ SET s.sync_rt = 0, s.sync_dhcp = 0, s.sync_fw = 0 WHERE clients.id = ? AND clien
             if ($err) {
               my $m = "Database sync_fw/rt/dhcp flags update failed for client id $id";
               $self->log->error("$m: $err");
-              $self->dblog->l(info => $m);
+              $self->dblog->error($m);
             }
           }
         );
@@ -131,7 +131,7 @@ SET s.sync_rt = 0, s.sync_dhcp = 0, s.sync_fw = 0 WHERE clients.id = ? AND clien
     } else {
       my $m = "Skipped client id $id: unsupported agent $agent_type!";
       $app->log->warn($m);
-      $self->dblog->l(info => $m);
+      $self->dblog->warn($m);
     }
     # end of switch by agent_type
 

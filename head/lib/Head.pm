@@ -3,7 +3,7 @@ use Mojo::Base 'Mojolicious';
 
 use Head::Command::statprocess;
 use Head::Command::cron;
-use Head::Command::rotatelog;
+use Head::Command::truncatelog;
 use Head::Command::refresh;
 use Head::Command::checkdb;
 use Head::Command::checkdbdel;
@@ -58,7 +58,7 @@ sub startup {
     my ($server, $app) = @_;
 
     # log startup
-    $app->dblog->l(info=>"Head of R2D2 ($VERSION) starting.");
+    $app->dblog->l(info=>"Head of R2D2 ($VERSION) starting.", sync=>1);
   });
 
   # Router

@@ -34,7 +34,8 @@ sub load {
       }
       # save to file
       if ($file_name) {
-        store($ref, $file_name) or die "Can not create compat file $file_name!\n";
+        store($ref, $file_name) or
+          $app->log->error("Can not create compat file $file_name!");
       }
       #say 'read db and store finished!';
     })->catch(sub {
@@ -95,7 +96,8 @@ sub update {
   $self->{earlydb} = $self->{actdb};
   $self->{actdb} = undef;
   if ($self->{file_name}) {
-    store($self->{earlydb}, $self->{file_name}) or die "Can not create compat file $self->{file_name}!\n";
+    store($self->{earlydb}, $self->{file_name}) or
+      $self->{app}->log->error("Can not create compat file $self->{file_name}!");
   }
   return $self;
 }
