@@ -74,13 +74,13 @@ sub register {
               }
               # add
               if ( $m->{add_sub}($dhcpserver, $ip, $bmac, $_->{id}) ) {
-                $self->rlog("Error adding new reservedip $ip mac $bmac on dhcp server $dhcpserver.");
+                $self->rlog("Error adding client $_->{id} new reservedip $ip mac $bmac on dhcp server $dhcpserver.");
               }
             }
           } else {
             # add
             if ( $m->{add_sub}($dhcpserver, $ip, $bmac, $_->{id}) ) {
-              $self->rlog("Error adding new reservedip $ip mac $bmac on dhcp server $dhcpserver.");
+              $self->rlog("Error adding client $_->{id} new reservedip $ip mac $bmac on dhcp server $dhcpserver.");
             }
           }
         }

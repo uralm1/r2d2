@@ -77,13 +77,13 @@ sub startup {
     path($self->config($_))->dirname->make_path for qw/dhcphosts_file firewall_file tc_file/;
 
     # log startup
-    $app->rlog("GWSYN agent daemon ($VERSION) starting.");
+    $app->rlog("GWSYN agent daemon ($VERSION) starting.", sync=>1);
 
     # load clients data on startup
     unless ($config->{disable_autoload}) {
-      $app->rlog('Loading and activating clients on agent startup');
+      $app->rlog('Loading and activating clients on agent startup', sync=>1);
       until ($app->check_workers) {
-        $app->rlog('Updating clients failed: execution subsystem error.');
+        $app->rlog('Updating clients failed: execution subsystem error.', sync=>1);
         sleep(3);
       }
       $app->minion->enqueue(load_clients => [] => {attempts => 5});

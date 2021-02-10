@@ -1,4 +1,4 @@
-#!/usr/bin/perl -T
+#!/usr/bin/perl
 # This is the part of R2D2
 # Active Directory ldap module
 # author: Ural Khassanov, 2013

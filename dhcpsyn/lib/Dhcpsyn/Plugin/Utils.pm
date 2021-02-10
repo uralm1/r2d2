@@ -2,6 +2,7 @@ package Dhcpsyn::Plugin::Utils;
 use Mojo::Base 'Mojolicious::Plugin';
 
 use Mojo::UserAgent;
+use Mojo::IOLoop;
 
 use Carp;
 
@@ -9,27 +10,42 @@ sub register {
   my ($self, $app, $args) = @_;
   $args ||= {};
 
+
   # remote logger
   $app->helper(rlog => sub {
-    my ($self, $m) = @_;
+    my ($self, $m, @param) = @_;
+    croak 'Parameter missing' unless defined $m;
+
+    my $logdata = {@param};
+    my $sync = $logdata->{sync} // 0;
 
     $self->log->info($m) if $self->config('rlog_local');
 
     if ($self->config('rlog_remote')) {
       my $url = $self->config('head_url').'/log/'.$self->stash('subsys');
-      $self->ua->post($url => $m =>
-        sub {
-          my ($ua, $tx) = @_;
-          my $e = eval {
-            my $res = $tx->result;
-            $self->log->error('Log request error: '.substr($res->body, 0, 40)) if ($res->is_error);
-          };
-          $self->log->error('Log request failed, probably connection refused') unless defined $e;
-        }
-      );
-      Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+      if ($sync) {
+        my $e = eval {
+          my $res = $self->ua->post($url => $m)->result;
+          $self->log->error('Log request error: '.substr($res->body, 0, 40)) if ($res->is_error);
+        };
+        $self->log->error('Log request failed, probably connection refused') unless defined $e;
+
+      } else {
+        $self->ua->post($url => $m =>
+          sub {
+            my ($ua, $tx) = @_;
+            my $e = eval {
+              my $res = $tx->result;
+              $self->log->error('Log request error: '.substr($res->body, 0, 40)) if ($res->is_error);
+            };
+            $self->log->error('Log request failed, probably connection refused') unless defined $e;
+          }
+        );
+        Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+      }
     }
   });
+
 
   # my $bool = $self->check_workers
   $app->helper(check_workers => sub {

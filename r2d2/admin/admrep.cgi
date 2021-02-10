@@ -1,4 +1,4 @@
-#!/usr/bin/perl -T
+#!/usr/bin/perl
 # This is the part of R2D2
 # Administrator Reports
 # author: Ural Khassanov, 2013

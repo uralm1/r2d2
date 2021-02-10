@@ -23,7 +23,7 @@ sub register {
         if (defined $res) {
           if ($res->is_success) {
             # successful update
-            my $m = "Client id $id refresh successful".($res->body ? ': '.$res->body : '');
+            my $m = "Client id $id refresh request successfully received by agent".($res->body ? ': '.$res->body : '');
             $self->log->info($m);
             $self->dblog->info($m);
 

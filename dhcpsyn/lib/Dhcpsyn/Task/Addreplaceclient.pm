@@ -17,6 +17,7 @@ sub register {
 
     if (@err) {
       $app->rlog(join(',', @err));
+      $app->rlog('Failed addreplace_client task '.$job->id);
       $job->fail;
       return 1;
     }

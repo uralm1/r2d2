@@ -4,8 +4,8 @@
 
 DAYS_CA=5475
 DAYS=1825
-SERVERS=( r2d2-head localhost gwtest1 )
-IPS=( 10.14.72.5 10.15.0.31 10.2.13.131)
+SERVERS=( r2d2-head localhost gwtest1 plksrv1 plksrv4 )
+IPS=( 10.14.72.5 10.15.0.31 10.2.13.131 10.14.0.1 10.14.0.4 )
 
 # gen CA key (give a password)
 #openssl genrsa -aes256 -out ca-key.pem 4096

@@ -37,6 +37,8 @@ sub startup {
     my ($sql, $dbh) = @_;
     $dbh->do('PRAGMA wal_autocheckpoint=250');
   });
+  # don't cache connections on windows, it cause problems with threaded and sqlite
+  $mdb->max_connections(0);
   $self->plugin(Minion => { SQLite => $mdb });
   # FIXME DEBUG FIXME: open access to minion UI
   ###$self->plugin('Minion::Admin');
@@ -45,8 +47,8 @@ sub startup {
   $self->plugin('Dhcpsyn::Plugin::wdhcp_utils');
   $self->plugin('Dhcpsyn::Plugin::Loadclients_impl');
   $self->plugin('Dhcpsyn::Task::Loadclients');
-  #$self->plugin('Dhcpsyn::Task::Addreplaceclient');
-  #$self->plugin('Dhcpsyn::Task::Deleteclient');
+  $self->plugin('Dhcpsyn::Task::Addreplaceclient');
+  $self->plugin('Dhcpsyn::Task::Deleteclient');
   $self->commands->namespaces(['Mojolicious::Command', 'Minion::Command', 'Dhcpsyn::Command']);
 
   $self->defaults(subsys => $self->moniker.'@'.hostname);
@@ -64,13 +66,13 @@ sub startup {
     my ($server, $app) = @_;
 
     # log startup
-    $app->rlog("DHCPSYN agent daemon ($VERSION) starting.");
+    $app->rlog("DHCPSYN agent daemon ($VERSION) starting.", sync=>1);
 
     # load rules on startup
     unless ($config->{disable_autoload}) {
-      $app->rlog("Loading and activating clients rules on agent startup");
+      $app->rlog("Loading and activating clients rules on agent startup.", sync=>1);
       until ($app->check_workers) {
-        $app->rlog('Updating clients failed: execution subsystem error.');
+        $app->rlog('Updating clients failed: execution subsystem error.', sync=>1);
         sleep(3);
       }
       $app->minion->enqueue(load_clients => [] => {attempts => 5});

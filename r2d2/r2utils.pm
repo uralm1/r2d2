@@ -1,4 +1,4 @@
-#!/usr/bin/perl -T
+#!/usr/bin/perl
 # This is the part of R2D2
 # Common code
 # author: Ural Khassanov, 2013
@@ -11,7 +11,7 @@ use warnings;
 use CGI;
 
 # common version for all cgi-s
-my $cgi_version = 'v1.37';
+my $cgi_version = 'v1.39';
 
 # administrators
 my @admin_list = qw( ural av );

@@ -1,0 +1,1 @@
+@script/dhcpsyn minion worker -j 1

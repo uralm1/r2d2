@@ -1,4 +1,4 @@
-#!/usr/bin/perl -T
+#!/usr/bin/perl
 # This is the part of R2D2
 # Administration interface
 # author: Ural Khassanov, 2013
@@ -232,11 +232,11 @@ sub viewusers {
 
   &R2utils::print_start_hdr;
   print "<p>Привет, господин&nbsp;<b>",&R2utils::remote_user,"</b>&nbsp;! На всякий случай я буду регистрировать все Ваши действия.</p>";
-  print "<p><b>&gt; Просмотр логов:</b> <a href=\"adm.cgi?log=agent\">Лог агентов</a>, <a href=\"adm.cgi?log=admin\">Лог администрирования</a>, <a href=\"changelog.html\">ChangeLog (",&R2utils::version,")</a>.</p>";
+  print "<p><b>&gt; Просмотр логов:</b> <a href=\"adm.cgi?log=agent\">Лог агентов</a>, <a href=\"adm.cgi?log=admin\">Лог администрирования</a>, <a href=\"changelog.html\">ChangeLog (",&R2utils::version,")</a>, <a href=\"adm.cgi?log=oplog\">Oplog</a>.</p>";
   print "<p><b>&gt; Просмотр отчётов:</b> <a href=\"admrep.cgi?type=leech\">Топ скачивающих</a>, <a href=\"admrep.cgi?type=macdup\">Mac-дубликаты</a>, <a href=\"admrep.cgi?type=users\">Списки пользователей</a>, <a href=\"https://cacti.uwc.ufanet.ru/graph_view.php?action=tree&tree_id=4\">Загрузка каналов</a>.</p>";
 
   print "<p><b>&gt; Управление списком пользователей:</b></p>";
-  my $s = $dbh_inet->prepare("SELECT clients.login, clients.desc, bot, ip, mac, rt, defjump, speed_in, speed_out, s.sync_rt, s.sync_fw, s.sync_dhcp, no_dhcp, qs, limit_in, sum_limit_in \
+  my $s = $dbh_inet->prepare("SELECT clients.login, clients.desc, bot, ip, mac, rt, defjump, speed_in, speed_out, s.sync_rt, s.sync_fw, s.sync_dhcp, no_dhcp, qs, limit_in, sum_limit_in, profile, id \
 FROM clients, clients_sync s WHERE clients.login = s.login ORDER BY $sort ASC $sort1");
   $s->execute;
 
@@ -246,10 +246,10 @@ FROM clients, clients_sync s WHERE clients.login = s.login ORDER BY $sort ASC $s
   my $sort_ip_img = ($sort eq 'ip') ? '<img src="img/sort.png" width="16" height="16">':'';
   my $sort_rt_img = ($sort eq 'rt') ? '<img src="img/sort.png" width="16" height="16">':'';
   my $sort_lim_img = ($sort eq 'sum_limit_in') ? '<img src="img/warned.png" width="16" height="16" title="Отсортировано по остатку лимита">':'';
-  print "<table class=\"db\"><tr><th><a href=\"adm.cgi?new=user\"><img class=\"db\" src=\"img/plus.png\" width=\"24\" height=\"24\" alt=\"+\" title=\"Добавить пользователя\"></a></th><th><a href=\"adm.cgi?sort=login\">Логин</a>$sort_login_img</th><th><a href=\"adm.cgi?sort=ip\">IP</a>$sort_ip_img</th><th>mac</th><th><a href=\"adm.cgi?sort=rt\">Провайдер</a>$sort_rt_img</th><th style=\"min-width:120px;\"><a href=\"adm.cgi?sort=lim\" title=\"Сортировать по остатку лимита\">Лимиты</a>$sort_lim_img</th><th>Правило</th><th>Комментарий, #заявка</th><th></th><th></th></tr>\n";
+  print "<table class=\"db\"><tr><th><a href=\"adm.cgi?new=user\"><img class=\"db\" src=\"img/plus.png\" width=\"24\" height=\"24\" alt=\"+\" title=\"Добавить пользователя\"></a></th><th><a href=\"adm.cgi?sort=login\">Логин</a>$sort_login_img</th><th><a href=\"adm.cgi?sort=ip\">IP</a>$sort_ip_img</th><th>mac</th><th><a href=\"adm.cgi?sort=rt\">Провайдер</a>$sort_rt_img</th><th style=\"min-width:120px;\"><a href=\"adm.cgi?sort=lim\" title=\"Сортировать по остатку лимита\">Лимиты</a>$sort_lim_img</th><th>Правило</th><th>Комментарий, #заявка</th><th></th><th></th><th></th><th></th></tr>\n";
 
   my $i = 1;
-  while (my ($login, $desc, $bot, $dbip, $dbmac, $rt, $defjump, $speed_in, $speed_out, $sync_rt, $sync_fw, $sync_dhcp, $no_dhcp, $qs, $limit_in, $sum_limit_in) = $s->fetchrow_array) {
+  while (my ($login, $desc, $bot, $dbip, $dbmac, $rt, $defjump, $speed_in, $speed_out, $sync_rt, $sync_fw, $sync_dhcp, $no_dhcp, $qs, $limit_in, $sum_limit_in, $profile, $id) = $s->fetchrow_array) {
     my $ip = NetAddr::IP->new($dbip);
     my $urllogin = uri_escape($login);
     my $tr_style = ($sum_limit_in == 0) ? 'background: #d4d9de' : '';
@@ -290,6 +290,8 @@ FROM clients, clients_sync s WHERE clients.login = s.login ORDER BY $sort ASC $s
     binmode STDOUT;
     print "<td><a href=\"adm.cgi?edit=$urllogin\"><img class=\"db\" src=\"img/edit.png\" width=\"16\" height=\"16\" alt=\"E\" title=\"Редактировать\"></a></td>";
     print "<td><a href=\"adm.cgi?del=$urllogin\" onclick=\"return checkdel('$login')\"><img class=\"db\" src=\"img/delete.png\" width=\"16\" height=\"16\" alt=\"X\" title=\"Удалить пользователя\"></a></td>";
+    print "<td>$profile</td>";
+    print "<td>$id</td>";
     print "</tr>";
     $i++;
   }
@@ -359,8 +361,8 @@ sub newuser_submit {
     # insert new record
     my $ql = $dbh_inet->quote($login);
     my $sql = sprintf "INSERT INTO clients \
-(login, clients.desc, email_notify, create_time, ip, mac, rt, defjump, speed_in, speed_out, no_dhcp, qs, limit_in, sum_limit_in) \
-VALUES (%s, %s, %s, NOW(), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+(login, clients.desc, email_notify, create_time, ip, mac, rt, defjump, speed_in, speed_out, no_dhcp, qs, limit_in, sum_limit_in, profile) \
+VALUES (%s, %s, %s, NOW(), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'plk')",
     $ql,
     $dbh_inet->quote($desc),
     ($email_notify) ? '1' : '0',
@@ -375,12 +377,13 @@ VALUES (%s, %s, %s, NOW(), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
     $dbh_inet->quote($limit_bytes),
     $dbh_inet->quote($limit_bytes);
     if ($dbh_inet->do($sql)) { #success?
-      &R2db::dblog("добавление пользователя $login, $ip, провайдер $rt_names{$rt}, режим квоты $qs_names{$qs}.");
+      my $id = $dbh_inet->last_insert_id();
+      &R2db::dblog("добавление пользователя $id, $login, $ip, провайдер $rt_names{$rt}, режим квоты $qs_names{$qs}.");
       # mark client for syncronization
-      $dbh_inet->do("INSERT INTO clients_sync (login, sync_rt, sync_fw, sync_dhcp) VALUES ($ql, 1, 1, 1)") or
+      $dbh_inet->do("INSERT INTO clients_sync (client_id, login, sync_rt, sync_fw, sync_dhcp) VALUES ($id, $ql, 1, 1, 1)") or
         &R2db::dblog("ошибка. Невозможно пометить пользователя $login для синхронизации.");
       # insert starting amonthly record
-      $dbh_inet->do("INSERT INTO amonthly (login, date, m_in, m_out) VALUES ($ql, CURDATE(), 0, 0)") or 
+      $dbh_inet->do("INSERT INTO amonthly (client_id, login, date, m_in, m_out) VALUES ($id, $ql, CURDATE(), 0, 0)") or 
         &R2db::dblog("ошибка. Не удалось сохранить месячные начальные счетчики для пользователя $login.");
       $login = uri_escape($login);
       print $q->redirect("adm.cgi#$login");
@@ -681,6 +684,18 @@ FROM log_agents ORDER BY timestamp DESC, log_id DESC LIMIT 500");
     print "<pre>\n";
     while (my ($time, $msg) = $s->fetchrow_array) {
       print "$time $msg\n";
+    }
+    $s->finish;
+    print "</pre>\n";
+  } elsif ($l eq 'oplog') {
+    print $q->h2("Просмотр Oplog");
+    my $s = $dbh_inet->prepare("SELECT CONCAT_WS(' ', date, CONCAT('[', subsys, ']'),  info) \
+FROM op_log ORDER BY id DESC LIMIT 1000");
+    $s->execute;
+    print "<p>Показаны последние 1000 записей.</p>";
+    print "<pre>\n";
+    while (my ($msg) = $s->fetchrow_array) {
+      print "$msg\n";
     }
     $s->finish;
     print "</pre>\n";

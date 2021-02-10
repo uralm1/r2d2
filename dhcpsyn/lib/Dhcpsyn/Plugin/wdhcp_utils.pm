@@ -63,7 +63,7 @@ sub register {
     my $ip = $ipo->addr;
     my $bmac;
     if (!$v->{no_dhcp} && $v->{mac}) {
-      my $maco = eval { NetAddr::MAC->new($_->{mac}) };
+      my $maco = eval { NetAddr::MAC->new($v->{mac}) };
       die "Invalid mac address $v->{mac}, client $v->{id}!" if $@;
       $bmac = $maco->as_basic;
     }
@@ -78,7 +78,7 @@ sub register {
       my $dump = $m->{dump_sub}($dhcpserver);
       unless ($dump) {
         $self->rlog($failure) if $failure;
-        $failure = "dump failed dhcpserver $dhcpserver";
+        $failure = "failed DUMP dhcpserver $dhcpserver";
         next;
       }
 
@@ -94,14 +94,14 @@ sub register {
               }
               if ( $m->{add_sub}($dhcpserver, $ip, $bmac, $v->{id}) ) {
                 $self->rlog($failure) if $failure;
-                $failure = "add failed client id $v->{id} $m->{rule_desc} $ip mac $bmac on dhcp server $dhcpserver.";
+                $failure = "failed ADD client id $v->{id} $m->{rule_desc} $ip mac $bmac on dhcp server $dhcpserver.";
               }
             } else {
               # delete reservedip if no_dhcp flag is set
               $self->rlog("Deleting client id $v->{id} $m->{rule_desc} $1 mac $2 on dhcp server $dhcpserver.");
               if ( $m->{delete_sub}($dhcpserver, $1, $2) ) {
                 $self->rlog($failure) if $failure;
-                $failure = "delete failed $m->{rule_desc} $1 mac $2 on dhcp server $dhcpserver.";
+                $failure = "failed DELETE $m->{rule_desc} $1 mac $2 on dhcp server $dhcpserver.";
               }
             }
             $ff = 1;
@@ -119,7 +119,7 @@ sub register {
           $self->rlog("Appending client id $v->{id} $m->{rule_desc} $ip mac $bmac on dhcp server $dhcpserver.");
           if ( $m->{add_sub}($dhcpserver, $ip, $bmac, $v->{id}) ) {
             $self->rlog($failure) if $failure;
-            $failure = "add failed client id $v->{id} $m->{rule_desc} $ip mac $bmac on dhcp server $dhcpserver.";
+            $failure = "failed ADD client id $v->{id} $m->{rule_desc} $ip mac $bmac on dhcp server $dhcpserver.";
           }
         }
       }
@@ -149,7 +149,7 @@ sub register {
       my $dump = $m->{dump_sub}($dhcpserver);
       unless ($dump) {
         $self->rlog($failure) if $failure;
-        $failure = "dump failed dhcpserver $dhcpserver";
+        $failure = "failed DUMP dhcpserver $dhcpserver";
         next;
       }
 
@@ -160,7 +160,7 @@ sub register {
           # delete
           if ( $m->{delete_sub}($dhcpserver, $1, $2) ) {
             $self->rlog($failure) if $failure;
-            $failure = "delete failed $m->{rule_desc} $1 mac $2 on dhcp server $dhcpserver.";
+            $failure = "failed DELETE $m->{rule_desc} $1 mac $2 on dhcp server $dhcpserver.";
           }
         }
       }
