@@ -4,6 +4,8 @@ _d_worker
 _i.cmd
 _i_deps.cmd
 _i_srv.cmd
+_r.cmd
+_r_worker.cmd
 dhcpsyn.conf_empty
 lib/Dhcpsyn.pm
 lib/Dhcpsyn/Command/dumprules.pm

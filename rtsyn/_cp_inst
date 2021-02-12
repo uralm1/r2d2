@@ -1,0 +1,28 @@
+#!/bin/sh
+
+#make dist
+version=`perl -E 'use lib "lib";use Rtsyn;say $Rtsyn::VERSION'`
+
+rexlib=root@bikini:/var/www/net/rexlib
+destdir=$rexlib/lib/Deploy/Erebus/R2d2/files
+
+# source tarball
+cp rtsyn-$version.tar.gz rtsyn-latest.tar.gz
+filelist=rtsyn-latest.tar.gz
+
+# copy keys
+cert_path="../cert"
+keys="$cert_path/ca.pem"
+for h in erebus
+do
+  keys="$keys $cert_path/$h-cert.pem $cert_path/$h-key.pem"
+done
+#echo $keys
+filelist="$filelist $keys"
+
+# service scripts
+filelist="$filelist support/rtsyn support/rtsyn-minion"
+
+scp $filelist $destdir
+
+rm rtsyn-latest.tar.gz

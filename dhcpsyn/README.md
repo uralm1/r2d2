@@ -47,3 +47,7 @@
 сертификатов и ключей. Для установки сервисов запустите из окна командной строки с повышенными привилегиями
 администратора команду `_i_srv.cmd`.
 
+9. Открытие порта в firewall windows server:
+* `netsh advfirewall firewall add rule name="Dhcpsyn agent IN" dir=in action=allow protocol=TCP localport=2274`.
+По умолчанию порт открывается во всех профилях.
+
