@@ -76,13 +76,13 @@ sub register {
       if ($dump->[$i] =~ $m->{re1}($v->{id})) {
         my $ri = $1;
         if (!$ff) {
-          $self->rlog("$m->{rule_desc} sync. Replacing rule #$ri id $v->{id} ip $2 in $m->{table} table.");
+          $self->rlog("$m->{rule_desc} sync. Replacing rule #$ri client id $v->{id} ip $2 in $m->{table} table.");
           $ff = 1;
           if ( $m->{replace_sub}($ri, $v) ) {
             $failure = "$m->{rule_desc} sync error. Can't replace rule #$ri in $m->{table} table.";
           }
         } else {
-          $self->rlog("$m->{rule_desc} sync. Deleting duplicate rule #$ri id $v->{id} ip $2 in $m->{table} table.");
+          $self->rlog("$m->{rule_desc} sync. Deleting duplicate rule #$ri client id $v->{id} ip $2 in $m->{table} table.");
           if ( $m->{delete_sub}($ri) ) {
             # just warn, count it non-fatal
             $self->rlog("$m->{rule_desc} sync error. Can't delete rule #$ri from $m->{table} table.");
@@ -92,7 +92,7 @@ sub register {
     } # for dump
 
     if (!$ff) { # if not found, add rule
-      $self->rlog("$m->{rule_desc} sync. Appending rule id $v->{id} ip $v->{ip} to $m->{table} table.");
+      $self->rlog("$m->{rule_desc} sync. Appending rule client id $v->{id} ip $v->{ip} to $m->{table} table.");
       if ( !$m->{add_sub}($v) ) {
         # successfully added
         return 1;
@@ -127,7 +127,7 @@ sub register {
     for (my $i = 2; $i < @$dump; $i++) { # skip first 2 lines
       if ($dump->[$i] =~ $m->{re1}($id)) {
         my $ri = $1;
-        $self->rlog("$m->{rule_desc} sync. Rule #$ri id $id ip $2 has been requested to delete. Deleting.");
+        $self->rlog("$m->{rule_desc} sync. Rule #$ri client id $id ip $2 has been requested to delete. Deleting.");
         $ret = 1;
         if ( $m->{delete_sub}($ri) ) {
           my $msg = "$m->{rule_desc} sync error. Can't delete rule from $m->{table} table.";

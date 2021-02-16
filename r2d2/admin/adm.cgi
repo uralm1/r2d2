@@ -377,7 +377,7 @@ VALUES (%s, %s, %s, NOW(), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'plk')",
     $dbh_inet->quote($limit_bytes),
     $dbh_inet->quote($limit_bytes);
     if ($dbh_inet->do($sql)) { #success?
-      my $id = $dbh_inet->last_insert_id();
+      my $id = $dbh_inet->last_insert_id(undef, undef, 'clients', 'id');
       &R2db::dblog("добавление пользователя $id, $login, $ip, провайдер $rt_names{$rt}, режим квоты $qs_names{$qs}.");
       # mark client for syncronization
       $dbh_inet->do("INSERT INTO clients_sync (client_id, login, sync_rt, sync_fw, sync_dhcp) VALUES ($id, $ql, 1, 1, 1)") or
