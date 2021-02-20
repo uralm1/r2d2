@@ -128,7 +128,7 @@ sub _startup {
 
   my $m = "$procstr processing started.";
   $app->log->info($m);
-  $app->dblog->info($m);
+  $app->dblog->info($m, sync=>1);
 }
 
 sub _finish {
@@ -137,7 +137,7 @@ sub _finish {
 
   my $m = "$procstr processing finished.";
   $app->log->info($m);
-  $app->dblog->info($m);
+  $app->dblog->info($m, sync=>1);
 }
 
 
