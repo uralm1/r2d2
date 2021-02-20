@@ -32,22 +32,20 @@ sub do_daily {
   $self->_startup($procstr);
 
   # archive traffic statistics
-  $app->mysql_inet->db->query("INSERT INTO adaily (client_id, login, date, d_in, d_out) \
+  my $p = $app->mysql_inet->db->query_p("INSERT INTO adaily (client_id, login, date, d_in, d_out) \
 SELECT id, login, CURDATE(), sum_in, sum_out \
 FROM clients \
-ON DUPLICATE KEY UPDATE d_in = sum_in, d_out = sum_out" =>
-    sub {
-      my ($db, $err, $results) = @_;
-      if ($err) {
-        my $m = 'Daily archive SQL operation failed.';
-        $app->log->error($m);
-        $app->dblog->error($m);
-      }
-      $self->_finish($procstr);
-    }
-  );
+ON DUPLICATE KEY UPDATE d_in = sum_in, d_out = sum_out");
+  $p->catch(sub {
+    my $err = shift;
+    my $m = 'Daily archive SQL operation failed.';
+    $app->log->error($m." $err");
+    $app->dblog->error($m);
 
-  Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+  })->finally(sub {
+    $self->_finish($procstr);
+
+  })->wait;
 }
 
 
@@ -58,65 +56,48 @@ sub do_monthly {
   $self->_startup($procstr);
 
   my $db = $app->mysql_inet->db;
-  Mojo::IOLoop->delay(
-    # archive traffic statistics
-    sub {
-      my $delay = shift;
-      $db->query("INSERT INTO amonthly (client_id, login, date, m_in, m_out) \
+
+  # archive traffic statistics
+  my $p = $db->query_p("INSERT INTO amonthly (client_id, login, date, m_in, m_out) \
 SELECT id, login, CURDATE(), sum_in, sum_out \
 FROM clients \
-ON DUPLICATE KEY UPDATE m_in = sum_in, m_out = sum_out" =>  $delay->begin);
-    },
-    sub {
-      my ($delay, $err, $results) = @_;
-      if ($err) {
-        my $m = 'Monthly archive SQL operation failed.';
-        $app->log->error($m);
-        $app->dblog->error($m);
-      }
-      $delay->pass;
-    },
+ON DUPLICATE KEY UPDATE m_in = sum_in, m_out = sum_out");
+  $p->catch(sub {
+    my $err = shift;
+    my $m = 'Monthly archive SQL operation failed.';
+    $app->log->error($m." $err");
+    $app->dblog->error($m);
 
+  })->then(sub {
     # restore limits
-    sub {
-      my $delay = shift;
-      my $m = 'Restoring quota limits.';
-      $app->log->info($m);
-      $app->dblog->info($m);
+    my $m = 'Restoring quota limits.';
+    $app->log->info($m);
+    $app->dblog->info($m);
 
-      $db->query("UPDATE clients SET sum_limit_in = limit_in" => $delay->begin);
-    },
-    sub {
-      my ($delay, $err, $results) = @_;
-      if ($err) {
-        my $m = 'Restoring quota limits failed.';
-        $app->log->error($m);
-        $app->dblog->error($m);
-      }
-      $delay->pass;
-    },
+    return $db->query_p("UPDATE clients SET sum_limit_in = limit_in");
+  })->catch(sub {
+    my $err = shift;
+    my $m = 'Restoring quota limits failed.';
+    $app->log->error($m." $err");
+    $app->dblog->error($m);
 
+  })->then(sub {
     # reset notification flags
-    sub {
-      my $delay = shift;
-      my $m = 'Resetting notification flags.';
-      $app->log->info($m);
-      $app->dblog->error($m);
+    my $m = 'Resetting notification flags.';
+    $app->log->info($m);
+    $app->dblog->error($m);
 
-      $db->query("UPDATE clients_sync SET email_notified = 0" => $delay->begin);
-    },
-    sub {
-      my ($delay, $err, $results) = @_;
-      if ($err) {
-        my $m = 'Resetting notification flags failed.';
-        $app->log->error($m);
-        $app->dblog->error($m);
-      }
-      $self->_finish($procstr);
-    }
-  );
+    return $db->query_p("UPDATE clients_sync SET email_notified = 0");
+  })->catch(sub {
+    my $err = shift;
+    my $m = 'Resetting notification flags failed.';
+    $app->log->error($m." $err");
+    $app->dblog->error($m);
 
-  Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+  })->finally(sub {
+    $self->_finish($procstr);
+
+  })->wait;
 }
 
 
@@ -127,19 +108,17 @@ sub do_yearly {
   $self->_startup($procstr);
 
   # reset traffic statistics
-  $app->mysql_inet->db->query("UPDATE clients SET sum_in = 0, sum_out = 0" =>
-    sub {
-      my ($db, $err, $results) = @_;
-      if ($err) {
-        my $m = 'Yearly archive SQL operation failed.';
-        $app->log->error($m);
-        $app->dblog->error($m);
-      }
-      $self->_finish($procstr);
-    }
-  );
+  my $p = $app->mysql_inet->db->query_p("UPDATE clients SET sum_in = 0, sum_out = 0");
+  $p->catch(sub {
+    my $err = shift;
+    my $m = 'Yearly archive SQL operation failed.';
+    $app->log->error($m." $err");
+    $app->dblog->error($m);
 
-  Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+  })->finally(sub {
+    $self->_finish($procstr);
+
+  })->wait;
 }
 
 
