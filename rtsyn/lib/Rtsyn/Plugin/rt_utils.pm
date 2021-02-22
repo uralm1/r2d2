@@ -254,7 +254,6 @@ sub register {
     croak 'Bad argument' unless $va;
 
     my $rulefile = path($self->config('firewall_file'));
-    my $prof = $self->config('my_profile');
     my $client_out_chain = $self->config('client_out_chain');
 
     my $fh = eval { $rulefile->open('>') } or die "Can't create firewall file: $!";
@@ -266,7 +265,7 @@ sub register {
 
     # data
     for (@$va) {
-      next if (!$_->{profile} or $_->{profile} ne $prof); # skip clients from invalid profiles
+      next if !$self->is_myprofile($_->{profile}); # skip clients from invalid profiles
       #print $fh "# $_->{id}: $_->{login}\n";
       print $fh "-A $client_out_chain -s $_->{ip} -m comment --comment $_->{id} ".$self->rt_marks($_->{rt})."\n";
     }

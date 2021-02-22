@@ -23,8 +23,8 @@ Makefile.PL
 MANIFEST			This list of files
 Minion-Job.patch
 Minion.patch
-nssm-2.24.zip
 README.md
 script/dhcpsyn
+support/nssm-2.24.zip
 t/01_get_subsys.t
 t/13_matang_regexps.t

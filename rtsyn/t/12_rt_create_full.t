@@ -21,7 +21,7 @@ while (<DATA>) {
 $fh->close if $fh;
 
 my $test_f = path($testdir, 'firewall-rtsyn.clients1');
-my $t = Test::Mojo->new('Rtsyn', {firewall_file => $test_f->to_string, my_profile => 'gwtest1',
+my $t = Test::Mojo->new('Rtsyn', {firewall_file => $test_f->to_string, my_profiles => ['gwtest1'],
   client_out_chain=>'out_test'});
 my $j = [
   {id=>11, ip=> '1.2.3.4', rt=>0, profile=>'zzz'},

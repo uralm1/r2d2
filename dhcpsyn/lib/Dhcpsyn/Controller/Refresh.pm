@@ -13,7 +13,6 @@ sub refresh {
 
   $self->render_later;
 
-  my $prof = $self->config('my_profile');
   # request client record, continue in cb
   $self->ua->get($self->config('head_url')."/client/$id" =>
     sub {
@@ -26,7 +25,7 @@ sub refresh {
         my $v = $res->json;
         return $self->render(text=>"Client response json error", status=>503) unless $v;
 
-        if ($v->{profile} && $v->{profile} eq $prof) {
+        if ($self->is_myprofile($v->{profile})) {
           # add or update
           # actual data returned in $v
           $self->minion->enqueue('addreplace_client' => [$v]);

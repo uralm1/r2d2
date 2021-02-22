@@ -115,12 +115,11 @@ sub register {
     croak 'Bad argument' unless $va;
 
     my $dhcpfile = path($self->config('dhcphosts_file'));
-    my $prof = $self->config('my_profile');
 
     my $fh = eval { $dhcpfile->open('>') } or die "Can't create dhcphosts file: $!";
     # data
     for (@$va) {
-      next if (!$_->{profile} or $_->{profile} ne $prof); # skip clients from invalid profiles
+      next if !$self->is_myprofile($_->{profile}); # skip clients from invalid profiles
       # 11:22:33:44:55:66,id:*,set:client123,192.168.33.22
       print $fh "$_->{mac},id:*,set:client$_->{id},$_->{ip}\n" if !$_->{no_dhcp} && $_->{mac};
     }

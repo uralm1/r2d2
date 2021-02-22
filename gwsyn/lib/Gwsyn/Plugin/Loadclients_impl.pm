@@ -14,7 +14,7 @@ sub register {
   $app->helper(load_clients => sub {
     my $self = shift;
 
-    my $prof = $self->config('my_profile');
+    my $prof = ${ $self->config('my_profiles') }[0]; #FIXME
     my $res = eval {
       my $tx = $self->ua->get($app->config('head_url')."/clients/$prof" => {Accept => 'application/json'});
       $tx->result;

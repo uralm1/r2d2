@@ -15,7 +15,7 @@ sub register {
   $app->helper(load_clients => sub {
     my $self = shift;
 
-    my $prof = $self->config('my_profile');
+    my $prof = ${ $self->config('my_profiles') }[0]; #FIXME
     my $res = eval {
       my $tx = $self->ua->get($self->config('head_url')."/clients/$prof" => {Accept => 'application/json'});
       $tx->result;
@@ -51,7 +51,7 @@ sub register {
 
       # process data
       for (@$v) {
-        next if (!$_->{profile} or $_->{profile} ne $prof); # skip clients from invalid profiles
+        next if !$self->is_myprofile($_->{profile}); # skip clients from invalid profiles
         if (!$_->{no_dhcp} && $_->{mac}) {
           my $ipo = NetAddr::IP::Lite->new($_->{ip});
           unless ($ipo) {

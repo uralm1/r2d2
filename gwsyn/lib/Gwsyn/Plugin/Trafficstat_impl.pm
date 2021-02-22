@@ -36,7 +36,7 @@ sub register {
     }
 
     # NOW SEND
-    my $prof = $self->config('my_profile');
+    my $prof = ${ $self->config('my_profiles') }[0]; #FIXME
     my $res = eval {
       my $tx = $self->ua->post($self->config('head_url')."/trafstat/$prof" => json => \%buf);
       $tx->result;

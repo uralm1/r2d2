@@ -177,7 +177,6 @@ sub register {
 
     my $tcfile = path($self->config('tc_file'));
     my $tc_path = $self->config('tc_path');
-    my $prof = $self->config('my_profile');
 
     my $fh = eval { $tcfile->open('>') } or die "Can't create tc file: $!";
 
@@ -186,7 +185,7 @@ sub register {
 
     # data
     for (@$va) {
-      next if (!$_->{profile} or $_->{profile} ne $prof); # skip clients from invalid profiles
+      next if !$self->is_myprofile($_->{profile}); # skip clients from invalid profiles
       $_->{speed_in} ||= "quantum 6400 rate 256kbit prio 5";
       $_->{speed_out} ||= "quantum 6400 rate 256kbit prio 5";
       print $fh "# $traf_id_counter $_->{id}\n";

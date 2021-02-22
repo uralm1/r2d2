@@ -13,6 +13,6 @@ $t->get_ok('/subsys')->status_is(200)->content_like(qr/^gwsyn/);
 $t->get_ok('/subsys?format=json')->status_is(200)
   ->json_like('/subsys'=>qr/^gwsyn/)
   ->json_has('/version')
-  ->json_has('/profile');
+  ->json_has('/profiles');
 
 done_testing();

@@ -25,9 +25,11 @@ paths:
                   version:
                     type: string
                     example: '3.00'
-                  profile:
-                    type: string
-                    example: 'gwtest1'
+                  profiles:
+                    type: array
+                    items:
+                      type: string
+                      example: 'gwtest1'
 
   /refresh/{id}:
     post:

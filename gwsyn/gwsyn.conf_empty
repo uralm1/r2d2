@@ -1,5 +1,5 @@
 {
-  my_profile => 'gwtest1',
+  my_profiles => ['gwtest1'],
 
   local_cert => '../cert/localhost-cert.pem',
   local_key => '../cert/localhost-key.pem',

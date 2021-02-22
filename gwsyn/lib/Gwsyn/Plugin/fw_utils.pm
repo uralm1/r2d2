@@ -504,7 +504,6 @@ sub register {
     my $fwfile = path($self->config('firewall_file'));
     my $client_in_chain = $self->config('client_in_chain');
     my $client_out_chain = $self->config('client_out_chain');
-    my $prof = $self->config('my_profile');
 
     my $fh = eval { $fwfile->open('>') } or die "Can't create firewall file: $!";
 
@@ -528,7 +527,7 @@ sub register {
     # data
     my $mangle_append = '';
     for (@$va) {
-      next if (!$_->{profile} or $_->{profile} ne $prof); # skip clients from invalid profiles
+      next if !$self->is_myprofile($_->{profile}); # skip clients from invalid profiles
       print $fh "# $_->{id}\n";
       my $c = "-m comment --comment $_->{id}";
       print $fh "-A $client_in_chain -d $_->{ip} $c -j $_->{defjump}\n";

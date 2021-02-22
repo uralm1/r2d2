@@ -13,7 +13,7 @@ sub run {
 
   my $profiles = $app->config('profiles');
   if (defined $p) {
-    die "Fatal error. Your profile doesn't exist!\n" unless $profiles->{$p};
+    die "Fatal error. Requested profile configuration doesn't exist!\n" unless $profiles->{$p};
     $profiles = { $p => $profiles->{$p} };
   }
 
@@ -27,10 +27,16 @@ sub run {
 
         if (defined($res) && $res->is_success && (my $v = $res->json)) {
           my $ok = 1;
-          for (qw/subsys version profile/) { $ok = undef unless $v->{$_} }
+          for (qw/subsys version profiles/) { $ok = undef unless $v->{$_} }
+          $ok = undef if ref($v->{profiles}) ne 'ARRAY';
           if ($ok) {
-            $app->log->info("OK: [subsys: $v->{subsys}, version: $v->{version}, profile: $v->{profile}]");
-            $app->log->error("ERROR: agent profile differ from the requested!") if ($v->{profile} ne $profile);
+            $app->log->info("OK: [subsys: $v->{subsys}, version: $v->{version}, profiles: ".join(',', $v->{profiles}).']');
+            # check the requested $profile in returned [profiles] array
+            my $f = 0;
+            for (@{$v->{profiles}}) {
+              if ($_ eq $profile) { $f = 1; last }
+            }
+            $app->log->error("ERROR: agent profile differ from the requested!") unless $f;
           } else {
             $app->log->error("ERROR: received invalid json from agent!");
           }

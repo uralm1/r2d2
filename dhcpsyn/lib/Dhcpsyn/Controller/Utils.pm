@@ -7,7 +7,7 @@ sub subsys {
     json => {json => {
       subsys => $self->stash('subsys'),
       version => $self->stash('version'),
-      profile => $self->config('my_profile'),
+      profiles => $self->config('my_profiles'),
     }},
     any => {text => $self->stash('subsys').' ('.$self->stash('version').')'},
   );

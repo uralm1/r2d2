@@ -56,6 +56,21 @@ sub register {
   });
 
 
+  # my $bool = $self->is_myprofile($profile_to_check_or_undef)
+  $app->helper(is_myprofile => sub {
+    my ($self, $p) = @_;
+    return undef unless $p;
+    my $r = 0;
+    for (@{ $self->config('my_profiles') }) {
+      if ($p eq $_) {
+        $r = 1;
+        last;
+      }
+    }
+    return $r;
+  });
+
+
   # my $ret = $app->system("command args")
   # my $ret = $app->system(iptables => "args")
   # my $ret = $app->system(iptables_restore => "args")

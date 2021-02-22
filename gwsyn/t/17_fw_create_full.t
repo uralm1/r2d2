@@ -21,7 +21,7 @@ while (<DATA>) {
 $fh->close if $fh;
 
 my $test_f = path($testdir, 'firewall.clients1');
-my $t = Test::Mojo->new('Gwsyn', {firewall_file => $test_f->to_string, my_profile => 'gwtest1',
+my $t = Test::Mojo->new('Gwsyn', {firewall_file => $test_f->to_string, my_profiles => ['gwtest1'],
   client_in_chain=>'in_test', client_out_chain=>'out_test'});
 my $j = [
   {id=>11, ip=> '1.2.3.4', mac=>'11:22:33:44:55:66', defjump=>'ACCEPT', profile=>'zzz'},
