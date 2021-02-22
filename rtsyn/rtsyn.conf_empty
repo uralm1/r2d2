@@ -9,6 +9,8 @@
 
   head_url => 'https://localhost:2271',
 
+  firewall_file => '/var/r2d2/firewall-rtsyn.clients',
+
   iptables_path => '/usr/sbin/iptables',
   iptables_restore_path => '/usr/sbin/iptables-restore',
 

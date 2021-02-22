@@ -23,7 +23,7 @@ sub register {
         if (defined $res) {
           if ($res->is_success) {
             # successful update
-            my $m = "Client id $id refresh request successfully received by agent $agent_url".($res->body ? ': '.$res->body : '');
+            my $m = "Client id $id refresh request successfully received by agent [$agent_url]".($res->body ? ': '.$res->body : '');
             $self->log->info($m);
             $self->dblog->info($m);
 
@@ -54,7 +54,7 @@ sub register {
     my ($self, $agent_type, $agent_url, $id) = @_;
     croak 'Undefined <agent_type> argument' unless defined $agent_type;
 
-    my $m = "REFRESH client id $id $agent_type $agent_url";
+    my $m = "REFRESH client id $id $agent_type [$agent_url]";
 
     # RTSYN
     if ($agent_type eq 'rtsyn') {

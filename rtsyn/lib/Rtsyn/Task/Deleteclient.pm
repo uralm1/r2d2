@@ -12,8 +12,13 @@ sub register {
     $app->rlog('Started delete_client task '.$job->id." pid $$");
 
     my @err;
-    my $r = eval { $app->rt_delete($id) };
-    push @err, "Error deleting client rule: $@" unless defined $r;
+    # part 1: firewall rules directly
+    my $r = eval { $app->rt_delete_rules($id) };
+    push @err, "Error deleting client rule from iptables: $@" unless defined $r;
+
+    # part 2: firewall file, no need to apply
+    $r = eval { $app->rt_delete($id) };
+    push @err, "Error deleting client rule from firewall file: $@" unless defined $r;
 
     if (@err) {
       $app->rlog(join(',', @err));

@@ -4,12 +4,13 @@ use Mojo::Base 'Mojolicious';
 use Mojo::File qw(path);
 use Mojo::SQLite;
 use Rtsyn::Command::loadclients;
+use Rtsyn::Command::dumpfiles;
 use Rtsyn::Command::dumprules;
 
 #use Carp;
 use Sys::Hostname;
 
-our $VERSION = '2.52';
+our $VERSION = '2.53';
 
 # This method will run once at server start
 sub startup {
@@ -63,6 +64,9 @@ sub startup {
   # this should run only in server, not with commands
   $self->hook(before_server_start => sub {
     my ($server, $app) = @_;
+
+    # create dirs
+    path($self->config($_))->dirname->make_path for qw/firewall_file/;
 
     # log startup
     $app->rlog("RTSYN agent daemon ($VERSION) starting.", sync=>1);
