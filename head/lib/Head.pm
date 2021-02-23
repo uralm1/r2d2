@@ -66,7 +66,8 @@ sub startup {
 
   $r->get('/subsys')->to('utils#subsys');
 
-  $r->get('/clients/#profile')->to('clients#clients');
+  $r->get('/clients')->to('clients#clients');
+  $r->get('/clients/#profile')->to('clients#clients_old'); # DEPRECATED
   $r->get('/client/#id')->to('clients#client');
   $r->post('/trafstat/#profile')->to('stat#trafstat');
 

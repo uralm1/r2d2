@@ -24,6 +24,7 @@ lib/Gwsyn/Task/Loadclients.pm
 lib/Gwsyn/Task/Trafficstat.pm
 Makefile.PL
 MANIFEST			This list of files
+README.md
 script/gwsyn
 support/gwsyn
 support/gwsyn-cron
