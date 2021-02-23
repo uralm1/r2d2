@@ -1,6 +1,7 @@
 package Head::Command::runstat;
 use Mojo::Base 'Mojolicious::Command';
 
+use Mojo::URL;
 #use Carp;
 
 has description => '* Manually run traffic statistics collection for <profile>';
@@ -22,7 +23,7 @@ sub run {
     if ($t eq 'gwsyn' or $t eq 'fwsyn') {
       $app->log->info("$p agent $t: Initiate traffic statistics collection.");
 
-      $app->ua->post("$agent->{url}/runstat" =>
+      $app->ua->post(Mojo::URL->new("$agent->{url}/runstat") =>
         sub {
           my ($ua, $tx) = @_;
           my $res = eval { $tx->result };

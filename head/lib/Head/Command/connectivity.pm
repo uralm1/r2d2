@@ -2,6 +2,7 @@ package Head::Command::connectivity;
 use Mojo::Base 'Mojolicious::Command';
 
 #use Carp;
+use Mojo::URL;
 use Mojo::Promise;
 
 has description => '* Check agents connectivity';
@@ -21,7 +22,7 @@ sub run {
     for my $agent (@{$v->{agents}}) {
       $app->log->info("Checking agent [profile: $profile, type: $agent->{type}, url: $agent->{url}]...");
 
-      $app->ua->get_p("$agent->{url}/subsys" => {Accept => 'application/json'})->then(sub {
+      $app->ua->get_p(Mojo::URL->new("$agent->{url}/subsys") => {Accept => 'application/json'})->then(sub {
         my $tx = shift;
         my $res = eval { $tx->result };
 

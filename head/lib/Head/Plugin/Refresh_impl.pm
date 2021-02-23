@@ -2,6 +2,7 @@ package Head::Plugin::Refresh_impl;
 use Mojo::Base 'Mojolicious::Plugin';
 
 use Carp;
+use Mojo::URL;
 use Mojo::mysql;
 use Mojo::IOLoop;
 
@@ -16,7 +17,7 @@ sub register {
     my ($self, $agent_url, $id, $upd_flag_sub) = @_;
     croak 'Bad arguments' unless ($agent_url and $id and $upd_flag_sub and ref($upd_flag_sub) eq 'CODE');
 
-    $self->ua->post("$agent_url/refresh/$id" =>
+    $self->ua->post(Mojo::URL->new("$agent_url/refresh/$id") =>
       sub {
         my ($ua, $tx) = @_;
         my $res = eval { $tx->result };

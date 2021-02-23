@@ -1,6 +1,7 @@
 package Dhcpsyn::Plugin::Utils;
 use Mojo::Base 'Mojolicious::Plugin';
 
+use Mojo::URL;
 use Mojo::UserAgent;
 use Mojo::IOLoop;
 
@@ -22,7 +23,7 @@ sub register {
     $self->log->info($m) if $self->config('rlog_local');
 
     if ($self->config('rlog_remote')) {
-      my $url = $self->config('head_url').'/log/'.$self->stash('subsys');
+      my $url = Mojo::URL->new('/log/'.$self->stash('subsys'))->to_abs($self->head_url);
       if ($sync) {
         my $e = eval {
           my $res = $self->ua->post($url => $m)->result;
@@ -61,12 +62,15 @@ sub register {
     return undef unless $p;
     my $r = 0;
     for (@{ $self->config('my_profiles') }) {
-      if ($p eq $_) {
-        $r = 1;
-        last;
-      }
+      if ($p eq $_) { $r = 1; last }
     }
     return $r;
+  });
+
+
+  # my $mojo_url = $self->head_url();
+  $app->helper(head_url => sub {
+    state $head_url = Mojo::URL->new(shift->config('head_url'));
   });
 
 

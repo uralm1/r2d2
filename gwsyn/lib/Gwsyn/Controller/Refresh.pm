@@ -1,6 +1,8 @@
 package Gwsyn::Controller::Refresh;
 use Mojo::Base 'Mojolicious::Controller';
 
+use Mojo::URL;
+
 sub refresh {
   my $self = shift;
   my $id = $self->stash('id');
@@ -14,7 +16,7 @@ sub refresh {
   $self->render_later;
 
   # request client record, continue in cb
-  $self->ua->get($self->config('head_url')."/client/$id" =>
+  $self->ua->get(Mojo::URL->new("/client/$id")->to_abs($self->head_url) =>
     sub {
       my ($ua, $tx) = @_;
       my $res = eval { $tx->result };

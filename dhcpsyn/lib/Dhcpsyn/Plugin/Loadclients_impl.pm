@@ -1,6 +1,7 @@
 package Dhcpsyn::Plugin::Loadclients_impl;
 use Mojo::Base 'Mojolicious::Plugin';
 
+use Mojo::URL;
 use NetAddr::IP::Lite;
 use NetAddr::MAC;
 
@@ -17,7 +18,7 @@ sub register {
 
     my $prof = ${ $self->config('my_profiles') }[0]; #FIXME
     my $res = eval {
-      my $tx = $self->ua->get($self->config('head_url')."/clients/$prof" => {Accept => 'application/json'});
+      my $tx = $self->ua->get(Mojo::URL->new("/clients/$prof")->to_abs($self->head_url) => {Accept => 'application/json'});
       $tx->result;
     };
 

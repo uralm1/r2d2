@@ -1,6 +1,7 @@
 package Gwsyn::Plugin::Trafficstat_impl;
 use Mojo::Base 'Mojolicious::Plugin';
 
+use Mojo::URL;
 use Mojo::UserAgent;
 
 #use Carp;
@@ -38,7 +39,7 @@ sub register {
     # NOW SEND
     my $prof = ${ $self->config('my_profiles') }[0]; #FIXME
     my $res = eval {
-      my $tx = $self->ua->post($self->config('head_url')."/trafstat/$prof" => json => \%buf);
+      my $tx = $self->ua->post(Mojo::URL->new("/trafstat/$prof")->to_abs($self->head_url) => json => \%buf);
       $tx->result;
     };
     die "Stats submit to head failed: $@" unless defined $res;
