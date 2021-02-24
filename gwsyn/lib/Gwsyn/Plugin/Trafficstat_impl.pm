@@ -37,9 +37,10 @@ sub register {
     }
 
     # NOW SEND
-    my $prof = ${ $self->config('my_profiles') }[0]; #FIXME
+    my $profs = $self->config('my_profiles');
     my $res = eval {
-      my $tx = $self->ua->post(Mojo::URL->new("/trafstat/$prof")->to_abs($self->head_url) => json => \%buf);
+      my $tx = $self->ua->post(Mojo::URL->new("/trafstat")->to_abs($self->head_url)
+        ->query(profile => $profs) => json => \%buf);
       $tx->result;
     };
     die "Stats submit to head failed: $@" unless defined $res;

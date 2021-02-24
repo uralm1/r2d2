@@ -89,9 +89,45 @@ paths:
                 type: string
                 description: error message
 
+  /clients:
+    get:
+      summary: load clients data for profiles
+      parameters:
+        - name: profile
+          in: query
+          description: profile name (multiple are possible)
+          schema:
+            type: string
+            example: 'gwtest1'
+            
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/client_record'
+        '404':
+          description: Not found
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
   /clients/{profile}:
     get:
-      summary: load clients data for profile
+      summary: load clients data for profile (deprecated)
+      deprecated: true
       parameters:
         - name: profile
           in: path
@@ -159,8 +195,46 @@ paths:
                 type: string
                 description: error message
 
+  /trafstat:
+    post:
+      description: submit traffic statistics for profiles
+      parameters:
+        - name: profile
+          in: query
+          required: true
+          description: profile name (multiple are possible)
+          schema:
+            type: string
+            example: 'gwtest1'
+      requestBody:
+        description: traffic statistics
+        required: true
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/traf_stats'
+      responses:
+        '200':
+          description: Success
+        '404':
+          description: Bad parameter
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error, bad json etc
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
   /trafstat/{profile}:
     post:
+      description: submit traffic statistics for profile (deprecated)
+      deprecated: true
       parameters:
         - name: profile
           in: path

@@ -5,6 +5,39 @@ use Carp;
 
 sub trafstat {
   my $self = shift;
+  my $profs = $self->req->query_params->every_param('profile');
+  croak 'Bad parameter' unless $profs;
+  # at least one profile parameter is required
+  return $self->render(text=>'Bad parameter', status=>503) unless(@$profs);
+
+  my $fmt = $self->req->headers->content_type // '';
+  if ($fmt =~ m#^application/json$#i) {
+    my $j = $self->req->json;
+    return $self->render(text=>'Bad json format', status=>503) unless $j;
+
+    $self->render_later;
+
+    #$self->log->debug($self->dumper($j));
+    # update database in single transaction
+    my $db = $self->mysql_inet->db;
+    my $tx = eval { $db->begin };
+    unless ($tx) {
+      $self->log->error("Database begin transaction failure $@");
+      return $self->render(text=>"Database begin transaction failure", status=>503);
+    }
+
+    $self->_submit_traf_stats($tx, $profs, $j);
+    # now exit, execution continue asyncroniously
+
+  } else {
+    return $self->render(text=>'Unsupported content', status=>503);
+  }
+}
+
+
+# DEPRECATED
+sub trafstat_old {
+  my $self = shift;
   my $prof = $self->stash('profile');
   return $self->render(text=>'Bad parameter', status=>503) unless $prof;
 
@@ -24,7 +57,7 @@ sub trafstat {
       return $self->render(text=>"Database begin transaction failure", status=>503);
     }
 
-    $self->_submit_traf_stats($tx, $prof, $j);
+    $self->_submit_traf_stats($tx, [$prof], $j);
     # now exit, execution continue asyncroniously
 
   } else {
@@ -35,8 +68,8 @@ sub trafstat {
 
 # internal, starts recursive asyncronious submit process
 sub _submit_traf_stats {
-  my ($self, $tx, $prof, $j, $s) = @_;
-  croak 'Bad parameter' unless $tx or $prof or $j;
+  my ($self, $tx, $profs, $j, $s) = @_;
+  croak 'Bad parameter' unless $tx or $profs or $j;
   $s //= [0, 0]; # reset counters on first run
 
   my ($id, $v);
@@ -55,20 +88,32 @@ sub _submit_traf_stats {
   my $outb = $v->{out};
   $s->[0]++; # count submitted
   if ($inb > 0 or $outb > 0) {
-    $tx->db->query_p("UPDATE clients SET sum_in = sum_in + ?, sum_out = sum_out + ?, \
+    my $tdb = $tx->db;
+    my $rule = '';
+    for (@$profs) {
+      if ($rule eq '') { # first
+        $rule = 'profile IN ('.$tdb->quote($_);
+      } else { # second etc
+        $rule .= ','.$tdb->quote($_);
+      }
+    }
+    $rule .= ') AND' if $rule ne '';
+    #$self->log->debug("WHERE rule: *$rule*");
+
+    $tdb->query_p("UPDATE clients SET sum_in = sum_in + ?, sum_out = sum_out + ?, \
 sum_limit_in = IF(qs != 0, IF(sum_limit_in > ?, sum_limit_in - ?, 0), sum_limit_in) \
-WHERE profile = ? AND id = ?", $inb, $outb, $inb, $inb, $prof, $id)->then(sub {
+WHERE $rule id = ?", $inb, $outb, $inb, $inb, $id)->then(sub {
       my $results = shift;
       $s->[1] += $results->affected_rows; # count updated
     })->then(sub {
-      $self->_submit_traf_stats($tx, $prof, $j, $s);
+      $self->_submit_traf_stats($tx, $profs, $j, $s);
     })->catch(sub {
       my $err = shift;
       $self->log->error("Database update failure id $id: $err");
       return $self->render(text=>"Database update failure", status=>503);
     });
   } else {
-    $self->_submit_traf_stats($tx, $prof, $j, $s);
+    $self->_submit_traf_stats($tx, $profs, $j, $s);
   }
 }
 
