@@ -31,6 +31,8 @@ sub startup {
   #$self->log->level('info');
   $self->secrets($config->{secrets});
 
+  exit 1 unless $self->validate_config;
+
   # 1Mb max request
   $self->max_request_size(1048576);
 
@@ -89,6 +91,27 @@ sub startup {
 
   $r->post('/refresh/#id')->to('refresh#refresh');
   $r->post('/runstat')->to('stat#runstat');
+}
+
+
+sub validate_config {
+  my $self = shift;
+  my $c = $self->config;
+
+  my $e = undef;
+  for (qw/my_profiles/) {
+    if (!$c->{$_} || ref($c->{$_}) ne 'ARRAY') {
+      $e = "Config parameter $_ is not defined or not ARRAY!";
+    }
+    last;
+  }
+
+  if ($e) {
+    say $e if $self->log->path;
+    $self->log->fatal($e);
+    return undef;
+  }
+  1;
 }
 
 1;

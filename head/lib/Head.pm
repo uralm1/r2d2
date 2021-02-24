@@ -31,6 +31,8 @@ sub startup {
   #$self->log->level('info');
   $self->secrets($config->{secrets});
 
+  exit 1 unless $self->validate_config;
+
   # 1Mb max request
   $self->max_request_size(1048576);
 
@@ -73,6 +75,22 @@ sub startup {
   $r->post('/trafstat/#profile')->to('stat#trafstat_old'); # DEPRECATED
 
   $r->post('/log/#rsubsys' => {rsubsys => 'none'})->to('log#log');
+}
+
+
+sub validate_config {
+  my $self = shift;
+  my $c = $self->config;
+
+  my $e = undef;
+
+  if ($e) {
+    say $e if $self->log->path;
+    $self->log->fatal($e);
+    return undef;
+  }
+
+  1;
 }
 
 1;
