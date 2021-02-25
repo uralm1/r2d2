@@ -39,7 +39,7 @@ sub register {
     # NOW SEND
     my $profs = $self->config('my_profiles');
     my $res = eval {
-      my $tx = $self->ua->post(Mojo::URL->new("/trafstat")->to_abs($self->head_url)
+      my $tx = $self->ua->post(Mojo::URL->new('/trafstat')->to_abs($self->head_url)
         ->query(profile => $profs) => json => \%buf);
       $tx->result;
     };

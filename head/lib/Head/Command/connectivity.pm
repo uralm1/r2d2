@@ -31,7 +31,7 @@ sub run {
           for (qw/subsys version profiles/) { $ok = undef unless $v->{$_} }
           $ok = undef if ref($v->{profiles}) ne 'ARRAY';
           if ($ok) {
-            $app->log->info("OK: [subsys: $v->{subsys}, version: $v->{version}, profiles: ".join(',', $v->{profiles}).']');
+            $app->log->info("OK: [subsys: $v->{subsys}, version: $v->{version}, profiles: ".join(',', @{$v->{profiles}}).']');
             # check the requested $profile in returned [profiles] array
             my $f = 0;
             for (@{$v->{profiles}}) {

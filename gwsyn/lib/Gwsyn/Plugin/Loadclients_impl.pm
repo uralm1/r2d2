@@ -17,7 +17,7 @@ sub register {
 
     my $profs = $self->config('my_profiles');
     my $res = eval {
-      my $tx = $self->ua->get(Mojo::URL->new("/clients/$prof")->to_abs($self->head_url)
+      my $tx = $self->ua->get(Mojo::URL->new('/clients')->to_abs($self->head_url)
         ->query(profile => $profs) => {Accept => 'application/json'});
       $tx->result;
     };
