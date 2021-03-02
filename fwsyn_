@@ -106,7 +106,7 @@ if ($#dump_f_in != $#dump_m_out) {
 
 ###
 my $s = $dbh_inet->prepare("SELECT ip, mac, defjump \
-FROM clients, clients_sync s WHERE s.sync_fw = '1' AND clients.login = s.login ORDER BY ip ASC");
+FROM clients, clients_sync s WHERE s.sync_fw = '1' AND clients.login = s.login AND clients.profile = 'plk' ORDER BY ip ASC");
 $s->execute;
 my $syn_counter = 0;
 
