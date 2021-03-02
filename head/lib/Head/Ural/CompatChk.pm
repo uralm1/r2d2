@@ -36,6 +36,7 @@ sub load {
       while (my $next = $results->hash) {
         $ref->{$next->{id}} = $next->{profile};
       }
+      1;
     };
     unless (defined $e) {
       $app->log->error("Database error: $@");
@@ -83,6 +84,7 @@ sub eachdel {
     while (my $next = $results->hash) {
       $ref->{$next->{id}} = $next->{profile};
     }
+    1;
   };
   # do not invoke update callbacks in case of errors!
   if (defined $e) {
