@@ -140,10 +140,10 @@ sub register {
     my $dhcpfile = path($self->config('dhcphosts_file'));
     my $bootdhcpfile = path($self->config('boot_dhcphosts_file'));
     if (-f $dhcpfile) {
-      my $d = eval { $dhcpfile->slurp } or die "Can't read dhcphosts file: $!";
+      my $d = eval { $dhcpfile->slurp } // die "Can't read dhcphosts file: $!";
       my $d2 = undef;
       if (-f $bootdhcpfile) {
-        $d2 = eval { $bootdhcpfile->slurp } or die "Can't read boot dhcphosts file: $!";
+        $d2 = eval { $bootdhcpfile->slurp } // die "Can't read boot dhcphosts file: $!";
       }
       if (!defined($d2) or $d2 ne $d) {
         eval { $bootdhcpfile->spurt($d) } or die "Can't write boot dhcphosts file: $!";

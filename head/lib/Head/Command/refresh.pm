@@ -24,7 +24,7 @@ sub run {
           # loop by agents
           for my $agent (@{$profile->{agents}}) {
 
-            $app->refresh_id_bytype($agent->{type}, $agent->{url}, $id);
+            $app->refresh_id($agent->{url}, $id);
 
           }
         } else {

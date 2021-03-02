@@ -31,10 +31,10 @@ WHERE (s.sync_rt = 1 OR s.sync_fw = 1 OR s.sync_dhcp = 1) AND clients.login = s.
 
               if (exists $oldflags{$agent_type}) {
                 # rtsyn/dhcpsyn/fwsyn use the only corresponding flag
-                $app->refresh_id_bytype($agent_type, $agent->{url}, $id) if $oldflags{$agent_type};
+                $app->refresh_id($agent->{url}, $id) if $oldflags{$agent_type};
               } else {
                 # gwsyn and others use any of the flags
-                $app->refresh_id_bytype($agent_type, $agent->{url}, $id);
+                $app->refresh_id($agent->{url}, $id);
               }
 
             }

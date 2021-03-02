@@ -12,7 +12,7 @@ use Head::Command::connectivity;
 
 use Sys::Hostname;
 
-our $VERSION = '2.55';
+our $VERSION = '2.56';
 
 # This method will run once at server start
 sub startup {
@@ -73,6 +73,7 @@ sub startup {
   $r->get('/client/#id')->to('clients#client');
   $r->post('/trafstat')->to('stat#trafstat');
   $r->post('/trafstat/#profile')->to('stat#trafstat_old'); # DEPRECATED
+  $r->post('/refreshed')->to('refreshed#refreshed');
 
   $r->post('/log/#rsubsys' => {rsubsys => 'none'})->to('log#log');
 }

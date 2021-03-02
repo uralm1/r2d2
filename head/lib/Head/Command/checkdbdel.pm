@@ -28,7 +28,7 @@ sub run {
         $app->log->info($m);
         $app->dblog->info($m);
 
-        $app->refresh_id($agent_url, $id, sub {});
+        $app->refresh_id($agent_url, $id);
       }
 
     } else {

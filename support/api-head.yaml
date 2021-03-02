@@ -61,7 +61,8 @@ paths:
         - name: subsys
           in: path
           required: true
-          description: subsystem name to put in the log record
+          description: Subsystem name to put in the log record. Игнорируется если также передано в теле запроса.
+          example: router@host
           schema:
             type: string
             
@@ -91,7 +92,7 @@ paths:
 
   /clients:
     get:
-      summary: load clients data for profiles
+      summary: Load clients data for profiles
       parameters:
         - name: profile
           in: query
@@ -126,7 +127,7 @@ paths:
 
   /clients/{profile}:
     get:
-      summary: load clients data for profile (deprecated)
+      summary: Load clients data for profile (deprecated)
       deprecated: true
       parameters:
         - name: profile
@@ -163,7 +164,7 @@ paths:
 
   /client/{client_id}:
     get:
-      summary: load client data
+      summary: Load client data
       parameters:
         - name: client_id
           in: path
@@ -197,7 +198,7 @@ paths:
 
   /trafstat:
     post:
-      description: submit traffic statistics for profiles
+      summary: Submit traffic statistics for profiles
       parameters:
         - name: profile
           in: query
@@ -233,7 +234,7 @@ paths:
 
   /trafstat/{profile}:
     post:
-      description: submit traffic statistics for profile (deprecated)
+      summary: Submit traffic statistics for profile (deprecated)
       deprecated: true
       parameters:
         - name: profile
@@ -267,7 +268,32 @@ paths:
               schema:
                 type: string
                 description: error message
-      
+
+  /refreshed:
+    post:
+      summary: Извещение о выполненной операции обновления
+      description: Агенты вызывают данную функцию после удачного завершения обновления клиента. Используется для сброса флагов обновления в БД.
+
+      requestBody:
+        description: successful refresh information
+        required: true
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/refresh_stats'
+
+      responses:
+        '200':
+          description: Success
+        '503':
+          description: Operation error, bad json etc
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+    
 # Added by API Auto Mocking Plugin
 servers:
   # Added by API Auto Mocking Plugin
@@ -282,12 +308,12 @@ components:
       properties:
         subsys:
           type: string
-          description: optional subsystem name instead of subsys parameter
+          description: Optional subsystem name instead of subsys parameter
           example: router@host
         info:
           type: string
           example: Initialization started
-          description: string to put into log
+          description: String to put into log
           
     client_record:
       description: Client record
@@ -356,3 +382,16 @@ components:
           type: integer
           description: output traffic (in bytes)
           example: 200
+
+    refresh_stats:
+      description: Successful refresh information
+      type: object
+      properties:
+        subsys:
+          type: string
+          description: Subsystem name. Имя агента должно совпадать с одним из прописанных в коде.
+          example: agent@host
+        id:
+          type: integer
+          description: client id
+          example: 11

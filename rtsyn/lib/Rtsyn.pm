@@ -10,7 +10,7 @@ use Rtsyn::Command::dumprules;
 #use Carp;
 use Sys::Hostname;
 
-our $VERSION = '2.54';
+our $VERSION = '2.55';
 
 # This method will run once at server start
 sub startup {

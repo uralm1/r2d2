@@ -12,10 +12,14 @@ sub register {
   $args ||= {};
 
   # send refresh request to agent
-  # $app->refresh_id($agent_url, $client_id, sub { my ($self, $id) = @_; database flag update code });
+  # $app->refresh_id($agent_url, $client_id);
   $app->helper(refresh_id => sub {
-    my ($self, $agent_url, $id, $upd_flag_sub) = @_;
-    croak 'Bad arguments' unless ($agent_url and $id and $upd_flag_sub and ref($upd_flag_sub) eq 'CODE');
+    my ($self, $agent_url, $id) = @_;
+    croak 'Bad arguments' unless ($agent_url and $id);
+
+    my $m = "REFRESH client id $id [$agent_url]";
+    $self->log->info($m);
+    $self->dblog->info($m);
 
     $self->ua->post(Mojo::URL->new("$agent_url/refresh/$id") =>
       sub {
@@ -27,8 +31,6 @@ sub register {
             my $m = "Client id $id refresh request successfully received by agent [$agent_url]".($res->body ? ': '.$res->body : '');
             $self->log->info($m);
             $self->dblog->info($m);
-
-            $upd_flag_sub->($self, $id);
 
           } else {
             # request error 503
@@ -47,95 +49,6 @@ sub register {
       } # request closure
     );
     return 1;
-  });
-
-
-  # $app->refresh_id_bytype($agent_type, $agent_url, $client_id);
-  $app->helper(refresh_id_bytype => sub {
-    my ($self, $agent_type, $agent_url, $id) = @_;
-    croak 'Undefined <agent_type> argument' unless defined $agent_type;
-
-    my $m = "REFRESH client id $id $agent_type [$agent_url]";
-
-    # RTSYN
-    if ($agent_type eq 'rtsyn') {
-      $self->log->info($m);
-      $self->dblog->info($m);
-
-      $self->refresh_id($agent_url, $id, sub {
-        my ($self, $id) = @_;
-
-        my $db = $self->mysql_inet->db;
-        $db->query("UPDATE clients, clients_sync s \
-SET s.sync_rt = '0' WHERE clients.id = ? AND clients.login = s.login", $id =>
-          sub {
-            my ($db, $err, $results) = @_;
-            if ($err) {
-              my $m = "Database sync_rt flag update failed for client id $id";
-              $self->log->error("$m: $err");
-              $self->dblog->error($m);
-            }
-          }
-        );
-      });
-
-    # DHCPSYN
-    } elsif ($agent_type eq 'dhcpsyn') {
-      $self->log->info($m);
-      $self->dblog->info($m);
-
-      $self->refresh_id($agent_url, $id, sub {
-        my ($self, $id) = @_;
-
-        my $db = $self->mysql_inet->db;
-        $db->query("UPDATE clients, clients_sync s \
-SET s.sync_dhcp = '0' WHERE clients.id = ? AND clients.login = s.login", $id =>
-          sub {
-            my ($db, $err, $results) = @_;
-            if ($err) {
-              my $m = "Database sync_dhcp flag update failed for client id $id";
-              $self->log->error("$m: $err");
-              $self->dblog->error($m);
-            }
-          }
-        );
-      });
-
-
-    # FWSYN
-    } elsif ($agent_type eq 'fwsyn') {
-      $app->log->warn("Not implemented!");
-      #TODO
-
-    # GWSYN
-    } elsif ($agent_type eq 'gwsyn') {
-      $self->log->info($m);
-      $self->dblog->info($m);
-
-      $self->refresh_id($agent_url, $id, sub {
-        my ($self, $id) = @_;
-
-        my $db = $self->mysql_inet->db;
-        $db->query("UPDATE clients, clients_sync s \
-SET s.sync_rt = 0, s.sync_dhcp = 0, s.sync_fw = 0 WHERE clients.id = ? AND clients.login = s.login", $id =>
-          sub {
-            my ($db, $err, $results) = @_;
-            if ($err) {
-              my $m = "Database sync_fw/rt/dhcp flags update failed for client id $id";
-              $self->log->error("$m: $err");
-              $self->dblog->error($m);
-            }
-          }
-        );
-      });
-
-    } else {
-      my $m = "Skipped client id $id: unsupported agent $agent_type!";
-      $app->log->warn($m);
-      $self->dblog->warn($m);
-    }
-    # end of switch by agent_type
-
   });
 
 }

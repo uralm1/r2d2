@@ -33,7 +33,7 @@ paths:
 
   /refresh/{id}:
     post:
-      summary: refresh client
+      summary: Refresh client
       parameters: 
         - name: id
           in: path
@@ -56,12 +56,12 @@ paths:
 
   /runstat:
     post:
-      summary: request traffic statistic collection
+      summary: Request traffic statistic collection
       responses:
         '200':
           description: Successfully queued
         '501':
-          description: Not implemented
+          description: Not implemented. Agent doesn't support statistics collection.
         '503':
           description: Task run problems
           content:

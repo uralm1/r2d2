@@ -80,7 +80,9 @@ sub _submit_traf_stats {
       return $self->render(text=>"Database update transaction failure", status=>503);
     }
     # finished
-    $self->log->debug("UPDATE FINISHED, submitted: $s->[0], updated: $s->[1]");
+    my $m = "UPDATE FINISHED, submitted: $s->[0], updated: $s->[1]";
+    $self->log->debug($m);
+    #$self->dblog->info($m);
     return $self->render(text=>"DONE $s->[1]/$s->[0]", status=>200); # SUCCESS
   }
 

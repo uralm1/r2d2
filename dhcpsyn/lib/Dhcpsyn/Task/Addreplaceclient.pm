@@ -1,6 +1,7 @@
 package Dhcpsyn::Task::Addreplaceclient;
 use Mojo::Base 'Mojolicious::Plugin';
 
+use Mojo::URL;
 use Carp;
 
 sub register {
@@ -18,9 +19,17 @@ sub register {
     if (@err) {
       $app->rlog(join(',', @err));
       $app->rlog('Failed addreplace_client task '.$job->id);
-      $job->fail;
+      $job->finish;
       return 1;
     }
+
+    # send refreshed confirmation
+    $r = eval {
+      $app->ua->post(Mojo::URL->new('/refreshed')->to_abs($app->head_url)
+        => json => { id => $v->{id}, subsys => $app->stash('subsys') })->result;
+    };
+    $app->log->error('Confirmation request failed, probably connection refused') unless defined $r;
+    $app->log->error('Confirmation request error: '.substr($r->body, 0, 40)) if $r->is_error;
 
     $app->rlog('Finished addreplace_client task '.$job->id);
     $job->finish;

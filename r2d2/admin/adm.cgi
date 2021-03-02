@@ -380,7 +380,7 @@ VALUES (%s, %s, %s, NOW(), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'plk')",
       my $id = $dbh_inet->last_insert_id(undef, undef, 'clients', 'id');
       &R2db::dblog("добавление пользователя $id, $login, $ip, провайдер $rt_names{$rt}, режим квоты $qs_names{$qs}.");
       # mark client for syncronization
-      $dbh_inet->do("INSERT INTO clients_sync (client_id, login, sync_rt, sync_fw, sync_dhcp) VALUES ($id, $ql, 1, 1, 1)") or
+      $dbh_inet->do("INSERT INTO clients_sync (client_id, login, sync_rt, sync_fw, sync_dhcp) VALUES ($id, $ql, 1, 1, 3)") or
         &R2db::dblog("ошибка. Невозможно пометить пользователя $login для синхронизации.");
       # insert starting amonthly record
       $dbh_inet->do("INSERT INTO amonthly (client_id, login, date, m_in, m_out) VALUES ($id, $ql, CURDATE(), 0, 0)") or 
@@ -522,7 +522,7 @@ WHERE login = %s",
       if ($dbh_inet->do($sql)) { #success?
         &R2db::dblog("редактирование пользователя $login, $ip, провайдер $rt_names{$rt}, режим квоты $qs_names{$qs}.");
 	# mark client for syncronization
-	$dbh_inet->do("UPDATE clients_sync SET login = $qlogin, sync_rt = '1', sync_fw = '1', sync_dhcp = '1' WHERE login = $ql") or
+	$dbh_inet->do("UPDATE clients_sync SET login = $qlogin, sync_rt = '1', sync_fw = '1', sync_dhcp = '3' WHERE login = $ql") or
 	  &R2db::dblog("ошибка. Невозможно пометить пользователя $login для синхронизации.");
         $login = uri_escape($login);
 	print $q->redirect("adm.cgi#$login");
@@ -866,7 +866,7 @@ sub userinfo_submit {
     my $sql = sprintf "UPDATE clients_sync SET sync_rt = %s, sync_fw = %s, sync_dhcp = %s, email_notified = %s WHERE login = %s",
       ($sync_rt) ? '1' : '0',
       ($sync_fw) ? '1' : '0',
-      ($sync_dhcp) ? '1' : '0',
+      ($sync_dhcp) ? '3' : '0',
       ($email_notified) ? '1' : '0',
       $dbh_inet->quote($l);
     my $sql2 = sprintf "UPDATE clients SET bot = %s WHERE login = %s", 
