@@ -11,12 +11,13 @@ sub run {
   my $self = shift;
   my $app = $self->app;
 
-  $app->log->info('Asyncronious update - checking db for deletions');
   my $profiles = $app->config('profiles');
 
   my $dcc = $app->del_compat_check;
+  return 1 unless $dcc;
   #$dcc->dump;
 
+  $app->log->info('Checking db for deletions');
   $dcc->eachdel(sub {
     my ($id, $prof) = @_;
     #say "$id => $prof has been removed!";

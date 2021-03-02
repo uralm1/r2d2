@@ -8,6 +8,7 @@ use Mojo::mysql;
 
 # constructor
 # Ural::CompatChk->load($app);
+# returns undef on failure
 sub load {
   my ($class, $app) = @_;
   croak "App parameter required!" unless $app;
@@ -23,26 +24,30 @@ sub load {
   $self->{file_name} = $file_name;
   if ($file_name and -r $file_name) {
     $self->{earlydb} = retrieve($file_name);
-    die "Compat file can not be read!\n" unless $self->{earlydb};
+    unless ($self->{earlydb}) {
+      $app->log->error('Compat file can not be read!');
+      return undef;
+    }
 
   } else {
     my $ref = $self->{earlydb} = {};
-    $app->mysql_inet->db->query_p("SELECT id, profile FROM clients")->then(sub {
-      my $results = shift;
+    my $e = eval {
+      my $results = $app->mysql_inet->db->query("SELECT id, profile FROM clients");
       while (my $next = $results->hash) {
         $ref->{$next->{id}} = $next->{profile};
       }
-      # save to file
-      if ($file_name) {
-        store($ref, $file_name) or
-          $app->log->error("Can not create compat file $file_name!");
-      }
-      #say 'read db and store finished!';
-    })->catch(sub {
-      my $err = shift;
-      die "Database error: $err\n";
-    })->wait;
+    };
+    unless (defined $e) {
+      $app->log->error("Database error: $@");
+      return undef;
+    }
 
+    # save to file
+    if ($file_name) {
+      store($ref, $file_name) or
+        $app->log->error("Can not create compat file $file_name!");
+    }
+    #say 'read db and store finished!';
   }
   #say 'Ural::CompatChk constructor finished!';
 
@@ -71,21 +76,24 @@ sub eachdel {
   my ($self, $cb) = @_;
   croak "Uninitialized!" unless $self->{earlydb};
 
-  # get actual db
-  $self->{app}->mysql_inet->db->query_p("SELECT id, profile FROM clients")->then(sub {
-    my $results = shift;
-    my $ref = $self->{actdb} = {};
+  my $ref = $self->{actdb} = {};
+  my $e = eval {
+    # get actual db
+    my $results = $self->{app}->mysql_inet->db->query("SELECT id, profile FROM clients");
     while (my $next = $results->hash) {
       $ref->{$next->{id}} = $next->{profile};
     }
+  };
+  # do not invoke update callbacks in case of errors!
+  if (defined $e) {
     while (my ($id, $p) = CORE::each %{$self->{earlydb}}) {
       $cb->($id, $p) unless exists $ref->{$id};
     }
-  })->catch(sub {
-    my $err = shift;
+  } else {
     $self->{app}->log->error('Client refresh: database operation error.');
-    #die "Database error: $err\n";
-  })->wait;
+    #die "Database error: $@\n";
+  }
+
   return $self;
 }
 

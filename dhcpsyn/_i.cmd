@@ -1,6 +1,6 @@
 @rem echo off
 @setlocal
-@set ver=2.53
+@set ver=2.54
 @set inst_dir=c:\Utils\Dhcpsyn
 
 rmdir /s /q dhcpsyn-%ver%

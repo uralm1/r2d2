@@ -20,6 +20,7 @@ lib/Head/Command/statprocess.pm
 lib/Head/Command/truncatelog.pm
 lib/Head/Controller/Clients.pm
 lib/Head/Controller/Log.pm
+lib/Head/Controller/Refreshed.pm
 lib/Head/Controller/Stat.pm
 lib/Head/Controller/Utils.pm
 lib/Head/Plugin/Migrations.pm
