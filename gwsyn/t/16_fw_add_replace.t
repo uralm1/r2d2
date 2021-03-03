@@ -21,12 +21,19 @@ while (<DATA>) {
 $fh->close if $fh;
 
 
+# my $t = $make_test->($test_mojo_file);
+my $make_test = sub {
+  my $tf = shift;
+  return Test::Mojo->new('Gwsyn', { firewall_file => $tf->to_string,
+    client_in_chain=>'pipe_in_inet_clients', client_out_chain=>'pipe_out_inet_clients',
+    rlog_local=>1, rlog_remote=>0,
+    my_profiles=>['gwtest1'],
+  });
+};
+
 note "common usage";
 my $test_f = path($testdir, 'firewall.clients1');
-my $t = Test::Mojo->new('Gwsyn', {firewall_file => $test_f->to_string,
-  client_in_chain=>'pipe_in_inet_clients',client_out_chain=>'pipe_out_inet_clients',
-  rlog_local=>1, rlog_remote=>0
-});
+my $t = $make_test->($test_f);
 is($t->app->fw_add_replace({id=>451,ip=>'1.2.4.51',mac=>'44:44:44:44:44:44',defjump=>'DROP'}), 1, 'fw_add_replace1 451 replaced');
 is($t->app->fw_add_replace({id=>450,ip=>'1.2.4.50',mac=>'',defjump=>'ACCEPT'}), 1, 'fw_add_replace1 450 replaced');
 is($t->app->fw_add_replace({id=>452,ip=>'1.2.4.52',defjump=>'ACCEPT'}), 1, 'fw_add_replace1 452 replaced');
@@ -36,10 +43,7 @@ undef $t;
 
 note "bad format";
 $test_f = path($testdir, 'firewall.clients2');
-$t = Test::Mojo->new('Gwsyn', {firewall_file => $test_f->to_string,
-  client_in_chain=>'pipe_in_inet_clients',client_out_chain=>'pipe_out_inet_clients',
-  rlog_local=>1, rlog_remote=>0
-});
+$t = $make_test->($test_f);
 is($t->app->fw_add_replace({id=>1,ip=>'1.2.3.1',mac=>'44:44:44:44:44:44',defjump=>'ACCEPT'}), 1, 'fw_add_replace2 1 added');
 is($t->app->fw_add_replace({id=>2,ip=>'1.2.3.2',mac=>'44:44:44:44:44:44',defjump=>'ACCEPT'}), 1, 'fw_add_replace2 2 added');
 compare_ok($test_f, path($testdir, 'result2'), 'compare results 2');
@@ -47,10 +51,7 @@ undef $t;
 
 note "regex intersections and formats";
 $test_f = path($testdir, 'firewall.clients3');
-$t = Test::Mojo->new('Gwsyn', {firewall_file => $test_f->to_string,
-  client_in_chain=>'pipe_in_inet_clients',client_out_chain=>'pipe_out_inet_clients',
-  rlog_local=>1, rlog_remote=>0
-});
+$t = $make_test->($test_f);
 is($t->app->fw_add_replace({id=>10,ip=>'1.2.3.10',mac=>'44:44:44:44:44:44',defjump=>'ACCEPT'}), 1, 'fw_add_replace3 10 added');
 is($t->app->fw_add_replace({id=>2,ip=>'1.2.3.2',mac=>'44:44:44:44:44:44',defjump=>'ACCEPT'}), 1, 'fw_add_replace3 2 added');
 is($t->app->fw_add_replace({id=>1,ip=>'1.2.3.1',mac=>'44:44:44:44:44:44',defjump=>'ACCEPT'}), 1, 'fw_add_replace3 1 added');
@@ -59,10 +60,7 @@ undef $t;
 
 note "duplicate ids, issue warnings";
 $test_f = path($testdir, 'firewall.clients4');
-$t = Test::Mojo->new('Gwsyn', {firewall_file => $test_f->to_string,
-  client_in_chain=>'pipe_in_inet_clients',client_out_chain=>'pipe_out_inet_clients',
-  rlog_local=>1, rlog_remote=>0
-});
+$t = $make_test->($test_f);
 is($t->app->fw_add_replace({id=>450,ip=>'192.168.34.45',mac=>'11:11:11:11:11:11',defjump=>'ACCEPT'}), 1, 'fw_add_replace4 450 replaced, duplicate ids removed, warnings issued');
 compare_ok($test_f, path($testdir, 'result4'), 'compare results 4');
 undef $t;

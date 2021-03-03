@@ -21,12 +21,19 @@ while (<DATA>) {
 $fh->close if $fh;
 
 
+# my $t = $make_test->($test_mojo_file);
+my $make_test = sub {
+  my $tf = shift;
+  return Test::Mojo->new('Rtsyn', { firewall_file => $tf->to_string,
+    client_out_chain=>'pipe_out_inet_clients',
+    rlog_local=>1, rlog_remote=>0,
+    my_profiles=>['plk'],
+  });
+};
+
 note "common usage";
 my $test_f = path($testdir, 'firewall-rtsyn.clients1');
-my $t = Test::Mojo->new('Rtsyn', {firewall_file => $test_f->to_string,
-  client_out_chain=>'pipe_out_inet_clients',
-  rlog_local=>1, rlog_remote=>0
-});
+my $t = $make_test->($test_f);
 is($t->app->rt_add_replace({id=>451,ip=>'1.2.4.51',rt=>0}), 1, 'rt_add_replace1 451 replaced');
 is($t->app->rt_add_replace({id=>450,ip=>'1.2.4.50',rt=>1}), 1, 'rt_add_replace1 450 replaced');
 is($t->app->rt_add_replace({id=>452,ip=>'1.2.4.52',rt=>0}), 1, 'rt_add_replace1 452 replaced');
@@ -36,10 +43,7 @@ undef $t;
 
 note "bad format";
 $test_f = path($testdir, 'firewall-rtsyn.clients2');
-$t = Test::Mojo->new('Rtsyn', {firewall_file => $test_f->to_string,
-  client_out_chain=>'pipe_out_inet_clients',
-  rlog_local=>1, rlog_remote=>0
-});
+$t = $make_test->($test_f);
 is($t->app->rt_add_replace({id=>1,ip=>'1.2.3.1',rt=>1}), 1, 'rt_add_replace2 1 added');
 is($t->app->rt_add_replace({id=>2,ip=>'1.2.3.2',rt=>0}), 1, 'rt_add_replace2 2 added');
 compare_ok($test_f, path($testdir, 'result2'), 'compare results 2');
@@ -47,10 +51,7 @@ undef $t;
 
 note "regex intersections and formats";
 $test_f = path($testdir, 'firewall-rtsyn.clients3');
-$t = Test::Mojo->new('Rtsyn', {firewall_file => $test_f->to_string,
-  client_out_chain=>'pipe_out_inet_clients',
-  rlog_local=>1, rlog_remote=>0
-});
+$t = $make_test->($test_f);
 is($t->app->rt_add_replace({id=>10,ip=>'1.2.3.10',rt=>0}), 1, 'rt_add_replace3 10 added');
 is($t->app->rt_add_replace({id=>2,ip=>'1.2.3.2',rt=>1}), 1, 'rt_add_replace3 2 added');
 is($t->app->rt_add_replace({id=>1,ip=>'1.2.3.1',rt=>0}), 1, 'rt_add_replace3 1 added');
@@ -59,10 +60,7 @@ undef $t;
 
 note "duplicate ids, issue warnings";
 $test_f = path($testdir, 'firewall-rtsyn.clients4');
-$t = Test::Mojo->new('Rtsyn', {firewall_file => $test_f->to_string,
-  client_out_chain=>'pipe_out_inet_clients',
-  rlog_local=>1, rlog_remote=>0
-});
+$t = $make_test->($test_f);
 is($t->app->rt_add_replace({id=>450,ip=>'192.168.34.45',rt=>1}), 1, 'rt_add_replace4 450 replaced, duplicate ids removed, warnings issued');
 compare_ok($test_f, path($testdir, 'result4'), 'compare results 4');
 undef $t;

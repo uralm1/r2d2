@@ -17,7 +17,7 @@ while (<DATA>) {
   push @$lref, $_ if $lref;
 }
 
-my $t = Test::Mojo->new('Rtsyn', {client_out_chain=>'out_test'});
+my $t = Test::Mojo->new('Rtsyn', {client_out_chain=>'out_test', my_profiles=>['plk']});
 #say Dumper \%td;
 
 my ($ri, $ip);

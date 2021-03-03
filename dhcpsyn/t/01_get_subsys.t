@@ -4,6 +4,7 @@ use Test::Mojo;
 use Test::More;
 
 my $t = Test::Mojo->new('Dhcpsyn',{rlog_local=>1, rlog_remote=>0, disable_autoload=>1,
+  my_profiles=>['plk'],
 });
 
 $t->get_ok('/subsys')->status_is(200)->content_like(qr/^dhcpsyn/);

@@ -21,10 +21,18 @@ while (<DATA>) {
 $fh->close if $fh;
 
 
+# my $t = $make_test->($test_mojo_file);
+my $make_test = sub {
+  my $tf = shift;
+  return Test::Mojo->new('Gwsyn', { tc_file => $tf->to_string, tc_path => '/usr/sbin/tc',
+    rlog_local=>1, rlog_remote=>0,
+    my_profiles=>['gwtest1'],
+  });
+};
+
 note "common usage";
 my $test_f = path($testdir, 'traf.clients1');
-my $t = Test::Mojo->new('Gwsyn', {tc_file => $test_f->to_string, tc_path => '/usr/sbin/tc',
-  rlog_local=>1, rlog_remote=>0});
+my $t = $make_test->($test_f);
 is($t->app->tc_delete(451), 1, 'tc_delete1 451');
 is($t->app->tc_delete(452), 1, 'tc_delete1 452');
 is($t->app->tc_delete(452), 0, 'tc_delete1 452 non existent');
@@ -34,32 +42,28 @@ undef $t;
 
 note "without newlines";
 $test_f = path($testdir, 'traf.clients2');
-$t = Test::Mojo->new('Gwsyn', {tc_file => $test_f->to_string, tc_path => '/usr/sbin/tc',
-  rlog_local=>1, rlog_remote=>0});
+$t = $make_test->($test_f);
 is($t->app->tc_delete(450), 1, 'tc_delete2 450');
 compare_ok($test_f, path($testdir, 'result2'), 'compare results 2');
 undef $t;
 
 note "without rules and newlines";
 $test_f = path($testdir, 'traf.clients3');
-$t = Test::Mojo->new('Gwsyn', {tc_file => $test_f->to_string, tc_path => '/usr/sbin/tc',
-  rlog_local=>1, rlog_remote=>0});
+$t = $make_test->($test_f);
 is($t->app->tc_delete(450), 1, 'tc_delete3 450');
 compare_ok($test_f, path($testdir, 'result3'), 'compare results 3');
 undef $t;
 
 note "without rules, with newlines";
 $test_f = path($testdir, 'traf.clients4');
-$t = Test::Mojo->new('Gwsyn', {tc_file => $test_f->to_string, tc_path => '/usr/sbin/tc',
-  rlog_local=>1, rlog_remote=>0});
+$t = $make_test->($test_f);
 is($t->app->tc_delete(450), 1, 'tc_delete4 450');
 compare_ok($test_f, path($testdir, 'result4'), 'compare results 4');
 undef $t;
 
 note "intersecting ids: 45 and 450";
 $test_f = path($testdir, 'traf.clients5');
-$t = Test::Mojo->new('Gwsyn', {tc_file => $test_f->to_string, tc_path => '/usr/sbin/tc',
-  rlog_local=>1, rlog_remote=>0});
+$t = $make_test->($test_f);
 is($t->app->tc_delete(45), 0, 'tc_delete5 45 non existent');
 is($t->app->tc_delete(450), 1, 'tc_delete5 450');
 compare_ok($test_f, path($testdir, 'result5'), 'compare results 5');
@@ -67,8 +71,7 @@ undef $t;
 
 note "duplicate ids, issue warnings";
 $test_f = path($testdir, 'traf.clients6');
-$t = Test::Mojo->new('Gwsyn', {tc_file => $test_f->to_string, tc_path => '/usr/sbin/tc',
-  rlog_local=>1, rlog_remote=>0});
+$t = $make_test->($test_f);
 is($t->app->tc_delete(450), 1, 'tc_delete6 450, duplicate ids, issue warnings');
 compare_ok($test_f, path($testdir, 'result6'), 'compare results 6');
 undef $t;

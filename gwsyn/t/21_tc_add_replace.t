@@ -21,10 +21,18 @@ while (<DATA>) {
 $fh->close if $fh;
 
 
+# my $t = $make_test->($test_mojo_file);
+my $make_test = sub {
+  my $tf = shift;
+  return Test::Mojo->new('Gwsyn', { tc_file => $tf->to_string, tc_path=>'/usr/sbin/tc',
+    rlog_local=>1, rlog_remote=>0,
+    my_profiles=>['gwtest1'],
+  });
+};
+
 note "common usage";
 my $test_f = path($testdir, 'traf.clients1');
-my $t = Test::Mojo->new('Gwsyn', {tc_file => $test_f->to_string, tc_path=>'/usr/sbin/tc',
-  rlog_local=>1, rlog_remote=>0});
+my $t = $make_test->($test_f);
 is($t->app->tc_add_replace({id=>451,ip=>'1.2.4.51'}), 1, 'tc_add_replace1 451 replaced');
 is($t->app->tc_add_replace({id=>450,ip=>'1.2.4.50',speed_out=>'rate 64kbit prio 5'}), 1, 'tc_add_replace1 450 replaced');
 is($t->app->tc_add_replace({id=>452,ip=>'1.2.4.52'}), 1, 'tc_add_replace1 452 replaced');
@@ -34,8 +42,7 @@ undef $t;
 
 note "removed last, added one and intersecting ids: 45 and 450";
 $test_f = path($testdir, 'traf.clients2');
-$t = Test::Mojo->new('Gwsyn', {tc_file => $test_f->to_string, tc_path=>'/usr/sbin/tc',
-  rlog_local=>1, rlog_remote=>0});
+$t = $make_test->($test_f);
 is($t->app->tc_add_replace({id=>450,ip=>'1.2.4.50',speed_out=>'rate 64kbit prio 5'}), 1, 'tc_add_replace2 450 replaced');
 is($t->app->tc_add_replace({id=>45,ip=>'1.2.4.50',speed_out=>'rate 64kbit prio 5'}), 1, 'tc_add_replace2 45 added');
 compare_ok($test_f, path($testdir, 'result2'), 'compare results 2');
@@ -43,8 +50,7 @@ undef $t;
 
 note "add to empty file";
 $test_f = path($testdir, 'traf.clients3');
-$t = Test::Mojo->new('Gwsyn', {tc_file => $test_f->to_string, tc_path=>'/usr/sbin/tc',
-  rlog_local=>1, rlog_remote=>0});
+$t = $make_test->($test_f);
 is($t->app->tc_add_replace({id=>1,ip=>'1.2.1.1',speed_out=>'rate 64kbit prio 5'}), 1, 'tc_add_replace3 1 added');
 is($t->app->tc_add_replace({id=>2,ip=>'1.2.1.2',speed_out=>'rate 64kbit prio 5'}), 1, 'tc_add_replace3 2 added');
 is($t->app->tc_add_replace({id=>1,ip=>'1.2.1.1'}), 1, 'tc_add_replace3 1 replaced');
@@ -53,8 +59,7 @@ undef $t;
 
 note "replace with duplicate ids, issue warnings";
 $test_f = path($testdir, 'traf.clients4');
-$t = Test::Mojo->new('Gwsyn', {tc_file => $test_f->to_string, tc_path=>'/usr/sbin/tc',
-  rlog_local=>1, rlog_remote=>0});
+$t = $make_test->($test_f);
 is($t->app->tc_add_replace({id=>450,ip=>'192.168.34.45',speed_in=>'rate 64kbit prio 5',speed_out=>'rate 64kbit prio 5'}), 1, 'tc_add_replace4 450 replaced, duplicate ids removed, warnings issued');
 compare_ok($test_f, path($testdir, 'result4'), 'compare results 4');
 undef $t;

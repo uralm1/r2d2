@@ -21,7 +21,7 @@ while (<DATA>) {
 $fh->close if $fh;
 
 my $test_f = path($testdir, 'dhcphosts.clients1');
-my $t = Test::Mojo->new('Gwsyn', {dhcphosts_file => $test_f->to_string, my_profiles => ['gwtest1']});
+my $t = Test::Mojo->new('Gwsyn', { dhcphosts_file => $test_f->to_string, my_profiles => ['gwtest1']});
 my $j = [
   {id=>11, ip=> '1.2.3.4', mac=>'11:22:33:44:55:66', profile=>'gwtest1'},
   {id=>1, ip=> '1.2.3.1', profile=>'gwtest1'},

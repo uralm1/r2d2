@@ -21,9 +21,18 @@ while (<DATA>) {
 $fh->close if $fh;
 
 
+# my $t = $make_test->($test_mojo_file);
+my $make_test = sub {
+  my $tf = shift;
+  return Test::Mojo->new('Gwsyn', { dhcphosts_file => $tf->to_string,
+    rlog_local=>1, rlog_remote=>0,
+    my_profiles=>['gwtest1'],
+  });
+};
+
 note "common usage";
 my $test_f = path($testdir, 'dhcphosts.clients1');
-my $t = Test::Mojo->new('Gwsyn', {dhcphosts_file => $test_f->to_string, rlog_local=>1, rlog_remote=>0});
+my $t = $make_test->($test_f);
 is($t->app->dhcp_delete(12), 1, 'dhcp_delete1 12');
 is($t->app->dhcp_delete(11), 1, 'dhcp_delete1 11');
 is($t->app->dhcp_delete(11), 0, 'dhcp_delete1 11 non existent');
@@ -32,14 +41,14 @@ undef $t;
 
 note "delete last";
 $test_f = path($testdir, 'dhcphosts.clients2');
-$t = Test::Mojo->new('Gwsyn', {dhcphosts_file => $test_f->to_string, rlog_local=>1, rlog_remote=>0});
+$t = $make_test->($test_f);
 is($t->app->dhcp_delete(13), 1, 'dhcp_delete2 13');
 compare_ok($test_f, path($testdir, 'result2'), 'compare results 2');
 undef $t;
 
 note "delete all and intersecting ids: 1 and 11";
 $test_f = path($testdir, 'dhcphosts.clients3');
-$t = Test::Mojo->new('Gwsyn', {dhcphosts_file => $test_f->to_string, rlog_local=>1, rlog_remote=>0});
+$t = $make_test->($test_f);
 is($t->app->dhcp_delete(1), 0, 'dhcp_delete3 1 non existent');
 is($t->app->dhcp_delete(11), 1, 'dhcp_delete3 11');
 compare_ok($test_f, path($testdir, 'result3'), 'compare results 3');
@@ -47,7 +56,7 @@ undef $t;
 
 note "delete duplicating ids, issue warnings";
 $test_f = path($testdir, 'dhcphosts.clients4');
-$t = Test::Mojo->new('Gwsyn', {dhcphosts_file => $test_f->to_string, rlog_local=>1, rlog_remote=>0});
+$t = $make_test->($test_f);
 is($t->app->dhcp_delete(11), 1, 'dhcp_delete4 11 with duplicating id');
 compare_ok($test_f, path($testdir, 'result4'), 'compare results 4');
 undef $t;

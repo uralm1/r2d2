@@ -5,6 +5,7 @@ use Test::More;
 
 my $t = Test::Mojo->new('Rtsyn',{rlog_local=>1, rlog_remote=>0, disable_autoload=>1,
   firewall_file=>'/tmp/r2d2test/firewall-rtsyn.clients',
+  my_profiles=>['plk'],
 });
 
 $t->get_ok('/subsys')->status_is(200)->content_like(qr/^rtsyn/);

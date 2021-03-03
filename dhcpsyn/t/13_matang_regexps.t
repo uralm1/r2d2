@@ -17,7 +17,7 @@ while (<DATA>) {
   push @$lref, $_ if $lref;
 }
 
-my $t = Test::Mojo->new('Dhcpsyn', { dhcpscope=>'10.0.0.0'});
+my $t = Test::Mojo->new('Dhcpsyn', { dhcpscope=>'10.0.0.0', my_profiles=>['plk']});
 #say Dumper \%td;
 
 my @got;
