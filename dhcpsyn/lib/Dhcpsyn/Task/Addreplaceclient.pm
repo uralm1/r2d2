@@ -28,8 +28,11 @@ sub register {
       $app->ua->post(Mojo::URL->new('/refreshed')->to_abs($app->head_url)
         => json => { id => $v->{id}, subsys => $app->stash('subsys') })->result;
     };
-    $app->log->error('Confirmation request failed, probably connection refused') unless defined $r;
-    $app->log->error('Confirmation request error: '.substr($r->body, 0, 40)) if $r->is_error;
+    unless (defined $r) {
+      $app->log->error('Confirmation request failed, probably connection refused');
+    } else {
+      $app->log->error('Confirmation request error: '.substr($r->body, 0, 40)) if $r->is_error;
+    }
 
     $app->rlog('Finished addreplace_client task '.$job->id);
     $job->finish;

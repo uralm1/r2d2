@@ -27,16 +27,22 @@ sub register {
       my $url = Mojo::URL->new('/log/'.$self->stash('subsys'))->to_abs($self->head_url);
       if ($sync) {
         my $res = eval { $self->ua->post($url => $m)->result };
-        $self->log->error('Log request failed, probably connection refused') unless defined $res;
-        $self->log->error('Log request error: '.substr($res->body, 0, 40)) if $res->is_error;
+        unless (defined $res) {
+          $self->log->error('Log request failed, probably connection refused');
+        } else {
+          $self->log->error('Log request error: '.substr($res->body, 0, 40)) if $res->is_error;
+        }
 
       } else {
         $self->ua->post($url => $m =>
           sub {
             my ($ua, $tx) = @_;
             my $res = eval { $tx->result };
-            $self->log->error('Log request failed, probably connection refused') unless defined $res;
-            $self->log->error('Log request error: '.substr($res->body, 0, 40)) if $res->is_error;
+            unless (defined $res) {
+              $self->log->error('Log request failed, probably connection refused');
+            } else {
+              $self->log->error('Log request error: '.substr($res->body, 0, 40)) if $res->is_error;
+            }
           }
         );
         Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
