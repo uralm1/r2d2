@@ -274,6 +274,14 @@ paths:
       summary: Извещение о выполненной операции обновления
       description: Агенты вызывают данную функцию после удачного завершения обновления клиента. Используется для сброса флагов обновления в БД.
 
+      parameters:
+        - name: profile
+          in: query
+          required: true
+          description: profile name (multiple are possible)
+          schema:
+            type: string
+            example: 'gwtest1'
       requestBody:
         description: successful refresh information
         required: true

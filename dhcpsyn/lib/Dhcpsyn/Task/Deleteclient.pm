@@ -26,6 +26,7 @@ sub register {
     # send refreshed confirmation
     $r = eval {
       $app->ua->post(Mojo::URL->new('/refreshed')->to_abs($app->head_url)
+        ->query(profile => $app->config('my_profiles'))
         => json => { id => $id, subsys => $app->stash('subsys') })->result;
     };
     unless (defined $r) {

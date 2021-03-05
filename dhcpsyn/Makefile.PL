@@ -46,7 +46,8 @@ WriteMakefile(
 #  return $inherited.<<"MAKE_FRAG";
 #install::
 #	\$(NOECHO) \$(ECHO) "** Installing configuration, public and templates files..."
-#	\$(NOECHO) install -m 0644 dhcpsyn.conf_empty \$(DESTDIR)$inst_dir/dhcpsyn.conf
+#	\$(NOECHO) install -m 0644 dhcpsyn.conf_empty \$(DESTDIR)$inst_dir/dhcpsyn.conf_empty
+#	\$(NOECHO) [ ! -f \$(DESTDIR)$inst_dir/dhcpsyn.conf ] && install -b -m 0644 dhcpsyn.conf_empty \$(DESTDIR)$inst_dir/dhcpsyn.conf
 #
 #MAKE_FRAG
 #}

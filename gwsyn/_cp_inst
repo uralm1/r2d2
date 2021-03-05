@@ -13,7 +13,7 @@ filelist=gwsyn-latest.tar.gz
 # copy keys
 cert_path="../cert"
 keys="$cert_path/ca.pem"
-for h in gwtest1
+for h in gwtest1 gwsev gwkns3
 do
   keys="$keys $cert_path/$h-cert.pem $cert_path/$h-key.pem"
 done

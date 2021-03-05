@@ -12,7 +12,7 @@ use Head::Command::connectivity;
 
 use Sys::Hostname;
 
-our $VERSION = '2.56';
+our $VERSION = '2.57';
 
 # This method will run once at server start
 sub startup {

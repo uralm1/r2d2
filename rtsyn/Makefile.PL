@@ -43,7 +43,8 @@ sub install {
   return $inherited.<<"MAKE_FRAG";
 install::
 	\$(NOECHO) \$(ECHO) "** Installing configuration, public and templates files..."
-	\$(NOECHO) install -m 0644 rtsyn.conf_empty \$(DESTDIR)$inst_dir/rtsyn.conf
+	\$(NOECHO) install -m 0644 rtsyn.conf_empty \$(DESTDIR)$inst_dir/rtsyn.conf_empty
+	\$(NOECHO) [ ! -f \$(DESTDIR)$inst_dir/rtsyn.conf ] && install -b -m 0644 rtsyn.conf_empty \$(DESTDIR)$inst_dir/rtsyn.conf
 
 MAKE_FRAG
 }

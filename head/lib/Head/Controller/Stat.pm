@@ -69,7 +69,7 @@ sub trafstat_old {
 # internal, starts recursive asyncronious submit process
 sub _submit_traf_stats {
   my ($self, $tx, $profs, $j, $s) = @_;
-  croak 'Bad parameter' unless $tx or $profs or $j;
+  croak 'Bad arguments' unless ($tx and $profs and $j);
   $s //= [0, 0]; # reset counters on first run
 
   my ($id, $v);
