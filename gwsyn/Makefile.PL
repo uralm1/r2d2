@@ -45,7 +45,7 @@ sub install {
 install::
 	\$(NOECHO) \$(ECHO) "** Installing configuration, public and templates files..."
 	\$(NOECHO) install -m 0644 gwsyn.conf_empty \$(DESTDIR)$inst_dir/gwsyn.conf_empty
-	\$(NOECHO) [ ! -f \$(DESTDIR)$inst_dir/gwsyn.conf ] && install -b -m 0644 gwsyn.conf_empty \$(DESTDIR)$inst_dir/gwsyn.conf
+	\$(NOECHO) [ ! -f \$(DESTDIR)$inst_dir/gwsyn.conf ] && install -b -m 0644 gwsyn.conf_empty \$(DESTDIR)$inst_dir/gwsyn.conf || true
 
 MAKE_FRAG
 }

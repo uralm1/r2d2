@@ -1,0 +1,11 @@
+#!/bin/sh
+
+echo "* Generating new makefiles"
+for d in dhcpsyn fwsyn gwsyn head rtsyn; do
+  echo "** Operating on $d"
+  cd $d
+  perl Makefile.PL
+  cd ..
+  echo ""
+done
+echo "* Operation finished"

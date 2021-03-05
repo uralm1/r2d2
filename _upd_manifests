@@ -1,0 +1,11 @@
+#!/bin/sh
+
+echo "* Updating manifests"
+for d in dhcpsyn fwsyn gwsyn head rtsyn; do
+  echo "** Operating on $d"
+  cd $d
+  make manifest
+  cd ..
+  echo ""
+done
+echo "* Operation finished"

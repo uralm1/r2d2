@@ -36,7 +36,7 @@ sub install {
 install::
 	\$(NOECHO) \$(ECHO) "** Installing configuration, public and templates files..."
 	\$(NOECHO) install -m 0644 head.conf_empty \$(DESTDIR)$inst_dir/head.conf_empty
-	\$(NOECHO) [ ! -f \$(DESTDIR)$inst_dir/head.conf ] && install -m 0644 head.conf_empty \$(DESTDIR)$inst_dir/head.conf
+	\$(NOECHO) [ ! -f \$(DESTDIR)$inst_dir/head.conf ] && install -m 0644 head.conf_empty \$(DESTDIR)$inst_dir/head.conf || true
 	\$(NOECHO) if [ \"\$\$(id -u)\" != \"0\" ]; then install -m 0755 -d \$(DESTDIR)$inst_dir/run; else install -o head -g head -m 0755 -d \$(DESTDIR)$inst_dir/run; fi
 
 MAKE_FRAG
