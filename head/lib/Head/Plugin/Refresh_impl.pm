@@ -42,8 +42,8 @@ sub register {
           }
         } else {
           # connection to agent failed
-          $self->log->error("Connection to agent failed: $@");
-          $self->dblog->error("Client id $id error: connection to agent failed");
+          $self->log->error("Connection to agent [$agent_url] failed: $@");
+          $self->dblog->error("Client id $id error: connection to agent [$agent_url] failed");
         }
 
       } # request closure
