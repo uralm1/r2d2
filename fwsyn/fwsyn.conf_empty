@@ -1,0 +1,33 @@
+{
+  my_profiles => ['plk'],
+
+  local_cert => '../cert/localhost-cert.pem',
+  local_key => '../cert/localhost-key.pem',
+  ca => '../cert/ca.pem',
+
+  minion_db_conn => 'sqlite:/tmp/fwsyn.db',
+
+  head_url => 'https://localhost:2271',
+
+  firewall_file => '/var/r2d2/firewall.clients',
+  tc_file => '/var/r2d2/traf.clients',
+
+  iptables_path => '/usr/sbin/iptables',
+  iptables_restore_path => '/usr/sbin/iptables-restore',
+  tc_path => '/usr/sbin/tc',
+
+  # filter/mangle chains
+  client_in_chain => 'pipe_in_inet_clients',
+  client_out_chain => 'pipe_out_inet_clients',
+
+  # collect traffic statistics schedule
+  trafstat_schedule => '0,30 * * * *',
+
+  iptables_wait => 3,
+
+  # debug and testing
+  #iptables_simulation => 1,
+  #rlog_local => 1,
+  #rlog_remote => 1, # default
+  #disable_autoload => 1,
+}

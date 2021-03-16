@@ -1,18 +1,18 @@
-package Gwsyn;
+package Fwsyn;
 use Mojo::Base 'Mojolicious';
 
 use Mojo::File qw(path);
 use Mojo::SQLite;
-use Gwsyn::Command::loadclients;
-use Gwsyn::Command::dumpfiles;
-use Gwsyn::Command::dumprules;
-use Gwsyn::Command::cron;
-use Gwsyn::Command::trafstat;
+use Fwsyn::Command::loadclients;
+use Fwsyn::Command::dumpfiles;
+use Fwsyn::Command::dumprules;
+use Fwsyn::Command::cron;
+use Fwsyn::Command::trafstat;
 
 #use Carp;
 use Sys::Hostname;
 
-our $VERSION = '2.56';
+our $VERSION = '2.54';
 
 # This method will run once at server start
 sub startup {
@@ -20,7 +20,7 @@ sub startup {
 
   # Load configuration from hash returned by config file
   my $config = $self->plugin('Config', { default => {
-    secrets => ['867da09855bcd84ff800ea38505a0b75c7399d32'],
+    secrets => ['933ac68309daa56ef802aa6754392b88e82000a1'],
     iptables_path => '/usr/sbin/iptables',
     iptables_restore_path => '/usr/sbin/iptables-restore',
     tc_path => '/usr/sbin/tc',
@@ -49,17 +49,16 @@ sub startup {
   # FIXME DEBUG FIXME: open access to minion UI
   ###$self->plugin('Minion::Admin');
 
-  $self->plugin('Gwsyn::Plugin::Utils');
-  $self->plugin('Gwsyn::Plugin::dhcp_utils');
-  $self->plugin('Gwsyn::Plugin::fw_utils');
-  $self->plugin('Gwsyn::Plugin::tc_utils');
-  $self->plugin('Gwsyn::Plugin::Loadclients_impl');
-  $self->plugin('Gwsyn::Plugin::Trafficstat_impl');
-  $self->plugin('Gwsyn::Task::Loadclients');
-  $self->plugin('Gwsyn::Task::Addreplaceclient');
-  $self->plugin('Gwsyn::Task::Deleteclient');
-  $self->plugin('Gwsyn::Task::Trafficstat');
-  $self->commands->namespaces(['Mojolicious::Command', 'Minion::Command', 'Gwsyn::Command']);
+  $self->plugin('Fwsyn::Plugin::Utils');
+  $self->plugin('Fwsyn::Plugin::fw_utils');
+  $self->plugin('Fwsyn::Plugin::tc_utils');
+  $self->plugin('Fwsyn::Plugin::Loadclients_impl');
+  $self->plugin('Fwsyn::Plugin::Trafficstat_impl');
+  $self->plugin('Fwsyn::Task::Loadclients');
+  $self->plugin('Fwsyn::Task::Addreplaceclient');
+  $self->plugin('Fwsyn::Task::Deleteclient');
+  $self->plugin('Fwsyn::Task::Trafficstat');
+  $self->commands->namespaces(['Mojolicious::Command', 'Minion::Command', 'Fwsyn::Command']);
 
   $self->defaults(subsys => $self->moniker.'@'.hostname);
   $self->defaults(version => $VERSION);
@@ -76,10 +75,10 @@ sub startup {
     my ($server, $app) = @_;
 
     # create dirs
-    path($self->config($_))->dirname->make_path for qw/dhcphosts_file firewall_file tc_file/;
+    path($self->config($_))->dirname->make_path for qw/firewall_file tc_file/;
 
     # log startup
-    $app->rlog("GWSYN agent daemon ($VERSION) starting.", sync=>1);
+    $app->rlog("FWSYN agent daemon ($VERSION) starting.", sync=>1);
 
     # load clients data on startup
     unless ($config->{disable_autoload}) {
