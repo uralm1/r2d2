@@ -1,3 +1,6 @@
+_d_cmd
+_d_fwsyn
+_d_worker
 fwsyn.conf_empty
 lib/Fwsyn.pm
 lib/Fwsyn/Command/cron.pm

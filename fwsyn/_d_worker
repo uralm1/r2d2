@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# worker runs from root
+sudo script/fwsyn minion worker -j 1

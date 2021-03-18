@@ -26,7 +26,7 @@ sub trafstat {
       return $self->render(text=>"Database begin transaction failure", status=>503);
     }
 
-    $self->_submit_traf_stats($tx, $profs, $j);
+    $self->_submit_traf_stats($db, $tx, $profs, $j);
     # now exit, execution continue asyncroniously
 
   } else {
@@ -57,7 +57,7 @@ sub trafstat_old {
       return $self->render(text=>"Database begin transaction failure", status=>503);
     }
 
-    $self->_submit_traf_stats($tx, [$prof], $j);
+    $self->_submit_traf_stats($db, $tx, [$prof], $j);
     # now exit, execution continue asyncroniously
 
   } else {
@@ -68,8 +68,8 @@ sub trafstat_old {
 
 # internal, starts recursive asyncronious submit process
 sub _submit_traf_stats {
-  my ($self, $tx, $profs, $j, $s) = @_;
-  croak 'Bad arguments' unless ($tx and $profs and $j);
+  my ($self, $db, $tx, $profs, $j, $s) = @_;
+  croak 'Bad arguments' unless ($db && $tx && $profs && $j);
   $s //= [0, 0]; # reset counters on first run
 
   my ($id, $v);
@@ -90,32 +90,31 @@ sub _submit_traf_stats {
   my $outb = $v->{out};
   $s->[0]++; # count submitted
   if ($inb > 0 or $outb > 0) {
-    my $tdb = $tx->db;
     my $rule = '';
     for (@$profs) {
       if ($rule eq '') { # first
-        $rule = 'profile IN ('.$tdb->quote($_);
+        $rule = 'profile IN ('.$db->quote($_);
       } else { # second etc
-        $rule .= ','.$tdb->quote($_);
+        $rule .= ','.$db->quote($_);
       }
     }
     $rule .= ') AND' if $rule ne '';
     #$self->log->debug("WHERE rule: *$rule*");
 
-    $tdb->query_p("UPDATE clients SET sum_in = sum_in + ?, sum_out = sum_out + ?, \
+    $db->query_p("UPDATE clients SET sum_in = sum_in + ?, sum_out = sum_out + ?, \
 sum_limit_in = IF(qs != 0, IF(sum_limit_in > ?, sum_limit_in - ?, 0), sum_limit_in) \
 WHERE $rule id = ?", $inb, $outb, $inb, $inb, $id)->then(sub {
       my $results = shift;
       $s->[1] += $results->affected_rows; # count updated
     })->then(sub {
-      $self->_submit_traf_stats($tx, $profs, $j, $s);
+      $self->_submit_traf_stats($db, $tx, $profs, $j, $s);
     })->catch(sub {
       my $err = shift;
       $self->log->error("Database update failure id $id: $err");
       return $self->render(text=>"Database update failure", status=>503);
     });
   } else {
-    $self->_submit_traf_stats($tx, $profs, $j, $s);
+    $self->_submit_traf_stats($db, $tx, $profs, $j, $s);
   }
 }
 
