@@ -1,0 +1,111 @@
+#!/bin/sh
+# Start/stop/restart r2d2 fwsyn.
+
+R2D2_PATH="/etc/r2d2"
+FWSYN="$R2D2_PATH/script/fwsyn"
+FWSYN_PID="/tmp/fwsyn-prefork.pid"
+
+fwsyn_start() {
+  if pgrep -f "fwsyn prefork" >/dev/null; then
+    echo "Fwsyn already started!"
+    return
+  fi
+  echo "Starting fwsyn..."
+  cd $R2D2_PATH
+  sp=`/usr/bin/perl -MMojolicious::Plugin::Config -E 'my $c=Mojolicious::Plugin::Config->new->load("/etc/r2d2/fwsyn.conf");say "?cert=$c->{local_cert}&key=$c->{local_key}&ca=$c->{ca}&verify=0x03"'`
+  export MOJO_LISTEN="https://*:2275$sp"
+  nohup $FWSYN prefork -P $FWSYN_PID >$R2D2_PATH/fwsyn.log 2>&1 &
+}
+
+fwsyn_stop() {
+  echo "Stopping fwsyn..."
+  if [ -f $FWSYN_PID ]; then
+    kill `cat $FWSYN_PID`
+  else
+    echo "WARNING: pid file is not found!"
+    pkill -f "fwsyn prefork"
+  fi
+}
+
+
+fwsyn_cron_start() {
+  if pgrep -f "fwsyn cron" >/dev/null; then
+    echo "Fwsyn cron already started!"
+    return
+  fi
+  echo "Starting fwsyn cron..."
+  cd $R2D2_PATH
+  nohup $FWSYN cron >$R2D2_PATH/fwsyn-cron.log 2>&1 &
+}
+
+fwsyn_cron_stop() {
+  echo "Stopping fwsyn cron..."
+  pkill -f "fwsyn cron"
+}
+
+
+fwsyn_minion_start() {
+  if pgrep -f "fwsyn minion worker" >/dev/null; then
+    echo "Fwsyn minion already started!"
+    return
+  fi
+  echo "Starting fwsyn minion worker..."
+  cd $R2D2_PATH
+  nohup $FWSYN minion worker -j 1 >$R2D2_PATH/fwsyn-worker.log 2>&1 &
+}
+
+fwsyn_minion_stop() {
+  echo "Stopping fwsyn minion worker..."
+  pkill -f "fwsyn minion worker"
+}
+
+
+case "$1" in
+'start')
+  fwsyn_minion_start
+  sleep 1
+  fwsyn_start
+  sleep 1
+  fwsyn_cron_start
+  ;;
+'stop')
+  fwsyn_stop
+  sleep 1
+  fwsyn_cron_stop
+  sleep 1
+  fwsyn_minion_stop
+  ;;
+'restart')
+  fwsyn_minion_stop
+  sleep 1
+  fwsyn_stop
+  sleep 1
+  fwsyn_cron_stop
+  sleep 2
+  fwsyn_minion_start
+  sleep 1
+  fwsyn_start
+  sleep 1
+  fwsyn_cron_start
+  ;;
+'start_app')
+  fwsyn_start
+  ;;
+'stop_app')
+  fwsyn_stop
+  ;;
+'start_minion')
+  fwsyn_minion_start
+  ;;
+'stop_minion')
+  fwsyn_minion_stop
+  ;;
+'start_cron')
+  fwsyn_cron_start
+  ;;
+'stop_cron')
+  fwsyn_cron_stop
+  ;;
+*)
+  echo "usage $0 start|stop|restart | start_*|stop_*, where *=app/minion/cron"
+esac

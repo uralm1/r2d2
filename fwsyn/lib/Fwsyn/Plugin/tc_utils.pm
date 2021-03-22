@@ -212,10 +212,10 @@ sub register {
     my $self = shift;
 
     # rerun script to reload rules
-    if (!$self->system("sh /etc/tc.user_r2d2")) {
+    if (!$self->system("sh /etc/rc.d/rc.traf")) {
       return 1; # success
     } else {
-      die "tc.user_r2d2 script error";
+      die "rc.traf script error";
     }
   });
 

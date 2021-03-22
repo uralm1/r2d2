@@ -1,0 +1,28 @@
+#!/bin/sh
+
+#make dist
+version=`perl -E 'use lib "lib";use Fwsyn;say $Fwsyn::VERSION'`
+
+rexlib=root@bikini:/var/www/net/rexlib
+destdir=$rexlib/lib/Deploy/Fw/R2d2/files
+
+# source tarball
+cp fwsyn-$version.tar.gz fwsyn-latest.tar.gz
+filelist=fwsyn-latest.tar.gz
+
+# copy keys
+cert_path="../cert"
+keys="$cert_path/ca.pem"
+for h in fw
+do
+  keys="$keys $cert_path/$h-cert.pem $cert_path/$h-key.pem"
+done
+#echo $keys
+filelist="$filelist $keys"
+
+# service scripts
+filelist="$filelist support/rc.fwsyn"
+
+scp $filelist $destdir
+
+rm fwsyn-latest.tar.gz
