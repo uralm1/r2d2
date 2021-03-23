@@ -12,7 +12,7 @@ use Fwsyn::Command::trafstat;
 #use Carp;
 use Sys::Hostname;
 
-our $VERSION = '2.54';
+our $VERSION = '2.55';
 
 # This method will run once at server start
 sub startup {
@@ -98,6 +98,7 @@ sub startup {
 
   $r->post('/refresh/#id')->to('refresh#refresh');
   $r->post('/runstat')->to('stat#runstat');
+  $r->post('/block/#id/#qs')->to('block#block');
 }
 
 

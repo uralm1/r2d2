@@ -38,7 +38,7 @@ paths:
         - name: id
           in: path
           required: true
-          description: client id
+          description: Client id
           schema:
             type: integer
             example: 11
@@ -64,6 +64,38 @@ paths:
           description: Not implemented. Agent doesn't support statistics collection.
         '503':
           description: Task run problems
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+  /block/{id}/{qs}:
+    post:
+      summary: Limit/block/unblock client
+      parameters: 
+        - name: id
+          in: path
+          required: true
+          description: Client id
+          schema:
+            type: integer
+            example: 11
+        - name: qs
+          in: path
+          required: true
+          description: Operation (0-unblock, 2-limit, 3-block)
+          schema:
+            type: integer
+            example: 0
+            
+      responses:
+        '200':
+          description: Successfully queued
+        '501':
+          description: Not implemented. Agent doesn't support user blocking or unblocking.          
+        '503':
+          description: Bad id, bad operation, connection problems, etc
           content:
             text/plain:
               schema:

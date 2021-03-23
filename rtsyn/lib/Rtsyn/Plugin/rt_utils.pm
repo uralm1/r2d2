@@ -266,7 +266,7 @@ sub register {
     # data
     for (@$va) {
       next if !$self->is_myprofile($_->{profile}); # skip clients from invalid profiles
-      #print $fh "# $_->{id}: $_->{login}\n";
+      #print $fh "# $_->{id}\n";
       print $fh "-A $client_out_chain -s $_->{ip} -m comment --comment $_->{id} ".$self->rt_marks($_->{rt})."\n";
     }
 

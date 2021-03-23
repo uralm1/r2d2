@@ -149,3 +149,11 @@ UPDATE amonthly, clients SET amonthly.client_id = clients.id WHERE amonthly.logi
 
 -- 3 down
 
+-- 4 up
+ALTER TABLE `clients` ADD `notified` tinyint(1) NOT NULL AFTER `sum_limit_in`;
+ALTER TABLE `clients` ADD `blocked` tinyint(1) NOT NULL AFTER `notified`;
+
+-- 4 down
+ALTER TABLE `clients` DROP `notified`;
+ALTER TABLE `clients` DROP `blocked`;
+

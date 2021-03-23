@@ -10,7 +10,7 @@ use Rtsyn::Command::dumprules;
 #use Carp;
 use Sys::Hostname;
 
-our $VERSION = '2.56';
+our $VERSION = '2.57';
 
 # This method will run once at server start
 sub startup {
@@ -91,6 +91,7 @@ sub startup {
 
   $r->post('/refresh/#id')->to('refresh#refresh');
   $r->post('/runstat')->to('stat#runstat');
+  $r->post('/block/#id/#qs')->to('block#block');
 }
 
 

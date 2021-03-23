@@ -14,7 +14,7 @@
 
   iptables_path => '/usr/sbin/iptables',
   iptables_restore_path => '/usr/sbin/iptables-restore',
-  tc_path => '/usr/sbin/tc',
+  tc_path => '/sbin/tc',
 
   # filter/mangle chains
   client_in_chain => 'pipe_in_inet_clients',

@@ -301,6 +301,37 @@ paths:
                 type: string
                 description: error message
 
+  /blocked:
+    post:
+      summary: Извещение о выполненной операции блокирования/разблокирования
+      description: Агенты вызывают данную функцию после удачного завершения блокирования/разблокирования клиента. Используется для сброса флага блокирования в БД.
+
+      parameters:
+        - name: profile
+          in: query
+          required: true
+          description: profile name (multiple are possible)
+          schema:
+            type: string
+            example: 'gwtest1'
+      requestBody:
+        description: successful block/unblock information
+        required: true
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/block_stats'
+
+      responses:
+        '200':
+          description: Success
+        '503':
+          description: Operation error, bad json etc
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
     
 # Added by API Auto Mocking Plugin
 servers:
@@ -331,10 +362,6 @@ components:
           type: integer
           description: client id
           example: 11
-        login:
-          type: string
-          description: client login (deprecated)
-          example: 'abelguzina'
         ip:
           type: string
           description: client ip4
@@ -363,6 +390,14 @@ components:
           type: string
           description: 'ul speed tc parameters'
           example: 'quantum 6400 rate 1mbit ceil 1280kbit prio 5'
+        qs:
+          type: integer
+          description: quote mode (0-disabled, 1-notify, 2-limit, 3-block)
+          example: 2
+        blocked:
+          type: integer
+          description: blocked flag (0-unblocked, 1-blocked)
+          example: 0
         profile:
           type: string
           description: 'client profile name'
@@ -393,6 +428,19 @@ components:
 
     refresh_stats:
       description: Successful refresh information
+      type: object
+      properties:
+        subsys:
+          type: string
+          description: Subsystem name. Имя агента должно совпадать с одним из прописанных в коде.
+          example: agent@host
+        id:
+          type: integer
+          description: client id
+          example: 11
+          
+    block_stats:
+      description: Successful block/unblock information
       type: object
       properties:
         subsys:
