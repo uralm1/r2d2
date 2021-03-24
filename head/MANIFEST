@@ -18,6 +18,7 @@ lib/Head/Command/refresh.pm
 lib/Head/Command/runstat.pm
 lib/Head/Command/statprocess.pm
 lib/Head/Command/truncatelog.pm
+lib/Head/Controller/Blocked.pm
 lib/Head/Controller/Clients.pm
 lib/Head/Controller/Log.pm
 lib/Head/Controller/Refreshed.pm

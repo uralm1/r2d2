@@ -8,6 +8,14 @@ sub register {
   my ($self, $app, $args) = @_;
   $args ||= {};
 
+  # internal
+  # $txt = $_blk_mark->({blocked=>1, qs=>2});
+  my $_blk_mark = sub {
+    my $v = shift;
+    my $q = $v->{qs};
+    return $v->{blocked} ? ($q eq 2 || $q eq 3 ? " -j MARK --set-mark $q" : '') : '';
+  };
+
 
   # {} = fw_matang;
   $app->helper(fw_matang => sub {
@@ -85,11 +93,11 @@ sub register {
         dump_sub => sub { $self->system(iptables_dump => "-t mangle -nvx --line-numbers -L $client_in_chain") },
         add_sub => sub {
           my $v = shift; # {id=>1, etc}
-          $self->system(iptables => "-t mangle -A $client_in_chain -d $v->{ip} -m comment --comment $v->{id}")
+          $self->system(iptables => "-t mangle -A $client_in_chain -d $v->{ip} -m comment --comment $v->{id}".$_blk_mark->($v))
         },
         replace_sub => sub {
           my ($ri, $v) = @_; # rule index, {id=>1, etc}
-          $self->system(iptables => "-t mangle -R $client_in_chain $ri -d $v->{ip} -m comment --comment $v->{id}")
+          $self->system(iptables => "-t mangle -R $client_in_chain $ri -d $v->{ip} -m comment --comment $v->{id}".$_blk_mark->($v))
         },
         delete_sub => sub {
           my $ri = shift; # rule index
@@ -113,11 +121,11 @@ sub register {
         dump_sub => sub { $self->system(iptables_dump => "-t mangle -nvx --line-numbers -L $client_out_chain") },
         add_sub => sub {
           my $v = shift; # {id=>1, etc}
-          $self->system(iptables => "-t mangle -A $client_out_chain -s $v->{ip} -m comment --comment $v->{id}")
+          $self->system(iptables => "-t mangle -A $client_out_chain -s $v->{ip} -m comment --comment $v->{id}".$_blk_mark->($v))
         },
         replace_sub => sub {
           my ($ri, $v) = @_; # rule index, {id=>1, etc}
-          $self->system(iptables => "-t mangle -R $client_out_chain $ri -s $v->{ip} -m comment --comment $v->{id}")
+          $self->system(iptables => "-t mangle -R $client_out_chain $ri -s $v->{ip} -m comment --comment $v->{id}".$_blk_mark->($v))
         },
         delete_sub => sub {
           my $ri = shift; # rule index
@@ -261,9 +269,9 @@ sub register {
   });
 
 
-  # my $resp = fw_add_replace({id=>11, ip=>'1.2.3.4', mac=>'11:22:33:44:55', defjump=>'ACCEPT'});
+  # my $resp = fw_add_replace({id=>11, ip=>'1.2.3.4', mac=>'11:22:33:44:55', defjump=>'ACCEPT', qs=>2, blocked=>0});
   # returns 1-need apply/0-not needed on success,
-  #   dies with 'error string' on error,
+  #   dies with 'error string' on error.
   $app->helper(fw_add_replace => sub {
     my ($self, $v) = @_;
     croak 'Bad argument' unless $v;
@@ -359,6 +367,7 @@ sub register {
     }
 
     print $fh "COMMIT\n\n"; # AND... NEXT ROUND on mangle table
+    my $jb = $_blk_mark->($v); # target for blocking
     $ff = 0;
     $skip = 0;
     $skip_duplicate = 0;
@@ -382,8 +391,8 @@ sub register {
           unless ($skip_duplicate) {
             # here actual replace
             print $fh "# $v->{id}\n";
-            print $fh "-A $client_in_chain -d $v->{ip} $c\n";
-            print $fh "-A $client_out_chain -s $v->{ip} $c\n";
+            print $fh "-A $client_in_chain -d $v->{ip} ${c}${jb}\n";
+            print $fh "-A $client_out_chain -s $v->{ip} ${c}${jb}\n";
           } else {
             $skip_duplicate = 0;
           }
@@ -409,8 +418,8 @@ sub register {
 
     if (!$ff or ($skip > 0 and !$skip_duplicate)) { # if not found or last line, add new
       print $fh "# $v->{id}\n";
-      print $fh "-A $client_in_chain -d $v->{ip} $c\n";
-      print $fh "-A $client_out_chain -s $v->{ip} $c\n";
+      print $fh "-A $client_in_chain -d $v->{ip} ${c}${jb}\n";
+      print $fh "-A $client_out_chain -s $v->{ip} ${c}${jb}\n";
       $ret = 1;
     }
 
@@ -492,7 +501,7 @@ sub register {
   });
 
 
-  # my $resp = fw_create_full([{id=>11, ip=>'1.2.3.4', mac=>'11:22:33:44:55', defjump=>'ACCEPT'}, ...]);
+  # my $resp = fw_create_full([{id=>11, ip=>'1.2.3.4', mac=>'11:22:33:44:55', defjump=>'ACCEPT', qs=>2, blocked=>0}, ...]);
   # fully updates /var/r2d2/firewall.clients,
   # returns 1-need apply/0-not needed on success,
   #   dies with 'error string' on error,
@@ -533,9 +542,10 @@ sub register {
       print $fh "-A $client_in_chain -d $_->{ip} $c -j $_->{defjump}\n";
       my $m = ($_->{mac}) ? "-m mac --mac-source $_->{mac} " : '';
       print $fh "-A $client_out_chain -s $_->{ip} $c ${m}-j $_->{defjump}\n";
+      my $jb = $_blk_mark->($_); # target for blocking
       $mangle_append .= "# $_->{id}\n";
-      $mangle_append .= "-A $client_in_chain -d $_->{ip} $c\n";
-      $mangle_append .= "-A $client_out_chain -s $_->{ip} $c\n";
+      $mangle_append .= "-A $client_in_chain -d $_->{ip} ${c}${jb}\n";
+      $mangle_append .= "-A $client_out_chain -s $_->{ip} ${c}${jb}\n";
     }
     print $fh "COMMIT\n\n";
     print $fh "*mangle\n";

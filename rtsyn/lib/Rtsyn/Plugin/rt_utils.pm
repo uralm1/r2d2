@@ -8,17 +8,14 @@ sub register {
   my ($self, $app, $args) = @_;
   $args ||= {};
 
-  # my $txt = $app->rt_marks($rt)
-  $app->helper(rt_marks => sub {
-    my ($self, $rt) = @_;
-
-    state %rt_marks = (
-      0 => '', # ufanet
-      1 => '-j MARK --set-mark 2', # beeline
-    );
-
-    return $rt_marks{$rt};
-  });
+  # internal
+  # $txt = $_rt_marks->($rt)
+  my $_rt_marks = sub {
+    my $rt = shift;
+    # 0 - ufanet
+    # 1 - beeline
+    return $rt eq 1 ? '-j MARK --set-mark 2' : '';
+  };
 
 
   # {} = rt_matang;
@@ -32,11 +29,11 @@ sub register {
         dump_sub => sub { $self->system(iptables_dump => "-t mangle -nvx --line-numbers -L $client_out_chain") },
         add_sub => sub {
           my $v = shift; # {id=>1, etc}
-          $self->system(iptables => "-t mangle -A $client_out_chain -s $v->{ip} -m comment --comment $v->{id} ".$self->rt_marks($v->{rt}))
+          $self->system(iptables => "-t mangle -A $client_out_chain -s $v->{ip} -m comment --comment $v->{id} ".$_rt_marks->($v->{rt}))
         },
         replace_sub => sub {
           my ($ri, $v) = @_; # rule index, {id=>1, etc}
-          $self->system(iptables => "-t mangle -R $client_out_chain $ri -s $v->{ip} -m comment --comment $v->{id} ".$self->rt_marks($v->{rt}))
+          $self->system(iptables => "-t mangle -R $client_out_chain $ri -s $v->{ip} -m comment --comment $v->{id} ".$_rt_marks->($v->{rt}))
         },
         delete_sub => sub {
           my $ri = shift; # rule index
@@ -176,7 +173,7 @@ sub register {
         if ($2 == $v->{id}) {
           if (!$ff) {
             # replace same id
-            print $fh "-A $client_out_chain -s $v->{ip} -m comment --comment $v->{id} ".$self->rt_marks($v->{rt})."\n";
+            print $fh "-A $client_out_chain -s $v->{ip} -m comment --comment $v->{id} ".$_rt_marks->($v->{rt})."\n";
             $ret = 1;
             $ff = 1;
           } else {
@@ -197,7 +194,7 @@ sub register {
     }
 
     if (!$ff) { # if not found, add line
-      print $fh "-A $client_out_chain -s $v->{ip} -m comment --comment $v->{id} ".$self->rt_marks($v->{rt})."\n";
+      print $fh "-A $client_out_chain -s $v->{ip} -m comment --comment $v->{id} ".$_rt_marks->($v->{rt})."\n";
       $ret = 1;
     }
 
@@ -267,7 +264,7 @@ sub register {
     for (@$va) {
       next if !$self->is_myprofile($_->{profile}); # skip clients from invalid profiles
       #print $fh "# $_->{id}\n";
-      print $fh "-A $client_out_chain -s $_->{ip} -m comment --comment $_->{id} ".$self->rt_marks($_->{rt})."\n";
+      print $fh "-A $client_out_chain -s $_->{ip} -m comment --comment $_->{id} ".$_rt_marks->($_->{rt})."\n";
     }
 
     print $fh "COMMIT\n";

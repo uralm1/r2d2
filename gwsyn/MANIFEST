@@ -9,6 +9,7 @@ lib/Gwsyn/Command/dumpfiles.pm
 lib/Gwsyn/Command/dumprules.pm
 lib/Gwsyn/Command/loadclients.pm
 lib/Gwsyn/Command/trafstat.pm
+lib/Gwsyn/Controller/Block.pm
 lib/Gwsyn/Controller/Refresh.pm
 lib/Gwsyn/Controller/Stat.pm
 lib/Gwsyn/Controller/Utils.pm

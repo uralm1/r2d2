@@ -30,8 +30,10 @@ my $j = [
   {id=>1, ip=> '1.2.3.1', defjump=>'ACCEPT', profile=>'plk'},
   {id=>2, ip=> '1.2.3.2', mac=>'11:22:33:44:55:66', defjump=>'ICMP_ONLY', profile=>'plk', no_dhcp=>1},
   {id=>12, ip=> '1.2.3.5', mac=>'11:22:33:44:55:77', defjump=>'DROP', profile=>'plk'},
-  {id=>13, ip=> '1.2.3.6', mac=>'11:22:33:44:55:88', defjump=>'HTTP_IM_ICMP', profile=>'plk'},
+  {id=>13, ip=> '1.2.3.6', mac=>'11:22:33:44:55:88', defjump=>'HTTP_IM_ICMP', profile=>'plk', blocked=>1, qs=>0},
   {id=>14, ip=> '1.2.3.7', mac=>'11:22:33:44:55:99', defjump=>'ACCEPT'},
+  {id=>15, ip=> '1.2.3.8', defjump=>'ACCEPT', profile=>'plk', blocked=>1, qs=>3},
+  {id=>16, ip=> '1.2.3.9', defjump=>'ACCEPT', profile=>'plk', blocked=>1, qs=>2},
 ];
 is($t->app->fw_create_full($j), 1, 'fw_create_full1');
 compare_ok($test_f, path($testdir, 'result1'), 'compare results 1');
@@ -69,6 +71,12 @@ __DATA__
 # 13
 -A in_test -d 1.2.3.6 -m comment --comment 13 -j HTTP_IM_ICMP
 -A out_test -s 1.2.3.6 -m comment --comment 13 -m mac --mac-source 11:22:33:44:55:88 -j HTTP_IM_ICMP
+# 15
+-A in_test -d 1.2.3.8 -m comment --comment 15 -j ACCEPT
+-A out_test -s 1.2.3.8 -m comment --comment 15 -j ACCEPT
+# 16
+-A in_test -d 1.2.3.9 -m comment --comment 16 -j ACCEPT
+-A out_test -s 1.2.3.9 -m comment --comment 16 -j ACCEPT
 COMMIT
 
 *mangle
@@ -86,5 +94,11 @@ COMMIT
 # 13
 -A in_test -d 1.2.3.6 -m comment --comment 13
 -A out_test -s 1.2.3.6 -m comment --comment 13
+# 15
+-A in_test -d 1.2.3.8 -m comment --comment 15 -j MARK --set-mark 3
+-A out_test -s 1.2.3.8 -m comment --comment 15 -j MARK --set-mark 3
+# 16
+-A in_test -d 1.2.3.9 -m comment --comment 16 -j MARK --set-mark 2
+-A out_test -s 1.2.3.9 -m comment --comment 16 -j MARK --set-mark 2
 COMMIT
 __END__
