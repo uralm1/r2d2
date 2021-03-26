@@ -451,3 +451,7 @@ components:
           type: integer
           description: client id
           example: 11
+        qs:
+          type: integer
+          description: Operation (0-unblocked, 2-limited, 3-blocked)
+          example: 0

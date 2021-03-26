@@ -501,6 +501,93 @@ sub register {
   });
 
 
+  # my $resp = fw_block($id, $qs);
+  #   $qs - 0-unblock, 2-limit, 3-block,
+  # returns 1-need apply/0-not needed on success,
+  #   dies with 'error string' on error
+  $app->helper(fw_block => sub {
+    my ($self, $id, $qs) = @_;
+    croak 'Bad arguments' unless (defined $id && defined $qs);
+
+    my $fwfile = path($self->config('firewall_file'));
+    my $client_in_chain = $self->config('client_in_chain');
+    my $client_out_chain = $self->config('client_out_chain');
+    my $fh = eval { $fwfile->open('<') } or die "Can't read firewall file: $!";
+    chomp(my @content = <$fh>);
+    $fh->close or die "Can't close firewall file: $!";
+
+    $fh = eval { $fwfile->open('>') } or die "Can't reopen firewall file: $!";
+    # cut mangle_content WITHOUT "COMMIT" line and keep others
+    my @mangle_content;
+    my $mode = 0;
+    for (@content) {
+      if (/^\*mangle$/x) { $mode = 2; }
+      if ($mode == 0) {
+        print $fh "$_\n";
+      } elsif ($mode == 2) {
+        if (/^COMMIT$/x) { $mode = 0; next; }
+        push @mangle_content, $_;
+      }
+    }
+    undef @content;
+
+    # now work on mangle content
+    my $ret = 0;
+    my $jb = $_blk_mark->({blocked=>1, qs=>$qs}); # target for blocking
+    my $ff = 0;
+    my $skip = 0;
+
+    for (@mangle_content) {
+      #*mangle
+      #:pipe_in_inet_clients - [0:0]
+      #:pipe_out_inet_clients - [0:0]
+      # 450
+      #(1)-A pipe_in_inet_clients -d 192.168.34.23 -m comment --comment 450
+      #(2)-A pipe_out_inet_clients -s 192.168.34.23 -m comment --comment 450
+      # 451
+      #(1)-A pipe_in_inet_clients -d 192.168.34.24 -m comment --comment 451 -j MARK --set-mark 2
+      #(2)-A pipe_out_inet_clients -s 192.168.34.24 -m comment --comment 451 -j MARK --set-mark 2
+      if ($skip > 0) {
+        if (/^-A\ (\S+)\s+ (-[ds]\ \S+)\s+ -m\ comment\s+ --comment\ \Q$id\E/x) {
+          # CHAIN: $1, "-d/s IP": $2
+          if ($1 eq $client_in_chain || $1 eq $client_out_chain) {
+            # replace good rule
+            print $fh "-A $1 $2 -m comment --comment ${id}${jb}\n";
+            $ret = 1;
+          }
+          $skip++;
+          next;
+        } elsif (/^-A\ /x) {
+          $skip++;
+          next;
+        } elsif (/^$/x) {
+          $skip = 0;
+          next;
+        } else {
+          $skip = 0;
+        }
+      }
+      if (/^\#\ \Q$id\E$/x) {
+        if (!$ff) {
+          $ff = 1;
+        } else {
+          # secondary duplicating id - warn about it
+          $self->rlog("Found duplicate ID in firewall file *mangle section.");
+        }
+        $skip = 1;
+        # copy id line too
+      }
+      print $fh "$_\n"; # just copy other lines
+    }
+
+    print $fh "COMMIT\n";
+
+    $fh->close or die "Can't close firewall file: $!";
+
+    return $ret;
+  });
+
+
   # my $resp = fw_create_full([{id=>11, ip=>'1.2.3.4', mac=>'11:22:33:44:55', defjump=>'ACCEPT', qs=>2, blocked=>0}, ...]);
   # fully updates /var/r2d2/firewall.clients,
   # returns 1-need apply/0-not needed on success,

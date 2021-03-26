@@ -19,6 +19,7 @@ lib/Fwsyn/Plugin/tc_utils.pm
 lib/Fwsyn/Plugin/Trafficstat_impl.pm
 lib/Fwsyn/Plugin/Utils.pm
 lib/Fwsyn/Task/Addreplaceclient.pm
+lib/Fwsyn/Task/Blockclient.pm
 lib/Fwsyn/Task/Deleteclient.pm
 lib/Fwsyn/Task/Loadclients.pm
 lib/Fwsyn/Task/Trafficstat.pm
@@ -34,7 +35,8 @@ t/01_get_subsys.t
 t/15_fw_delete.t
 t/16_fw_add_replace.t
 t/17_fw_create_full.t
-t/18_matang_regexps.t
+t/18_fw_block.t
+t/19_matang_regexps.t
 t/20_tc_delete.t
 t/21_tc_add_replace.t
 t/22_tc_create_full.t

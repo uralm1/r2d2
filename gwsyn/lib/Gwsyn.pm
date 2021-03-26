@@ -58,6 +58,7 @@ sub startup {
   $self->plugin('Gwsyn::Task::Loadclients');
   $self->plugin('Gwsyn::Task::Addreplaceclient');
   $self->plugin('Gwsyn::Task::Deleteclient');
+  $self->plugin('Gwsyn::Task::Blockclient');
   $self->plugin('Gwsyn::Task::Trafficstat');
   $self->commands->namespaces(['Mojolicious::Command', 'Minion::Command', 'Gwsyn::Command']);
 

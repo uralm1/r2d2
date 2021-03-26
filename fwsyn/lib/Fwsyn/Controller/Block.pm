@@ -9,7 +9,13 @@ sub block {
   return $self->render(text=>'Bad parameter', status=>503) unless (defined($id) && $id =~ /^\d+$/ &&
     defined($qs) && $qs =~ /^[023]$/);
 
-  return $self->rendered(501); # Not implemented
+  unless ($self->check_workers) {
+    $self->rlog('Error blocking/unblocking client. Execution subsystem error.');
+    return $self->render(text=>'Error blocking/unblocking client, execution impossible', status=>503);
+  }
+
+  $self->minion->enqueue('block_client' => [$id, $qs]);
+  return $self->rendered(200);
 }
 
 

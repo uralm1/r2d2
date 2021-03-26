@@ -57,6 +57,7 @@ sub startup {
   $self->plugin('Fwsyn::Task::Loadclients');
   $self->plugin('Fwsyn::Task::Addreplaceclient');
   $self->plugin('Fwsyn::Task::Deleteclient');
+  $self->plugin('Fwsyn::Task::Blockclient');
   $self->plugin('Fwsyn::Task::Trafficstat');
   $self->commands->namespaces(['Mojolicious::Command', 'Minion::Command', 'Fwsyn::Command']);
 

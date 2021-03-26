@@ -20,6 +20,7 @@ lib/Gwsyn/Plugin/tc_utils.pm
 lib/Gwsyn/Plugin/Trafficstat_impl.pm
 lib/Gwsyn/Plugin/Utils.pm
 lib/Gwsyn/Task/Addreplaceclient.pm
+lib/Gwsyn/Task/Blockclient.pm
 lib/Gwsyn/Task/Deleteclient.pm
 lib/Gwsyn/Task/Loadclients.pm
 lib/Gwsyn/Task/Trafficstat.pm
@@ -37,7 +38,8 @@ t/12_dhcp_create_full.t
 t/15_fw_delete.t
 t/16_fw_add_replace.t
 t/17_fw_create_full.t
-t/18_matang_regexps.t
+t/18_fw_block.t
+t/19_matang_regexps.t
 t/20_tc_delete.t
 t/21_tc_add_replace.t
 t/22_tc_create_full.t
