@@ -262,7 +262,55 @@ sub register {
     die $failure if $failure;
 
     if ($ret && @found_check < 4) {
-      $self->rlog('Deleted only '.join('/', @found_check).' tables/chains. This is not normal, just warn you.');
+      $self->rlog('Deleted in only '.join('/', @found_check).' tables/chains. This is not normal, just warn you.');
+    }
+
+    return $ret;
+  });
+
+
+  # my $resp = fw_block_rules($id, $qs);
+  #   $qs - 0-unblock, 2-limit, 3-block,
+  # returns 1-done/0-not found on success,
+  #   dies with 'error string' on error
+  $app->helper(fw_block_rules => sub {
+    my ($self, $id, $qs) = @_;
+    croak 'Bad arguments' unless defined $id && defined $qs;
+
+    my $matang = $self->fw_matang;
+    my $ret = 0;
+    my $failure = undef;
+    my @found_check;
+    for my $n (qw/m_in m_out/) {
+      my $m = $matang->{$n};
+      croak "Matang $n matanga!" unless $m;
+
+      my $dump = $m->{dump_sub}();
+      die "Error dumping rules $m->{chain} in $m->{table} table!" unless $dump;
+
+      for (my $i = 2; $i < @$dump; $i++) { # skip first 2 lines
+        if ($dump->[$i] =~ $m->{re1}($id)) {
+          my $ri = $1;
+          my $op = $qs == 0 ? 'Unblocking' : "Blocking ($qs)";
+          $self->rlog("$m->{rule_desc}. $op rule #$ri ip $2.");
+          $ret = 1;
+          push @found_check, $n;
+          if ( $m->{replace_sub}($ri, {id=>$id, ip=>$2, blocked=>1, qs=>$qs}) ) {
+            my $msg = "$m->{rule_desc} block/unblock error on $m->{table} table.";
+            if ($failure) {
+              $self->rlog($msg); # count not first errors non-fatal
+            } else {
+              $failure = $msg;
+            }
+          }
+        } # if regex
+      } # for dump
+    } # for mangle in/out
+
+    die $failure if $failure;
+
+    if ($ret && @found_check < 2) {
+      $self->rlog('(Un)Blocked in only '.join('/', @found_check).' tables/chains. This is not normal, just warn you.');
     }
 
     return $ret;
@@ -507,7 +555,7 @@ sub register {
   #   dies with 'error string' on error
   $app->helper(fw_block => sub {
     my ($self, $id, $qs) = @_;
-    croak 'Bad arguments' unless (defined $id && defined $qs);
+    croak 'Bad arguments' unless defined $id && defined $qs;
 
     my $fwfile = path($self->config('firewall_file'));
     my $client_in_chain = $self->config('client_in_chain');

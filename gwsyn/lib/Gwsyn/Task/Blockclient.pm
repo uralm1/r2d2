@@ -14,13 +14,12 @@ sub register {
 
     my @err;
     # part 1: firewall rules directly
-    my $r;
-    #my $r = eval { $app->fw_add_replace_rules($v) };
-    #push @err, "Error adding/replacing client rules in iptables: $@" unless defined $r;
+    my $r = eval { $app->fw_block_rules($id, $qs) };
+    push @err, "Error blocking/unblocking client rules in iptables: $@" unless defined $r;
 
     # part 1a: firewall file, no need to apply
-    #$r = eval { $app->fw_add_replace($v) };
-    #push @err, "Error adding/replacing client rules in firewall file: $@" unless defined $r;
+    $r = eval { $app->fw_block($id, $qs) };
+    push @err, "Error blocking/unblocking client rules in firewall file: $@" unless defined $r;
 
     if (@err) {
       $app->rlog(join(',', @err));
