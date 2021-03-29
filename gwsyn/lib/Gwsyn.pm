@@ -101,6 +101,7 @@ sub startup {
   $r->post('/refresh/#id')->to('refresh#refresh');
   $r->post('/runstat')->to('stat#runstat');
   $r->post('/block/#id/#qs')->to('block#block');
+  $r->post('/reload')->to('reload#reload');
 }
 
 

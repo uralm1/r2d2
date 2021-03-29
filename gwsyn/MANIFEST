@@ -11,6 +11,7 @@ lib/Gwsyn/Command/loadclients.pm
 lib/Gwsyn/Command/trafstat.pm
 lib/Gwsyn/Controller/Block.pm
 lib/Gwsyn/Controller/Refresh.pm
+lib/Gwsyn/Controller/Reload.pm
 lib/Gwsyn/Controller/Stat.pm
 lib/Gwsyn/Controller/Utils.pm
 lib/Gwsyn/Plugin/dhcp_utils.pm

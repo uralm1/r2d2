@@ -11,6 +11,7 @@ lib/Fwsyn/Command/loadclients.pm
 lib/Fwsyn/Command/trafstat.pm
 lib/Fwsyn/Controller/Block.pm
 lib/Fwsyn/Controller/Refresh.pm
+lib/Fwsyn/Controller/Reload.pm
 lib/Fwsyn/Controller/Stat.pm
 lib/Fwsyn/Controller/Utils.pm
 lib/Fwsyn/Plugin/fw_utils.pm

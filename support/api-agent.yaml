@@ -102,6 +102,20 @@ paths:
                 type: string
                 description: error message
 
+  /reload:
+    post:
+      summary: Request immediate all clients reload, like on restart
+      responses:
+        '200':
+          description: Successfully queued
+        '503':
+          description: Task run problems
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
 servers:
   # Added by API Auto Mocking Plugin
   - description: SwaggerHub API Auto Mocking

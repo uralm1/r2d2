@@ -75,6 +75,7 @@ sub startup {
   $r->post('/trafstat/#profile')->to('stat#trafstat_old'); # DEPRECATED
   $r->post('/refreshed')->to('refreshed#refreshed');
   $r->post('/blocked')->to('blocked#blocked');
+  $r->post('/reloaded')->to('reloaded#reloaded');
 
   $r->post('/log/#rsubsys' => {rsubsys => 'none'})->to('log#log');
 }

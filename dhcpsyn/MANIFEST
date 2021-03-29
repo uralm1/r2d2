@@ -12,6 +12,7 @@ lib/Dhcpsyn/Command/dumprules.pm
 lib/Dhcpsyn/Command/loadclients.pm
 lib/Dhcpsyn/Controller/Block.pm
 lib/Dhcpsyn/Controller/Refresh.pm
+lib/Dhcpsyn/Controller/Reload.pm
 lib/Dhcpsyn/Controller/Stat.pm
 lib/Dhcpsyn/Controller/Utils.pm
 lib/Dhcpsyn/Plugin/Loadclients_impl.pm

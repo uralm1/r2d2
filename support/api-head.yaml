@@ -333,6 +333,38 @@ paths:
                 type: string
                 description: error message
     
+  /reloaded:
+    post:
+      summary: Извещение о выполненной операции перезагрузки всех клиентов
+      description: Агенты вызывают данную функцию после завершения перезагрузки всех клиентов.
+
+      parameters:
+        - name: profile
+          in: query
+          required: true
+          description: profile name (multiple are possible)
+          schema:
+            type: string
+            example: 'gwtest1'
+      requestBody:
+        description: successful reload information
+        required: true
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/reload_stats'
+
+      responses:
+        '200':
+          description: Success
+        '503':
+          description: Operation error, bad json etc
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
 # Added by API Auto Mocking Plugin
 servers:
   # Added by API Auto Mocking Plugin
@@ -455,3 +487,12 @@ components:
           type: integer
           description: Operation (0-unblocked, 2-limited, 3-blocked)
           example: 0
+          
+    reload_stats:
+      description: Successful reload information
+      type: object
+      properties:
+        subsys:
+          type: string
+          description: Subsystem name. Имя агента должно совпадать с одним из прописанных в коде.
+          example: agent@host

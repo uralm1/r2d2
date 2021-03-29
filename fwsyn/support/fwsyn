@@ -10,6 +10,6 @@ start_service() {
   procd_set_param env MOJO_LISTEN="https://*:2275$sp"
   procd_set_param stdout 1
   procd_set_param stderr 1
-  procd_set_param command /etc/r2d2/script/fwsyn prefork -P /tmp/fwsyn-prefork.pid
+  procd_set_param command /etc/r2d2/script/fwsyn prefork -w 2 -P /tmp/fwsyn-prefork.pid
   procd_close_instance
 }

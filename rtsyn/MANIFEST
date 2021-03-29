@@ -8,6 +8,7 @@ lib/Rtsyn/Command/dumprules.pm
 lib/Rtsyn/Command/loadclients.pm
 lib/Rtsyn/Controller/Block.pm
 lib/Rtsyn/Controller/Refresh.pm
+lib/Rtsyn/Controller/Reload.pm
 lib/Rtsyn/Controller/Stat.pm
 lib/Rtsyn/Controller/Utils.pm
 lib/Rtsyn/Plugin/Loadclients_impl.pm
