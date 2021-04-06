@@ -12,7 +12,7 @@ sub run {
 
   $app->log->info('Reloading all clients configuration');
   if ($app->check_workers) {
-    $app->minion->enqueue('load_clients');
+    $app->ljq->enqueue('load_clients');
   } else {
     $app->log->error("Command canceled. Execution subsystem error.");
     return 1;

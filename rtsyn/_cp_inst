@@ -2,13 +2,19 @@
 
 #make dist
 version=`perl -E 'use lib "lib";use Rtsyn;say $Rtsyn::VERSION'`
+version_ljq=`perl -E 'use lib "../ljq/lib";use Ljq;say $Ljq::VERSION'`
 
 rexlib=root@bikini:/var/www/net/rexlib
 destdir=$rexlib/lib/Deploy/Erebus/R2d2/files
 
-# source tarball
+# check files
+[ ! -f ../ljq/ljq-$version_ljq.tar.gz ] && echo "ERROR: ljq source tarball is not found! Run make dist first." && exit 1
+[ ! -f rtsyn-$version.tar.gz ] && echo "ERROR: rtsyn source tarball is not found! Run make dist first." && exit 1
+
+# source tarballs
 cp rtsyn-$version.tar.gz rtsyn-latest.tar.gz
-filelist=rtsyn-latest.tar.gz
+cp ../ljq/ljq-$version_ljq.tar.gz ljq-latest.tar.gz
+filelist="rtsyn-latest.tar.gz ljq-latest.tar.gz"
 
 # copy keys
 cert_path="../cert"
@@ -21,8 +27,8 @@ done
 filelist="$filelist $keys"
 
 # service scripts
-filelist="$filelist support/rtsyn support/rtsyn-minion"
+filelist="$filelist support/rtsyn support/rtsyn-worker"
 
 scp $filelist $destdir
 
-rm rtsyn-latest.tar.gz
+rm rtsyn-latest.tar.gz ljq-latest.tar.gz

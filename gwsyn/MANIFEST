@@ -31,7 +31,7 @@ README.md
 script/gwsyn
 support/gwsyn
 support/gwsyn-cron
-support/gwsyn-minion
+support/gwsyn-worker
 t/01_get_subsys.t
 t/10_dhcp_delete.t
 t/11_dhcp_add_replace.t

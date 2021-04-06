@@ -2,13 +2,19 @@
 
 #make dist
 version=`perl -E 'use lib "lib";use Gwsyn;say $Gwsyn::VERSION'`
+version_ljq=`perl -E 'use lib "../ljq/lib";use Ljq;say $Ljq::VERSION'`
 
 rexlib=root@bikini:/var/www/net/rexlib
 destdir=$rexlib/lib/Deploy/Owrt/R2d2/files
 
-# source tarball
+# check files
+[ ! -f ../ljq/ljq-$version_ljq.tar.gz ] && echo "ERROR: ljq source tarball is not found! Run make dist first." && exit 1
+[ ! -f gwsyn-$version.tar.gz ] && echo "ERROR: gwsyn source tarball is not found! Run make dist first." && exit 1
+
+# source tarballs
 cp gwsyn-$version.tar.gz gwsyn-latest.tar.gz
-filelist=gwsyn-latest.tar.gz
+cp ../ljq/ljq-$version_ljq.tar.gz ljq-latest.tar.gz
+filelist="gwsyn-latest.tar.gz ljq-latest.tar.gz"
 
 # copy keys
 cert_path="../cert"
@@ -21,8 +27,8 @@ done
 filelist="$filelist $keys"
 
 # service scripts
-filelist="$filelist support/gwsyn support/gwsyn-minion support/gwsyn-cron"
+filelist="$filelist support/gwsyn support/gwsyn-worker support/gwsyn-cron"
 
 scp $filelist $destdir
 
-rm gwsyn-latest.tar.gz
+rm gwsyn-latest.tar.gz ljq-latest.tar.gz

@@ -3,6 +3,7 @@ use Mojo::Base -strict;
 use Test::Mojo;
 use Test::More;
 use Data::Dumper;
+use lib '../ljq/lib';
 
 diag "prepare data...";
 my %td;
@@ -19,6 +20,7 @@ while (<DATA>) {
 
 my $t = Test::Mojo->new('Gwsyn', { client_in_chain=>'in_test', client_out_chain=>'out_test',
   my_profiles=>['gwtest1'],
+  worker_db_file=>'/tmp/test$$.dat',
 });
 #say Dumper \%td;
 

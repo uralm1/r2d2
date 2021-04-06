@@ -1,0 +1,13 @@
+.gitattributes
+lib/Ljq.pm
+lib/Ljq/Command/ljq.pm
+lib/Ljq/Command/ljq/job.pm
+lib/Ljq/Command/ljq/worker.pm
+lib/Ljq/Job.pm
+lib/Ljq/Worker.pm
+lib/Mojolicious/Plugin/Ljq.pm
+Makefile.PL
+MANIFEST			This list of files
+t/commands.t
+t/ljq.t
+t/ljq_lite_app.t

@@ -2,7 +2,6 @@ package Rtsyn;
 use Mojo::Base 'Mojolicious';
 
 use Mojo::File qw(path);
-use Mojo::SQLite;
 use Rtsyn::Command::loadclients;
 use Rtsyn::Command::dumpfiles;
 use Rtsyn::Command::dumprules;
@@ -10,7 +9,7 @@ use Rtsyn::Command::dumprules;
 #use Carp;
 use Sys::Hostname;
 
-our $VERSION = '2.57';
+our $VERSION = '2.58';
 
 # This method will run once at server start
 sub startup {
@@ -36,14 +35,7 @@ sub startup {
   # 1Mb max request
   $self->max_request_size(1048576);
 
-  my $mdb = Mojo::SQLite->new($config->{'minion_db_conn'});
-  $mdb->on(connection => sub {
-    my ($sql, $dbh) = @_;
-    $dbh->do('PRAGMA wal_autocheckpoint=250');
-  });
-  $self->plugin(Minion => { SQLite => $mdb });
-  # FIXME DEBUG FIXME: open access to minion UI
-  ###$self->plugin('Minion::Admin');
+  $self->plugin(Ljq => { db => $config->{'worker_db_file'} });
 
   $self->plugin('Rtsyn::Plugin::Utils');
   $self->plugin('Rtsyn::Plugin::rt_utils');#
@@ -51,7 +43,7 @@ sub startup {
   $self->plugin('Rtsyn::Task::Loadclients');
   $self->plugin('Rtsyn::Task::Addreplaceclient');
   $self->plugin('Rtsyn::Task::Deleteclient');
-  $self->commands->namespaces(['Mojolicious::Command', 'Minion::Command', 'Rtsyn::Command']);
+  $self->commands->namespaces(['Mojolicious::Command', 'Ljq::Command', 'Rtsyn::Command']);
 
   $self->defaults(subsys => $self->moniker.'@'.hostname);
   $self->defaults(version => $VERSION);
@@ -80,7 +72,7 @@ sub startup {
         $app->rlog('Updating clients failed: execution subsystem error.', sync=>1);
         sleep(3);
       }
-      $app->minion->enqueue(load_clients => [] => {attempts => 5});
+      $app->ljq->enqueue(load_clients => [] => {attempts => 5});
     }
   });
 

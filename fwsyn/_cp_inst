@@ -2,13 +2,19 @@
 
 #make dist
 version=`perl -E 'use lib "lib";use Fwsyn;say $Fwsyn::VERSION'`
+version_ljq=`perl -E 'use lib "../ljq/lib";use Ljq;say $Ljq::VERSION'`
 
 rexlib=root@bikini:/var/www/net/rexlib
 destdir=$rexlib/lib/Deploy/Fw/R2d2/files
 
-# source tarball
+# check files
+[ ! -f ../ljq/ljq-$version_ljq.tar.gz ] && echo "ERROR: ljq source tarball is not found! Run make dist first." && exit 1
+[ ! -f fwsyn-$version.tar.gz ] && echo "ERROR: fwsyn source tarball is not found! Run make dist first." && exit 1
+
+# source tarballs
 cp fwsyn-$version.tar.gz fwsyn-latest.tar.gz
-filelist=fwsyn-latest.tar.gz
+cp ../ljq/ljq-$version_ljq.tar.gz ljq-latest.tar.gz
+filelist="fwsyn-latest.tar.gz ljq-latest.tar.gz"
 
 # copy keys
 cert_path="../cert"
@@ -25,4 +31,4 @@ filelist="$filelist support/rc.fwsyn"
 
 scp $filelist $destdir
 
-rm fwsyn-latest.tar.gz
+rm fwsyn-latest.tar.gz ljq-latest.tar.gz

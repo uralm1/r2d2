@@ -2,6 +2,7 @@ use Mojo::Base -strict;
 
 use Test::Mojo;
 use Test::More;
+use lib '../ljq/lib';
 use Test::Files;
 use Mojo::File qw(path);
 
@@ -24,6 +25,7 @@ my $test_f = path($testdir, 'traf.clients1');
 my $t = Test::Mojo->new('Fwsyn', { tc_file => $test_f->to_string,
   tc_path => '/usr/sbin/tc',
   my_profiles => ['plk'],
+  worker_db_file=>'/tmp/test$$.dat',
 });
 my $j = [
   {id=>11, ip=> '1.2.3.4', mac=>'11:22:33:44:55:66', profile=>'zzz'},

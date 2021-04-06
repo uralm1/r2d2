@@ -15,7 +15,7 @@
 
 nssm install DhcpsynWorker %perl_dir%\perl\bin\perl.exe
 nssm set DhcpsynWorker AppDirectory %inst_dir%
-nssm set DhcpsynWorker AppParameters script\dhcpsyn minion worker -j 1
+nssm set DhcpsynWorker AppParameters script\dhcpsyn ljq worker
 nssm set DhcpsynWorker DisplayName Dhcpsyn Worker
 nssm set DhcpsynWorker Description R2D2 Dhcpsyn Worker service
 nssm set DhcpsynWorker Start SERVICE_AUTO_START

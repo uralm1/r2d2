@@ -2,6 +2,7 @@ use Mojo::Base -strict;
 
 use Test::Mojo;
 use Test::More;
+use lib '../ljq/lib';
 use Test::Files;
 use Mojo::File qw(path);
 
@@ -28,6 +29,7 @@ my $make_test = sub {
     client_in_chain=>'pipe_in_inet_clients', client_out_chain=>'pipe_out_inet_clients',
     rlog_local=>1, rlog_remote=>0,
     my_profiles=>['plk'],
+    worker_db_file=>'/tmp/test$$.dat',
   });
 };
 

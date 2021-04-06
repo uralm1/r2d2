@@ -16,7 +16,7 @@ has [qw(remove_after)] => 172800;
 has tasks => sub { {} };
 has 'file';
 
-our $VERSION = '0.1';
+our $VERSION = '1.0';
 
 sub add_task {
   my ($self, $name, $task) = @_;

@@ -6,7 +6,7 @@ use Mojo::URL;
 
 sub register {
   my ($self, $app) = @_;
-  $app->minion->add_task(load_clients => sub {
+  $app->ljq->add_task(load_clients => sub {
     my $job = shift;
     $job->app->rlog('Started load_clients task '.$job->id." pid $$");
 

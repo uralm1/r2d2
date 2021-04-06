@@ -14,7 +14,7 @@ sub block {
     return $self->render(text=>'Error blocking/unblocking client, execution impossible', status=>503);
   }
 
-  $self->minion->enqueue('block_client' => [$id, $qs]);
+  $self->ljq->enqueue('block_client' => [$id, $qs]);
   return $self->rendered(200);
 }
 

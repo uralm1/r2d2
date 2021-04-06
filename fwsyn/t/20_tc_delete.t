@@ -2,6 +2,7 @@ use Mojo::Base -strict;
 
 use Test::Mojo;
 use Test::More;
+use lib '../ljq/lib';
 use Test::Files;
 use Mojo::File qw(path);
 
@@ -27,6 +28,7 @@ my $make_test = sub {
   return Test::Mojo->new('Fwsyn', { tc_file => $tf->to_string, tc_path => '/usr/sbin/tc',
     rlog_local=>1, rlog_remote=>0,
     my_profiles=>['plk'],
+    worker_db_file=>'/tmp/test$$.dat',
   });
 };
 

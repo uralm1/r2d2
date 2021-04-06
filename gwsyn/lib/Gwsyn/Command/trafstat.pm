@@ -12,7 +12,7 @@ sub run {
 
   $app->log->info('Initiate traffic statistics collection');
   if ($app->check_workers) {
-    $app->minion->enqueue('traffic_stat');
+    $app->ljq->enqueue('traffic_stat');
   } else {
     $app->log->error("Command canceled. Execution subsystem error.");
     return 1;

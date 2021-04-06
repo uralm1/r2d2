@@ -5,7 +5,7 @@
   local_key => '../cert/localhost-key.pem',
   ca => '../cert/ca.pem',
 
-  minion_db_conn => 'sqlite:/tmp/rtsyn.db',
+  worker_db_file => '/tmp/rtsyn.dat',
 
   head_url => 'https://localhost:2271',
 

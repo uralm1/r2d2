@@ -29,17 +29,17 @@ sub refresh {
         if ($self->is_myprofile($v->{profile})) {
           # add or update
           # actual data returned in $v
-          $self->minion->enqueue('addreplace_client' => [$v]);
+          $self->ljq->enqueue('addreplace_client' => [$v]);
 
         } else { # not our profile
           # try to delete client $id
-          $self->minion->enqueue('delete_client' => [$id]);
+          $self->ljq->enqueue('delete_client' => [$id]);
         }
         return $self->rendered(200);
 
       } elsif ($res->code == 404) {
         # delete not found client $id
-        $self->minion->enqueue('delete_client' => [$id]);
+        $self->ljq->enqueue('delete_client' => [$id]);
         return $self->rendered(200);
 
       } else {

@@ -5,7 +5,7 @@
   local_key => '../cert/localhost-key.pem',
   ca => '../cert/ca.pem',
 
-  minion_db_conn => 'sqlite:/tmp/fwsyn.db',
+  worker_db_file => '/tmp/fwsyn.dat',
 
   head_url => 'https://localhost:2271',
 

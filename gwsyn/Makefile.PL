@@ -15,9 +15,8 @@ WriteMakefile(
     'EV' => 0,
     'Cpanel::JSON::XS' => '4.10',
     'IO::Socket::SSL' => '2.009',
-    'Minion' => '10.03',
-    'Minion::Backend::SQLite' => 0,
     'Algorithm::Cron' => '0.10',
+    'Ljq' => 0,
   },
   TEST_REQUIRES => {
     'Test::More' => 0,
@@ -54,7 +53,6 @@ sub postamble {
   return <<'MAKE_FRAG';
 all::
 	$(NOECHO) $(ECHO) "** Checking..."
-	$(NOECHO) if grep -q -e "^\s*\$$self->plugin(['|\"]Minion::Admin['|\"]);" lib/Gwsyn.pm ; then echo "\nWARNING! DEBUG MINION ADMIN PAGE in Gwsyn.pm IS NOT DISABLED!!!\n"; fi
 
 MAKE_FRAG
 }

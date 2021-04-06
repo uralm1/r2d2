@@ -5,7 +5,7 @@ use Mojo::Base 'Mojolicious::Plugin';
 
 sub register {
   my ($self, $app) = @_;
-  $app->minion->add_task(traffic_stat => sub {
+  $app->ljq->add_task(traffic_stat => sub {
     my $job = shift;
     $job->app->rlog('Started traffic_stat task '.$job->id." pid $$");
 

@@ -6,7 +6,7 @@ use Carp;
 
 sub register {
   my ($self, $app) = @_;
-  $app->minion->add_task(addreplace_client => sub {
+  $app->ljq->add_task(addreplace_client => sub {
     my ($job, $v) = @_;
     croak 'Bad job parameter' unless $v;
     my $app = $job->app;

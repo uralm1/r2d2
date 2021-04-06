@@ -2,14 +2,13 @@ package Dhcpsyn;
 use Mojo::Base 'Mojolicious';
 
 use Mojo::File qw(path);
-use Mojo::SQLite;
 use Dhcpsyn::Command::loadclients;
 use Dhcpsyn::Command::dumprules;
 
 #use Carp;
 use Sys::Hostname;
 
-our $VERSION = '2.56';
+our $VERSION = '2.57';
 
 # This method will run once at server start
 sub startup {
@@ -34,16 +33,7 @@ sub startup {
   # 1Mb max request
   $self->max_request_size(1048576);
 
-  my $mdb = Mojo::SQLite->new($config->{'minion_db_conn'});
-  $mdb->on(connection => sub {
-    my ($sql, $dbh) = @_;
-    $dbh->do('PRAGMA wal_autocheckpoint=250');
-  });
-  # don't cache connections on windows, it cause problems with threaded and sqlite
-  $mdb->max_connections(0);
-  $self->plugin(Minion => { SQLite => $mdb });
-  # FIXME DEBUG FIXME: open access to minion UI
-  ###$self->plugin('Minion::Admin');
+  $self->plugin(Ljq => { db => $config->{'worker_db_file'} });
 
   $self->plugin('Dhcpsyn::Plugin::Utils');
   $self->plugin('Dhcpsyn::Plugin::wdhcp_utils');
@@ -51,7 +41,7 @@ sub startup {
   $self->plugin('Dhcpsyn::Task::Loadclients');
   $self->plugin('Dhcpsyn::Task::Addreplaceclient');
   $self->plugin('Dhcpsyn::Task::Deleteclient');
-  $self->commands->namespaces(['Mojolicious::Command', 'Minion::Command', 'Dhcpsyn::Command']);
+  $self->commands->namespaces(['Mojolicious::Command', 'Ljq::Command', 'Dhcpsyn::Command']);
 
   $self->defaults(subsys => $self->moniker.'@'.hostname);
   $self->defaults(version => $VERSION);
@@ -77,7 +67,7 @@ sub startup {
         $app->rlog('Updating clients failed: execution subsystem error.', sync=>1);
         sleep(3);
       }
-      $app->minion->enqueue(load_clients => [] => {attempts => 5});
+      $app->ljq->enqueue(load_clients => [] => {attempts => 5});
     }
   });
 

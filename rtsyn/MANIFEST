@@ -23,7 +23,7 @@ README.md
 rtsyn.conf_empty
 script/rtsyn
 support/rtsyn
-support/rtsyn-minion
+support/rtsyn-worker
 t/01_get_subsys.t
 t/10_rt_delete.t
 t/11_rt_add_replace.t

@@ -10,7 +10,7 @@ sub runstat {
   }
 
   $self->rlog('Initiate traffic statistics collection');
-  $self->minion->enqueue('traffic_stat');
+  $self->ljq->enqueue('traffic_stat');
   return $self->rendered(200);
 }
 

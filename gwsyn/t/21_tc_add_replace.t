@@ -4,6 +4,7 @@ use Test::Mojo;
 use Test::More;
 use Test::Files;
 use Mojo::File qw(path);
+use lib '../ljq/lib';
 
 diag "need some files to test...";
 my $fh = undef;
@@ -27,6 +28,7 @@ my $make_test = sub {
   return Test::Mojo->new('Gwsyn', { tc_file => $tf->to_string, tc_path=>'/usr/sbin/tc',
     rlog_local=>1, rlog_remote=>0,
     my_profiles=>['gwtest1'],
+    worker_db_file=>'/tmp/test$$.dat',
   });
 };
 

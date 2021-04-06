@@ -44,25 +44,25 @@ fwsyn_cron_stop() {
 }
 
 
-fwsyn_minion_start() {
-  if pgrep -f "fwsyn minion worker" >/dev/null; then
-    echo "Fwsyn minion already started!"
+fwsyn_worker_start() {
+  if pgrep -f "fwsyn ljq worker" >/dev/null; then
+    echo "Fwsyn worker already started!"
     return
   fi
-  echo "Starting fwsyn minion worker..."
+  echo "Starting fwsyn worker..."
   cd $R2D2_PATH
-  nohup $FWSYN minion worker -j 1 >$R2D2_PATH/fwsyn-worker.log 2>&1 &
+  nohup $FWSYN ljq worker >$R2D2_PATH/fwsyn-worker.log 2>&1 &
 }
 
-fwsyn_minion_stop() {
-  echo "Stopping fwsyn minion worker..."
-  pkill -f "fwsyn minion worker"
+fwsyn_worker_stop() {
+  echo "Stopping fwsyn worker..."
+  pkill -f "fwsyn ljq worker"
 }
 
 
 case "$1" in
 'start')
-  fwsyn_minion_start
+  fwsyn_worker_start
   sleep 1
   fwsyn_start
   sleep 1
@@ -73,16 +73,16 @@ case "$1" in
   sleep 1
   fwsyn_cron_stop
   sleep 1
-  fwsyn_minion_stop
+  fwsyn_worker_stop
   ;;
 'restart')
-  fwsyn_minion_stop
+  fwsyn_worker_stop
   sleep 1
   fwsyn_stop
   sleep 1
   fwsyn_cron_stop
   sleep 2
-  fwsyn_minion_start
+  fwsyn_worker_start
   sleep 1
   fwsyn_start
   sleep 1
@@ -94,11 +94,11 @@ case "$1" in
 'stop_app')
   fwsyn_stop
   ;;
-'start_minion')
-  fwsyn_minion_start
+'start_worker')
+  fwsyn_worker_start
   ;;
-'stop_minion')
-  fwsyn_minion_stop
+'stop_worker')
+  fwsyn_worker_stop
   ;;
 'start_cron')
   fwsyn_cron_start
@@ -107,5 +107,5 @@ case "$1" in
   fwsyn_cron_stop
   ;;
 *)
-  echo "usage $0 start|stop|restart | start_*|stop_*, where *=app/minion/cron"
+  echo "usage $0 start|stop|restart | start_*|stop_*, where *=app/worker/cron"
 esac

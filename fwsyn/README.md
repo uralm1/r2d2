@@ -5,9 +5,6 @@
 Зависимости. Перед установкой проверьте утилитами установки `cpan`, `cpanm` и установите при необходимости
 следующие модули:
 * `Mojolicious`
-* `Minion`
-* `Mojo::SQLite`
-* `Minion::Backend::SQLite`
 * `IO::Socket::SSL`
 * `Cpanel::JSON::XS`
 * `EV` (only kernel 2.6+)

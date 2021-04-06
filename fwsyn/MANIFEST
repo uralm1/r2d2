@@ -30,7 +30,7 @@ README.md
 script/fwsyn
 support/fwsyn
 support/fwsyn-cron
-support/fwsyn-minion
+support/fwsyn-worker
 support/rc.fwsyn
 t/01_get_subsys.t
 t/15_fw_delete.t

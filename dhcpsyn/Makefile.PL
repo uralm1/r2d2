@@ -15,10 +15,9 @@ WriteMakefile(
     'Mojolicious' => '8.50',
     'Cpanel::JSON::XS' => '4.10',
     'IO::Socket::SSL' => '2.009',
-    'Minion' => '10.03',
-    'Minion::Backend::SQLite' => 0,
     'NetAddr::IP::Lite' => 0,
     'NetAddr::MAC' => 0,
+    'Ljq' => 0,
   },
   TEST_REQUIRES => {
     'Test::More' => 0,
@@ -56,7 +55,6 @@ WriteMakefile(
 #  return <<'MAKE_FRAG';
 #all::
 #	$(NOECHO) $(ECHO) "** Checking..."
-#	$(NOECHO) if grep -q -e "^\s*\$$self->plugin(['|\"]Minion::Admin['|\"]);" lib/Dhcpsyn.pm ; then echo "\nWARNING! DEBUG MINION ADMIN PAGE in Dhcpsyn.pm IS NOT DISABLED!!!\n"; fi
 #
 #MAKE_FRAG
 #}

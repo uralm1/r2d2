@@ -10,7 +10,7 @@ sub reload {
     return $self->render(text=>'Error reloading clients, execution impossible', status=>503);
   }
 
-  $self->minion->enqueue('load_clients');
+  $self->ljq->enqueue('load_clients');
   return $self->rendered(200);
 }
 

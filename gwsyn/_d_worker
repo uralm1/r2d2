@@ -1,4 +1,4 @@
 #!/bin/sh
 
 # worker runs from root
-sudo script/gwsyn minion worker -j 1
+sudo script/gwsyn ljq worker

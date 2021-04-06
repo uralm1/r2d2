@@ -15,11 +15,10 @@
 `mkdir c:\Utils\Dhcpsyn`.
 Скопируйте в каталог `c:\Utils\Dhcpsyn` файлы:
 * `Dhcpsyn-VERSION.tar.gz`
+* `ljq-VERSION.tar.gz`
 * `_i.cmd`
 * `_i_deps.cmd`
 * `_i_srv.cmd`
-* `Minion.patch`
-* `Minion-Jobs.patch`
 * `ca.pem` - сертификат ca из каталога cert
 * `servername-cert.pem` - сертификат сервера из каталога cert
 * `servername-key.pem` - ключ сервера из каталога cert
@@ -40,7 +39,7 @@
 
 7. Агент на данном этапе уже можно запускать вручную:
 * `script\dhcpsyn threaded` или `script\dhcpsyn daemon` - демон агента,
-* `script\dhcpsyn minion worker -j 1` - исполнительный демон.
+* `script\dhcpsyn ljq worker` - исполнительный демон.
 
 8. Установка сервисов. Загрузите с [nssm.cc](https://nssm.cc) дистрибутив nssm и извлеките подходящий
 исполняемый файл `nssm` в `c:\Utils\Dhcpsyn`. Отредактируйте файл `_i_srv.cmd`, укажите правильные имена

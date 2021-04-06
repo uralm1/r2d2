@@ -1,1 +1,1 @@
-@script/dhcpsyn minion worker -j 1
+@script/dhcpsyn ljq worker

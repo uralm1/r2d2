@@ -2,6 +2,7 @@ use Mojo::Base -strict;
 
 use Test::Mojo;
 use Test::More;
+use lib '../ljq/lib';
 use Data::Dumper;
 
 diag "prepare data...";
@@ -17,7 +18,10 @@ while (<DATA>) {
   push @$lref, $_ if $lref;
 }
 
-my $t = Test::Mojo->new('Dhcpsyn', { dhcpscope=>'10.0.0.0', my_profiles=>['plk']});
+my $t = Test::Mojo->new('Dhcpsyn', { dhcpscope=>'10.0.0.0',
+  my_profiles=>['plk'],
+  worker_db_file=>'/tmp/test$$.dat',
+});
 #say Dumper \%td;
 
 my @got;

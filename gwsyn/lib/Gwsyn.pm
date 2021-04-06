@@ -2,7 +2,6 @@ package Gwsyn;
 use Mojo::Base 'Mojolicious';
 
 use Mojo::File qw(path);
-use Mojo::SQLite;
 use Gwsyn::Command::loadclients;
 use Gwsyn::Command::dumpfiles;
 use Gwsyn::Command::dumprules;
@@ -12,7 +11,7 @@ use Gwsyn::Command::trafstat;
 #use Carp;
 use Sys::Hostname;
 
-our $VERSION = '2.57';
+our $VERSION = '2.58';
 
 # This method will run once at server start
 sub startup {
@@ -40,14 +39,7 @@ sub startup {
   # 1Mb max request
   $self->max_request_size(1048576);
 
-  my $mdb = Mojo::SQLite->new($config->{'minion_db_conn'});
-  $mdb->on(connection => sub {
-    my ($sql, $dbh) = @_;
-    $dbh->do('PRAGMA wal_autocheckpoint=250');
-  });
-  $self->plugin(Minion => { SQLite => $mdb });
-  # FIXME DEBUG FIXME: open access to minion UI
-  ###$self->plugin('Minion::Admin');
+  $self->plugin(Ljq => { db => $config->{'worker_db_file'} });
 
   $self->plugin('Gwsyn::Plugin::Utils');
   $self->plugin('Gwsyn::Plugin::dhcp_utils');
@@ -60,7 +52,7 @@ sub startup {
   $self->plugin('Gwsyn::Task::Deleteclient');
   $self->plugin('Gwsyn::Task::Blockclient');
   $self->plugin('Gwsyn::Task::Trafficstat');
-  $self->commands->namespaces(['Mojolicious::Command', 'Minion::Command', 'Gwsyn::Command']);
+  $self->commands->namespaces(['Mojolicious::Command', 'Ljq::Command', 'Gwsyn::Command']);
 
   $self->defaults(subsys => $self->moniker.'@'.hostname);
   $self->defaults(version => $VERSION);
@@ -89,7 +81,7 @@ sub startup {
         $app->rlog('Updating clients failed: execution subsystem error.', sync=>1);
         sleep(3);
       }
-      $app->minion->enqueue(load_clients => [] => {attempts => 5});
+      $app->ljq->enqueue(load_clients => [] => {attempts => 5});
     }
   });
 
