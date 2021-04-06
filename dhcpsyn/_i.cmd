@@ -26,7 +26,7 @@ cd ..
 rmdir /s /q dhcpsyn-%ver%
 
 cd ljq-%ver_ljq%
-perl Makefile.PL
+perl Makefile.PL PREFIX=%inst_dir% INSTALLPRIVLIB=%inst_dir%/lib INSTALLSITELIB=%inst_dir%/lib
 gmake
 gmake install
 cd ..

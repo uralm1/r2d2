@@ -27,7 +27,7 @@ nssm set DhcpsynWorker AppStderr %inst_dir%\DhcpsynWorker.log
 
 nssm install Dhcpsyn %perl_dir%\perl\bin\perl.exe
 nssm set Dhcpsyn AppDirectory %inst_dir%
-nssm set Dhcpsyn AppParameters script\dhcpsyn threaded -l "https://*:2274?cert=servername-cert.pem&key=servername-key.pem&ca=ca.pem&verify=0x03" -P threaded.pid
+nssm set Dhcpsyn AppParameters script\dhcpsyn threaded -l "https://*:2274?cert=servername-cert.pem&key=servername-key.pem&ca=ca.pem&verify=0x03" -P threaded.pid -w 2
 nssm set Dhcpsyn DisplayName Dhcpsyn
 nssm set Dhcpsyn Description R2D2 Dhcpsyn service
 nssm set Dhcpsyn Start SERVICE_AUTO_START
