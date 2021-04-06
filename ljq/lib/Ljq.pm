@@ -7,7 +7,7 @@ use Ljq::Worker;
 use Mojo::IOLoop;
 use Mojo::Server;
 use Time::HiRes qw(time usleep);
-use Data::Dumper;
+#use Data::Dumper;
 
 has app => sub { $_[0]{app_ref} = Mojo::Server->new->build_app('Mojo::HelloWorld') }, weak => 1;
 has backoff => sub { \&_backoff };
@@ -294,7 +294,7 @@ sub _list_jobs {
       and (not defined $options->{task} or $_->{task} eq $options->{task})
   ), values %{$guard->_jobs};
 
-  return [grep defined, @jobs[$offset .. ($offset + $limit - 1)]];
+  return [grep {defined} @jobs[$offset .. ($offset + $limit - 1)]];
 }
 
 sub _list_workers {

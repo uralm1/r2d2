@@ -23,10 +23,10 @@ sub run {
     'p|priority=i'  => \$options->{priority},
     'R|retry'       => \my $retry,
     'remove'        => \my $remove,
-    'S|state=s'     => sub { push @{$options->{states}}, $_[1] },
+    'S|state=s'     => sub { $options->{state} = $_[1] },
     's|stats'       => \my $stats,
     'T|tasks'       => \my $tasks,
-    't|task=s'      => sub { push @{$options->{tasks}}, $_[1] },
+    't|task=s'      => sub { $options->{task} = $_[1] },
     'w|workers'     => \my $workers;
 
   my $ljq = $self->app->ljq;
@@ -38,7 +38,7 @@ sub run {
   return $self->_stats if $stats;
 
   # List tasks
-  return print tablify [keys %{$ljq->tasks}] if $tasks;
+  return print tablify [map { [$_, 'Ljq::Job'] } keys %{$ljq->tasks}] if $tasks;
 
   # List jobs/workers
   my $id = @args ? shift @args : undef;

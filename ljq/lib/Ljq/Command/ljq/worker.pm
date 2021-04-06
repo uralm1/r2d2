@@ -3,7 +3,7 @@ use Mojo::Base 'Mojolicious::Command';
 
 use Mojo::Util qw(getopt);
 
-has description => 'Start Ljq Worker';
+has description => 'Start Worker';
 has usage => sub { shift->extract_usage };
 
 sub run {
@@ -14,7 +14,7 @@ sub run {
   getopt \@args,
     'D|dequeue-timeout=i'    => \$status->{dequeue_timeout},
     'I|heartbeat-interval=i' => \$status->{heartbeat_interval},
-    'R|repair-interval=i'    => \$status->{repair_interval},
+    'R|repair-interval=i'    => \$status->{repair_interval};
 
   my $log = $self->app->log;
   $log->info("Worker $$ started");
@@ -25,7 +25,7 @@ sub run {
 
 sub _spawn {
   my ($job, $pid)  = @_;
-  my ($id,  $task) = ($job->id, $job->task);
+  my ($id, $task) = ($job->id, $job->task);
   $job->app->log->debug(qq{Process $pid is performing job "$id" with task "$task"});
 }
 
