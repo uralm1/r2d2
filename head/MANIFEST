@@ -10,6 +10,7 @@ docker-compose.yml
 Dockerfile
 head.conf_empty
 lib/Head.pm
+lib/Head/Command/block.pm
 lib/Head/Command/checkdb.pm
 lib/Head/Command/checkdbdel.pm
 lib/Head/Command/connectivity.pm

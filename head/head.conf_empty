@@ -11,6 +11,9 @@
 
   checkdel_compat_file => '/tmp/compat_chk.dat',
 
+  # blocking / unblocking
+  block_schedule => '18,48 * * * *',
+
   # log truncation (weekly)
   logtruncate_schedule => '50 2 * * 7',
 
@@ -27,12 +30,12 @@
       agents => [
         { type => 'rtsyn', url => 'https://localhost:2275' },
         #{ type => 'dhcpsyn', url => 'https://localhost:2275' },
-        #{ type => 'fwsyn', url => 'https://localhost:2275' },
+        #{ type => 'fwsyn', url => 'https://localhost:2275', block => 1 },
       ],
     },
     'gwtest1' => {
       agents => [
-        { type => 'gwsyn', url => 'https://1.2.3.4:2275' },
+        { type => 'gwsyn', url => 'https://1.2.3.4:2275', block => 1 },
       ],
     },
     'atcsev' => {

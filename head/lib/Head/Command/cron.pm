@@ -21,11 +21,13 @@ sub run {
   $sch = {} if (!$sch || ref($sch) ne 'HASH');
   $sch->{checkdb} = $app->config('check_compat_schedule');
   $sch->{checkdbdel} = $app->config('checkdel_compat_schedule');
+  $sch->{block} = $app->config('block_schedule');
   $sch->{truncatelog} = $app->config('logtruncate_schedule');
 
   my $xxx = {
     checkdb => { name=>'checkdb', cmd=>['checkdb'] },
     checkdbdel => { name=>'checkdbdel', cmd=>['checkdbdel'] },
+    block => { name=>'block', cmd=>['block'] },
     truncatelog => { name=>'truncatelog', cmd=>['truncatelog'] },
     daily => { name=>'stat daily', cmd=>[statprocess => '--daily'] },
     monthly => { name=>'stat monthly', cmd=>[statprocess => '--monthly'] },

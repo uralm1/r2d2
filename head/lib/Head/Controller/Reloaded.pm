@@ -15,12 +15,14 @@ sub reloaded {
     my $j = $self->req->json;
     return $self->render(text=>'Bad json format', status=>503) unless $j;
     my $subsys = $j->{subsys};
-    # FIXME
     return $self->render(text=>'Bad body parameter', status=>503) unless $subsys;
 
-    #$self->render_later;
+    my $info = "Agent [$subsys] has finished complete reload.";
 
-    return $self->render(text=>"NOT IMPLEMENTED YET", status=>503);
+    $self->app->log->debug("$info") if $self->config('duplicate_rlogs');
+    $self->app->dblog->l(info => $info);
+
+    return $self->rendered(200);
 
   } else {
     return $self->render(text=>'Unsupported content', status=>503);

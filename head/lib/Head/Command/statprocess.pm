@@ -32,20 +32,17 @@ sub do_daily {
   $self->_startup($procstr);
 
   # archive traffic statistics
-  my $p = $app->mysql_inet->db->query_p("INSERT INTO adaily (client_id, login, date, d_in, d_out) \
+  my $r = eval { $app->mysql_inet->db->query("INSERT INTO adaily (client_id, login, date, d_in, d_out) \
 SELECT id, login, CURDATE(), sum_in, sum_out \
 FROM clients \
-ON DUPLICATE KEY UPDATE d_in = sum_in, d_out = sum_out");
-  $p->catch(sub {
-    my $err = shift;
+ON DUPLICATE KEY UPDATE d_in = sum_in, d_out = sum_out") };
+  unless ($r) {
     my $m = 'Daily archive SQL operation failed.';
-    $app->log->error($m." $err");
-    $app->dblog->error($m);
+    $app->log->error($m." $@");
+    $app->dblog->error($m, sync=>1);
+  }
 
-  })->finally(sub {
-    $self->_finish($procstr);
-
-  })->wait;
+  $self->_finish($procstr);
 }
 
 
@@ -58,46 +55,41 @@ sub do_monthly {
   my $db = $app->mysql_inet->db;
 
   # archive traffic statistics
-  my $p = $db->query_p("INSERT INTO amonthly (client_id, login, date, m_in, m_out) \
+  my $r = eval { $db->query("INSERT INTO amonthly (client_id, login, date, m_in, m_out) \
 SELECT id, login, CURDATE(), sum_in, sum_out \
 FROM clients \
-ON DUPLICATE KEY UPDATE m_in = sum_in, m_out = sum_out");
-  $p->catch(sub {
-    my $err = shift;
+ON DUPLICATE KEY UPDATE m_in = sum_in, m_out = sum_out") };
+  unless ($r) {
     my $m = 'Monthly archive SQL operation failed.';
-    $app->log->error($m." $err");
-    $app->dblog->error($m);
+    $app->log->error($m." $@");
+    $app->dblog->error($m, sync=>1);
+  }
 
-  })->then(sub {
-    # restore limits
-    my $m = 'Restoring quota limits.';
-    $app->log->info($m);
-    $app->dblog->info($m);
+  # restore limits
+  my $m = 'Restoring quota limits and notifications.';
+  $app->log->info($m);
+  $app->dblog->info($m, sync=>1);
 
-    return $db->query_p("UPDATE clients SET sum_limit_in = limit_in");
-  })->catch(sub {
-    my $err = shift;
-    my $m = 'Restoring quota limits failed.';
-    $app->log->error($m." $err");
-    $app->dblog->error($m);
+  $r = eval { $db->query("UPDATE clients SET sum_limit_in = limit_in, blocked = 0, notified = 0") };
+  unless ($r) {
+    $m = 'Restoring quota limits/notifications failed.';
+    $app->log->error($m." $@");
+    $app->dblog->error($m, sync=>1);
+  }
 
-  })->then(sub {
-    # reset notification flags
-    my $m = 'Resetting notification flags.';
-    $app->log->info($m);
-    $app->dblog->error($m);
+  # reset notification flags
+  $m = 'Resetting notification flags (oldcompat).';
+  $app->log->info($m);
+  $app->dblog->info($m, sync=>1);
 
-    return $db->query_p("UPDATE clients_sync SET email_notified = 0");
-  })->catch(sub {
-    my $err = shift;
-    my $m = 'Resetting notification flags failed.';
-    $app->log->error($m." $err");
-    $app->dblog->error($m);
+  $r = eval { $db->query("UPDATE clients_sync SET email_notified = 0") };
+  unless ($r) {
+    $m = 'Resetting notification flags failed.';
+    $app->log->error($m." $@");
+    $app->dblog->error($m, sync=>1);
+  }
 
-  })->finally(sub {
-    $self->_finish($procstr);
-
-  })->wait;
+  $self->_finish($procstr);
 }
 
 
@@ -108,17 +100,14 @@ sub do_yearly {
   $self->_startup($procstr);
 
   # reset traffic statistics
-  my $p = $app->mysql_inet->db->query_p("UPDATE clients SET sum_in = 0, sum_out = 0");
-  $p->catch(sub {
-    my $err = shift;
+  my $r = eval { $app->mysql_inet->db->query("UPDATE clients SET sum_in = 0, sum_out = 0") };
+  unless ($r) {
     my $m = 'Yearly archive SQL operation failed.';
-    $app->log->error($m." $err");
-    $app->dblog->error($m);
+    $app->log->error($m." $@");
+    $app->dblog->error($m, sync=>1);
+  }
 
-  })->finally(sub {
-    $self->_finish($procstr);
-
-  })->wait;
+  $self->_finish($procstr);
 }
 
 

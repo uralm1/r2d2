@@ -9,10 +9,11 @@ use Head::Command::checkdb;
 use Head::Command::checkdbdel;
 use Head::Command::runstat;
 use Head::Command::connectivity;
+use Head::Command::block;
 
 use Sys::Hostname;
 
-our $VERSION = '2.59';
+our $VERSION = '2.60';
 
 # This method will run once at server start
 sub startup {
