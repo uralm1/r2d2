@@ -16,7 +16,7 @@ has [qw(remove_after)] => 172800;
 has tasks => sub { {} };
 has 'file';
 
-our $VERSION = '1.0';
+our $VERSION = '1.1';
 
 sub add_task {
   my ($self, $name, $task) = @_;
@@ -335,7 +335,7 @@ sub _data { $_[0]{data} //= $_[0]->_load($_[0]{ljq}->file) }
 sub _id {
   my $self = shift;
   my $id;
-  do { $id = md5_hex(time . rand 999) } while $self->_workers->{$id};
+  do { $id = substr(md5_hex(time . rand 999), 0, 7) } while $self->_workers->{$id};
   return $id;
 }
 
@@ -350,7 +350,7 @@ sub _job_count { $_[0]->_data->{job_count} //= 0 }
 sub _job_id {
   my $self = shift;
   my $id;
-  do { $id = md5_hex(time . rand 999) } while $self->_jobs->{$id};
+  do { $id = substr(md5_hex(time . rand 999), 0, 7) } while $self->_jobs->{$id};
   ++$self->_data->{job_count};
   return $id;
 }
