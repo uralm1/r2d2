@@ -31,6 +31,10 @@ lib/Head/Plugin/Refresh_impl.pm
 lib/Head/Plugin/Utils.pm
 lib/Head/Ural/CompatChk.pm
 lib/Head/Ural/Dblog.pm
+lib/Head/Ural/NotifyClient.pm
+mail1.txt
+mail2.txt
+mail3.txt
 Makefile.PL
 MANIFEST			This list of files
 script/add_route
@@ -38,3 +42,4 @@ script/check_db_hosts
 script/head
 script/start_server
 t/01_get_subsys.t
+t/66_send_mail_notification.t

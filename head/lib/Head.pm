@@ -13,7 +13,7 @@ use Head::Command::block;
 
 use Sys::Hostname;
 
-our $VERSION = '2.60';
+our $VERSION = '2.61';
 
 # This method will run once at server start
 sub startup {
@@ -23,6 +23,7 @@ sub startup {
   my $config = $self->plugin('Config', { default => {
     secrets => ['6ac63578bb604df4865ae802de3098b80c082740'],
     delcheck_compat_file => 'compat_chk.dat',
+    mail_templates => {},
     duplicate_rlogs => 0,
   }});
   delete $self->defaults->{config}; # safety - not to pass passwords to stashes

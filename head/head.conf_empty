@@ -44,6 +44,15 @@
     },
   },
 
+  smtp_host => 'mail.testdomain',
+  mail_from => 'r2d2@testdomain',
+
+  mail_templates => {
+    1 => 'mail1.txt',
+    2 => 'mail2.txt',
+    3 => 'mail3.txt',
+  },
+
   # debug and testing
   #duplicate_rlogs => 0,
 }

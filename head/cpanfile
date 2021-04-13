@@ -5,6 +5,7 @@ requires 'IO::Socket::SSL', '2.009';
 requires 'Mojo::mysql', '1.04';
 requires 'Algorithm::Cron', '0.10';
 requires 'NetAddr::IP';
+requires 'Net::SMTP';
 requires 'ExtUtils::MakeMaker::CPANfile';
 
 on 'configure' => sub {
