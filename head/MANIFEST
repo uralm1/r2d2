@@ -5,6 +5,7 @@ _d_head
 _r_cmd
 _r_cron
 _r_head
+_r_minion
 cpanfile
 docker-compose.yml
 Dockerfile
@@ -29,6 +30,8 @@ lib/Head/Controller/Utils.pm
 lib/Head/Plugin/Migrations.pm
 lib/Head/Plugin/Refresh_impl.pm
 lib/Head/Plugin/Utils.pm
+lib/Head/Task/BlockClient.pm
+lib/Head/Task/NotifyClient.pm
 lib/Head/Ural/CompatChk.pm
 lib/Head/Ural/Dblog.pm
 lib/Head/Ural/NotifyClient.pm
@@ -43,3 +46,5 @@ script/head
 script/start_server
 t/01_get_subsys.t
 t/66_send_mail_notification.t
+t/67_retrive_login_limit.t
+t/68_retrive_ad_fullname_email.t

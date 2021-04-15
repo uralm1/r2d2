@@ -46,6 +46,7 @@ sub postamble {
   return <<'MAKE_FRAG';
 all::
 	$(NOECHO) $(ECHO) "** Checking..."
+	$(NOECHO) if grep -q -e "^\s*\$$self->plugin(['|\"]Minion::Admin['|\"]);" lib/Head.pm ; then echo "\nWARNING! DEBUG MINION ADMIN PAGE in Head.pm IS NOT DISABLED!!!\n"; fi
 
 MAKE_FRAG
 }

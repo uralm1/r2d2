@@ -1,0 +1,11 @@
+#!/bin/bash
+
+docker run -d --name r2d2-head-minion \
+  -v /srv/r2d2-head/head.conf:/opt/head/head.conf:ro \
+  -v /srv/r2d2-head/r2d2-head-cert.pem:/opt/head/r2d2-head-cert.pem:ro \
+  -v /srv/r2d2-head/r2d2-head-key.pem:/opt/head/r2d2-head-key.pem:ro \
+  -v /srv/r2d2-head/ca.pem:/opt/head/ca.pem:ro \
+  -e TZ=Asia/Yekaterinburg \
+  --cap-add NET_ADMIN \
+  --stop-signal SIGINT \
+  uralm1/r2d2-head sh -c "script/check_db_hosts && script/add_route && script/head minion worker -j 1"

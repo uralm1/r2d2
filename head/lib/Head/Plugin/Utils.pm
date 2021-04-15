@@ -25,6 +25,14 @@ sub register {
   $app->helper(del_compat_check => sub {
     state $del_compat_check = Head::Ural::CompatChk->load(shift);
   });
+
+
+  # my $bool = $self->check_workers
+  $app->helper(check_workers => sub {
+    my $self = shift;
+    my $stats = $self->minion->stats;
+    return ($stats->{active_workers} != 0 || $stats->{inactive_workers} != 0);
+  });
 }
 
 1;

@@ -15,17 +15,61 @@ sub blocked {
     my $j = $self->req->json;
     return $self->render(text=>'Bad json format', status=>503) unless $j;
     my $id = $j->{id};
+    my $qs = $j->{qs};
     my $subsys = $j->{subsys};
-    # FIXME
-    return $self->render(text=>'Bad body parameter', status=>503) unless($id and $subsys);
+    return $self->render(text=>'Bad body parameter', status=>503) unless($id and $subsys and defined $qs);
 
-    #$self->render_later;
+    $self->render_later;
 
-    return $self->render(text=>"NOT IMPLEMENTED YET", status=>503);
+    my $e = eval { $self->update_db_flags($profs, $id, $qs, $subsys) };
+    unless ($e) {
+      $self->log->error("Database start update failure $@");
+      return $self->render(text=>"Database start update failure", status=>503);
+    }
 
   } else {
     return $self->render(text=>'Unsupported content', status=>503);
   }
+}
+
+
+# $self->update_db_flags($profs, $id, $qs, $subsys)
+sub update_db_flags {
+  my ($self, $profs, $id, $qs, $subsys) = @_;
+  croak 'Bad arguments' unless ($profs and $id and $subsys and defined $qs);
+
+  my $db = $self->mysql_inet->db;
+  my $rule = '';
+  for (@$profs) {
+    if ($rule eq '') { # first
+      $rule = 'profile IN ('.$db->quote($_);
+    } else { # second etc
+      $rule .= ','.$db->quote($_);
+    }
+  }
+  $rule .= ') AND' if $rule ne '';
+  #$self->log->debug("WHERE rule: *$rule*");
+
+  # start database update that continue in callback
+  $db->query("UPDATE clients SET blocked = ? WHERE $rule id = ?", ($qs == 2 || $qs == 3) ? 1 : 0, $id
+    => sub {
+      my ($db, $err, $results) = @_;
+      if ($err) {
+        my $m = "Database blocked flag update failed for client id $id";
+        $self->log->error("$m: $err");
+        $self->dblog->error($m);
+        return $self->render(text=>"Database update failed", status=>503);
+      }
+
+      my $op = ($qs == 2 || $qs == 3) ? 'blocked' : 'unblocked';
+      if ($results->affected_rows > 0) {
+        $self->dblog->info("Client id $id $subsys $op successfully");
+      } else {
+        $self->dblog->info("Client id $id $subsys $op but nothing is updated");
+      }
+      $self->rendered(200);
+    }
+  );
 }
 
 

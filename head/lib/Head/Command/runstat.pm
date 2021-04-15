@@ -20,7 +20,7 @@ sub run {
     my $t = $agent->{type};
 
     # agents that support runstat
-    if ($t eq 'gwsyn' or $t eq 'fwsyn') {
+    if (grep(/^$t$/, @{$app->config('agent_types_stat')})) {
       $app->log->info("$p agent $t: Initiate traffic statistics collection.");
 
       $app->ua->post(Mojo::URL->new("$agent->{url}/runstat") =>

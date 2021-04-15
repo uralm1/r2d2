@@ -3,7 +3,6 @@ use Mojo::Base 'Mojolicious::Plugin';
 
 use Carp;
 use Mojo::URL;
-use Mojo::mysql;
 use Mojo::IOLoop;
 
 

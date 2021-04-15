@@ -3,5 +3,6 @@ Makefile
 .gitignore
 _b
 _r_cron
+_r_minion
 _r_head
 _d_head

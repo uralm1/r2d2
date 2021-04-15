@@ -3,9 +3,12 @@ requires 'EV';
 requires 'Cpanel::JSON::XS', '4.10';
 requires 'IO::Socket::SSL', '2.009';
 requires 'Mojo::mysql', '1.04';
+requires 'Minion', '9.03';
+requires 'Minion::Backend::mysql';
 requires 'Algorithm::Cron', '0.10';
 requires 'NetAddr::IP';
 requires 'Net::SMTP';
+requires 'Net::LDAP';
 requires 'ExtUtils::MakeMaker::CPANfile';
 
 on 'configure' => sub {

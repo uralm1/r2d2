@@ -23,6 +23,7 @@ sub startup {
   my $config = $self->plugin('Config', { default => {
     secrets => ['6ac63578bb604df4865ae802de3098b80c082740'],
     delcheck_compat_file => 'compat_chk.dat',
+    agent_types_stat => [],
     mail_templates => {},
     duplicate_rlogs => 0,
   }});
@@ -38,10 +39,16 @@ sub startup {
   # 1Mb max request
   $self->max_request_size(1048576);
 
+  $self->plugin(Minion => {mysql => $config->{minion_db_conn}});
+  # FIXME DEBUG FIXME: open access to minion UI
+  $self->plugin('Minion::Admin');
+
   $self->plugin('Head::Plugin::Utils');
   $self->plugin('Head::Plugin::Migrations');
   $self->plugin('Head::Plugin::Refresh_impl');
-  $self->commands->namespaces(['Mojolicious::Command', 'Head::Command']);
+  $self->plugin('Head::Task::BlockClient');
+  $self->plugin('Head::Task::NotifyClient');
+  $self->commands->namespaces(['Mojolicious::Command', 'Minion::Command', 'Head::Command']);
 
   my $subsys = $self->moniker.'@'.hostname;
   $self->defaults(subsys => $subsys);

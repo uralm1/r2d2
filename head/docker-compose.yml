@@ -21,6 +21,33 @@ services:
       - /srv/r2d2-head/ca.pem:/opt/head/ca.pem:ro
     environment:
       - TZ=Asia/Yekaterinburg
+    depends_on:
+      - head-worker
+    restart: unless-stopped
+
+  head-worker:
+    image: uralm1/r2d2-head
+    container_name: r2d2-head-minion
+    hostname: r2d2-head-minion
+    domainname: uwc.local
+    networks:
+      uwcnet:
+        ipv4_address: 10.14.72.8
+      default:
+    dns:
+      - 10.14.0.2
+      - 10.14.0.4
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - /srv/r2d2-head/head.conf:/opt/head/head.conf:ro
+      - /srv/r2d2-head/r2d2-head-cert.pem:/opt/head/r2d2-head-cert.pem:ro
+      - /srv/r2d2-head/r2d2-head-key.pem:/opt/head/r2d2-head-key.pem:ro
+      - /srv/r2d2-head/ca.pem:/opt/head/ca.pem:ro
+    environment:
+      - TZ=Asia/Yekaterinburg
+    command: sh -c "script/check_db_hosts && script/add_route && su -s /usr/bin/perl head script/head minion worker -j 1"
+    #command: sh -c "script/check_db_hosts && su -s /usr/bin/perl head script/head minion worker -j 1"
     restart: unless-stopped
 
   head-cron:
@@ -47,6 +74,7 @@ services:
     command: sh -c "script/check_db_hosts && script/add_route && su -s /usr/bin/perl head script/head cron"
     #command: sh -c "script/check_db_hosts && su -s /usr/bin/perl head script/head cron"
     depends_on:
+      - head-worker
       - head
     restart: unless-stopped
 

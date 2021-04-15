@@ -4,6 +4,7 @@
   ca => '../cert/ca.pem',
 
   inet_db_conn => 'mysql://user:pass@srv/inet',
+  minion_db_conn => 'mysql://user:pass@srv/inet_minion',
 
   # db check schedule
   check_compat_schedule => '*/2 * * * *',
@@ -25,6 +26,9 @@
     yearly => '5 0 1 1 *',
   },
 
+  # agents that support statistic collection
+  agent_types_stat => ['gwsyn', 'fwsyn'],
+
   profiles => {
     'plk' => {
       agents => [
@@ -43,6 +47,11 @@
       ],
     },
   },
+
+  ldap_servers => ['ldap://dcsrv1', 'ldap://dcsrv2'],
+  ldap_user => 'ldapuser',
+  ldap_pass => 'ldappass',
+  ldap_base => 'DC=contoso,DC=local',
 
   smtp_host => 'mail.testdomain',
   mail_from => 'r2d2@testdomain',
