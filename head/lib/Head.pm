@@ -48,6 +48,10 @@ sub startup {
   $self->plugin('Head::Plugin::Refresh_impl');
   $self->plugin('Head::Task::BlockClient');
   $self->plugin('Head::Task::NotifyClient');
+  $self->plugin('Head::Task::ProcDaily');
+  $self->plugin('Head::Task::ProcMonthly');
+  $self->plugin('Head::Task::ProcYearly');
+  $self->plugin('Head::Task::TruncateLog');
   $self->commands->namespaces(['Mojolicious::Command', 'Minion::Command', 'Head::Command']);
 
   my $subsys = $self->moniker.'@'.hostname;

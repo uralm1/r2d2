@@ -1,6 +1,7 @@
 package Head::Task::BlockClient;
 use Mojo::Base 'Mojolicious::Plugin';
 
+use Mojo::URL;
 use Carp;
 
 sub register {

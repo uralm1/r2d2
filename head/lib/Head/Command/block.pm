@@ -13,6 +13,8 @@ sub run {
 
   my $dbconn = $app->mysql_inet->db;
 
+  $app->log->error('Warning! Execution subsystem unavailable.') unless $app->check_workers;
+
   $app->log->info('Block clients - checking db');
   my $block_results = eval { $dbconn->query("SELECT id, qs, notified, profile FROM clients \
 WHERE blocked = 0 AND sum_limit_in <= 0 AND qs > 0") };
