@@ -14,7 +14,7 @@ fwsyn_start() {
   cd $R2D2_PATH
   sp=`/usr/bin/perl -MMojolicious::Plugin::Config -E 'my $c=Mojolicious::Plugin::Config->new->load("/etc/r2d2/fwsyn.conf");say "?cert=$c->{local_cert}&key=$c->{local_key}&ca=$c->{ca}&verify=0x03"'`
   export MOJO_LISTEN="https://*:2275$sp"
-  nohup $FWSYN prefork -P $FWSYN_PID >$R2D2_PATH/fwsyn.log 2>&1 &
+  nohup $FWSYN prefork -w 2 -P $FWSYN_PID >$R2D2_PATH/fwsyn.log 2>&1 &
 }
 
 fwsyn_stop() {

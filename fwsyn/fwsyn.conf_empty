@@ -24,6 +24,7 @@
   trafstat_schedule => '0,30 * * * *',
 
   iptables_wait => 3,
+  old_iptables_compatibility => 1,
 
   # debug and testing
   #iptables_simulation => 1,

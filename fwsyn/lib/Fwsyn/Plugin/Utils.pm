@@ -86,7 +86,7 @@ sub register {
     croak "Invalid argument" if @cmd < 1;
 
     my $w_opt = '';
-    if (my $w = $self->config('iptables_wait')) {
+    if (my $w = $self->config('iptables_wait') and !$self->config('old_iptables_compatibility')) {
       $w_opt = " --wait $w";
     }
 
