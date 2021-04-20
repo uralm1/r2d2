@@ -9,7 +9,7 @@ use Rtsyn::Command::dumprules;
 #use Carp;
 use Sys::Hostname;
 
-our $VERSION = '2.58';
+our $VERSION = '2.59';
 
 # This method will run once at server start
 sub startup {
@@ -32,8 +32,8 @@ sub startup {
 
   exit 1 unless $self->validate_config;
 
-  # 1Mb max request
-  $self->max_request_size(1048576);
+  # 5Mb max request
+  $self->max_request_size(5242880);
 
   $self->plugin(Ljq => { db => $config->{'worker_db_file'} });
 

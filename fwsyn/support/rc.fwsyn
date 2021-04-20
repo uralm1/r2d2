@@ -41,6 +41,8 @@ fwsyn_cron_start() {
 fwsyn_cron_stop() {
   echo "Stopping fwsyn cron..."
   pkill -f "fwsyn cron"
+  sleep 1
+  pkill -f "fwsyn cron"
 }
 
 

@@ -32,6 +32,10 @@ lib/Head/Plugin/Refresh_impl.pm
 lib/Head/Plugin/Utils.pm
 lib/Head/Task/BlockClient.pm
 lib/Head/Task/NotifyClient.pm
+lib/Head/Task/ProcDaily.pm
+lib/Head/Task/ProcMonthly.pm
+lib/Head/Task/ProcYearly.pm
+lib/Head/Task/TruncateLog.pm
 lib/Head/Ural/CompatChk.pm
 lib/Head/Ural/Dblog.pm
 lib/Head/Ural/NotifyClient.pm

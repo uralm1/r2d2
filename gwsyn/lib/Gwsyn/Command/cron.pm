@@ -18,11 +18,15 @@ sub run {
 
   my $traf_sch = $app->config('trafstat_schedule');
   if (!$traf_sch) {
-    $app->rlog('Config parameters trafstat_schedule is undefined or empty. Scheduler process will exit.');
+    my $m = 'Config parameters trafstat_schedule is undefined or empty. Scheduler process will exit.';
+    $app->rlog($m);
+    $app->log->info($m) unless $app->config('rlog_local');
     return 0;
   }
 
-  $app->rlog('Internal scheduler process started.');
+  my $m = 'Internal scheduler process started.';
+  $app->rlog($m);
+  $app->log->info($m) unless $app->config('rlog_local');
 
   # use Poll reactor to catch signals, or we have to call EV::Signal to install signals into EV
   Mojo::IOLoop->singleton->reactor(Mojo::Reactor::Poll->new);
@@ -34,7 +38,9 @@ sub run {
   });
 
   Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
-  $app->rlog('Internal scheduler finished.');
+  $m = 'Internal scheduler finished.';
+  $app->rlog($m);
+  $app->log->info($m) unless $app->config('rlog_local');
 }
 
 sub _cron() {

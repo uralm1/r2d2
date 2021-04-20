@@ -32,7 +32,7 @@ services:
     domainname: uwc.local
     networks:
       uwcnet:
-        ipv4_address: 10.14.72.8
+        ipv4_address: 10.14.72.7
       default:
     dns:
       - 10.14.0.2
@@ -46,8 +46,8 @@ services:
       - /srv/r2d2-head/ca.pem:/opt/head/ca.pem:ro
     environment:
       - TZ=Asia/Yekaterinburg
-    command: sh -c "script/check_db_hosts && script/add_route && su -s /usr/bin/perl head script/head minion worker -j 1"
-    #command: sh -c "script/check_db_hosts && su -s /usr/bin/perl head script/head minion worker -j 1"
+    command: sh -c "script/check_db_hosts && script/add_route && su-exec head:head /usr/bin/perl script/head minion worker -j 1"
+    #command: sh -c "script/check_db_hosts && su-exec head:head /usr/bin/perl script/head minion worker -j 1"
     restart: unless-stopped
 
   head-cron:
@@ -71,8 +71,8 @@ services:
       - /srv/r2d2-head/ca.pem:/opt/head/ca.pem:ro
     environment:
       - TZ=Asia/Yekaterinburg
-    command: sh -c "script/check_db_hosts && script/add_route && su -s /usr/bin/perl head script/head cron"
-    #command: sh -c "script/check_db_hosts && su -s /usr/bin/perl head script/head cron"
+    command: sh -c "script/check_db_hosts && script/add_route && su-exec head:head /usr/bin/perl script/head cron"
+    #command: sh -c "script/check_db_hosts && su-exec head:head /usr/bin/perl script/head cron"
     depends_on:
       - head-worker
       - head

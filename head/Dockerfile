@@ -4,7 +4,7 @@ COPY cpanfile /src/
 #ENV EV_EXTRA_DEFS -DEV_NO_ATFORK
 
 RUN apk update && \
-  apk add --no-cache perl perl-io-socket-ssl perl-dev g++ make wget curl mariadb-connector-c mariadb-connector-c-dev shadow tzdata mc && \
+  apk add --no-cache perl perl-io-socket-ssl perl-dev g++ make wget curl mariadb-connector-c mariadb-connector-c-dev shadow tzdata su-exec mc && \
 # install perl dependences
   curl -L https://cpanmin.us | perl - App::cpanminus && \
   cd /src && \
@@ -41,4 +41,4 @@ ENV TZ Asia/Yekaterinburg
 EXPOSE 2271
 
 #CMD ["sh", "-c", "script/check_db_hosts && script/start_server"]
-CMD ["sh", "-c", "script/check_db_hosts && script/add_route && su -s /usr/bin/perl head script/start_server"]
+CMD ["sh", "-c", "script/check_db_hosts && script/add_route && su-exec head:head /usr/bin/perl script/start_server"]
