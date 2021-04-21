@@ -7,7 +7,7 @@ use Carp;
 sub register {
   my ($self, $app) = @_;
   $app->minion->add_task(block_client => sub {
-    my ($job, $id, $qs, $profile, $notify) = @_;
+    my ($job, $id, $qs, $profile) = @_;
     croak 'Bad job parameters' unless $id && defined $qs && $profile;
 
     my $app = $job->app;
@@ -37,8 +37,6 @@ sub register {
             my $m = "Client id $id block/unblock request successfully received by agent [$agent_url]".($r->body ? ': '.$r->body : '');
             $app->log->info($m);
             $app->dblog->info($m, sync=>1);
-            # notify client if needed
-            $app->minion->enqueue(notify_client => [$id, $qs]) if $notify;
 
           } else {
             # request error 503

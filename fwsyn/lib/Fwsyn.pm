@@ -71,7 +71,7 @@ sub startup {
     path($self->config($_))->dirname->make_path for qw/firewall_file tc_file/;
 
     # log startup
-    $app->rlog("FWSYN agent daemon ($VERSION) starting.", sync=>1);
+    $app->rlog("* FWSYN agent daemon ($VERSION) starting.", sync=>1);
 
     # load clients data on startup
     unless ($config->{disable_autoload}) {

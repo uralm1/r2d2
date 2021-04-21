@@ -13,7 +13,7 @@ use Head::Command::block;
 
 use Sys::Hostname;
 
-our $VERSION = '2.62';
+our $VERSION = '2.63';
 
 # This method will run once at server start
 sub startup {
@@ -41,7 +41,7 @@ sub startup {
 
   $self->plugin(Minion => {mysql => $config->{minion_db_conn}});
   # FIXME DEBUG FIXME: open access to minion UI
-  $self->plugin('Minion::Admin');
+  ##$self->plugin('Minion::Admin');
 
   $self->plugin('Head::Plugin::Utils');
   $self->plugin('Head::Plugin::Migrations');
@@ -73,7 +73,7 @@ sub startup {
     my ($server, $app) = @_;
 
     # log startup
-    $app->dblog->l(info=>"Head of R2D2 ($VERSION) starting.", sync=>1);
+    $app->dblog->l(info=>"* Head of R2D2 ($VERSION) starting.", sync=>1);
   });
 
   # Router

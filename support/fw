@@ -21,7 +21,7 @@ iptables -t nat -A postrouting_wan_rule -o $UFANET_INTERFACE -s $IP_R2D2HEADMINI
 #
 ip_r2d2head=10.14.72.5
 ip_r2d2headcron=10.14.72.6
-ip_r2d2headminion=10.14.72.6
+ip_r2d2headminion=10.14.72.7
 # r2d2 head
 $ipt -N pipe_in_r2d2head
 $ipt -N pipe_out_r2d2head

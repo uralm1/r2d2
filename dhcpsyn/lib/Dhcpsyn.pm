@@ -58,7 +58,7 @@ sub startup {
     my ($server, $app) = @_;
 
     # log startup
-    $app->rlog("DHCPSYN agent daemon ($VERSION) starting.", sync=>1);
+    $app->rlog("* DHCPSYN agent daemon ($VERSION) starting.", sync=>1);
 
     # load rules on startup
     unless ($config->{disable_autoload}) {

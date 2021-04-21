@@ -50,5 +50,5 @@ script/head
 script/start_server
 t/01_get_subsys.t
 t/66_send_mail_notification.t
-t/67_retrive_login_limit.t
+t/67_retrive_login_db_attr.t
 t/68_retrive_ad_fullname_email.t

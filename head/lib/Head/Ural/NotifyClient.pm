@@ -11,7 +11,7 @@ use Encode;
 use Carp;
 
 use Exporter qw(import);
-our @EXPORT_OK = qw(send_mail_notification retrive_login_limit retrive_ad_fullname_email);
+our @EXPORT_OK = qw(send_mail_notification retrive_login_db_attr retrive_ad_fullname_email);
 
 
 # send_mail_notification($app, $user_email, $user_fullname, $user_qs, $user_limit_mb)
@@ -70,25 +70,27 @@ sub send_mail_notification {
 }
 
 
-# $str = retrive_login_limit($app, $id)
-# $str = { login => 'login', limit_in_mb => 12345 }
+# $str = retrive_login_db_attr($app, $id)
+# $str = { login => 'login', limit_in_mb => 12345, qs => 1, notified => 0 }
 # die with error message on errors
-sub retrive_login_limit {
+sub retrive_login_db_attr {
   my ($app, $id) = @_;
 
   my $str = undef;
   my $e = eval {
-    my $results = $app->mysql_inet->db->query("SELECT login, limit_in FROM clients WHERE id = ?", $id);
+    my $results = $app->mysql_inet->db->query("SELECT login, limit_in, qs, notified FROM clients WHERE id = ?", $id);
     if (my $n = $results->hash) {
       $str->{login} = $n->{login};
       $str->{limit_in_mb} = _btomb($n->{limit_in});
+      $str->{qs} = $n->{qs};
+      $str->{notified} = $n->{notified};
     }
     $results->finish;
     1;
   };
 
   die "Database error: $@" unless defined $e;
-  croak "User is not found" unless $str;
+  croak "User id is not found" unless $str;
 
   return $str;
 }

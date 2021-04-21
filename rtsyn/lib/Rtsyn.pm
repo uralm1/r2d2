@@ -63,7 +63,7 @@ sub startup {
     path($self->config($_))->dirname->make_path for qw/firewall_file/;
 
     # log startup
-    $app->rlog("RTSYN agent daemon ($VERSION) starting.", sync=>1);
+    $app->rlog("* RTSYN agent daemon ($VERSION) starting.", sync=>1);
 
     # load rules on startup
     unless ($config->{disable_autoload}) {

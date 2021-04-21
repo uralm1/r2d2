@@ -16,7 +16,7 @@ sub run {
   $app->log->error('Warning! Execution subsystem unavailable.') unless $app->check_workers;
 
   $app->log->info('Block clients - checking db');
-  my $block_results = eval { $dbconn->query("SELECT id, qs, notified, profile FROM clients \
+  my $block_results = eval { $dbconn->query("SELECT id, qs, email_notify, notified, profile FROM clients \
 WHERE blocked = 0 AND sum_limit_in <= 0 AND qs > 0") };
   unless ($block_results) {
     $app->log->error("Block: database operation error: $@");
@@ -26,13 +26,17 @@ WHERE blocked = 0 AND sum_limit_in <= 0 AND qs > 0") };
       my $qs = $n->{qs};
       if ($qs == 1) {
         # warn(1) client
-        $app->log->debug("Client to notify: $id, qs: $qs, $n->{profile}");
-        $app->minion->enqueue(notify_client => [$id, $qs]) unless $n->{notified};
+        if ($n->{email_notify}) {
+          $app->log->debug("Client to notify: $id, qs: $qs, $n->{profile}");
+          $app->minion->enqueue(notify_client => [$id]) unless $n->{notified};
+        } else {
+          $app->log->debug("Already notified: $id, qs: $qs, $n->{profile}");
+        }
 
       } elsif ($qs == 2 || $qs == 3) {
         # limit(2) or block(3) client
         $app->log->debug("Client to block: $id, qs: $qs, $n->{profile}");
-        $app->minion->enqueue(block_client => [$id, $qs, $n->{profile}, $n->{notified} ? 0 : 1]);
+        $app->minion->enqueue(block_client => [$id, $qs, $n->{profile}]);
 
       } else {
         $app->log->error("Unsupported qs $qs for client id $id.");
@@ -48,7 +52,7 @@ WHERE blocked = 1 AND (sum_limit_in > 0 OR qs = 0 OR qs = 1)") };
   } else {
     while (my $n = $unblock_results->hash) {
       $app->log->debug("Client to unblock: $n->{id}, $n->{profile}");
-      # unblock, don't notify
+      # unblock
       $app->minion->enqueue(block_client => [$n->{id}, 0, $n->{profile}]);
     } # loop by clients
   }
