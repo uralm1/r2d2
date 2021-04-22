@@ -55,13 +55,7 @@
 
   smtp_host => 'mail.testdomain',
   mail_from => 'r2d2@testdomain',
-
-  mail_templates => {
-    #0 => 'mail0.txt',
-    1 => 'mail1.txt',
-    2 => 'mail2.txt',
-    3 => 'mail3.txt',
-  },
+  mail_from_name => 'R2D2 system',
 
   # debug and testing
   #duplicate_rlogs => 0,

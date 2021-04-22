@@ -29,8 +29,6 @@ WHERE blocked = 0 AND sum_limit_in <= 0 AND qs > 0") };
         if ($n->{email_notify}) {
           $app->log->debug("Client to notify: $id, qs: $qs, $n->{profile}");
           $app->minion->enqueue(notify_client => [$id]) unless $n->{notified};
-        } else {
-          $app->log->debug("Already notified: $id, qs: $qs, $n->{profile}");
         }
 
       } elsif ($qs == 2 || $qs == 3) {

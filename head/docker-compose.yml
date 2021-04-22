@@ -44,6 +44,8 @@ services:
       - /srv/r2d2-head/r2d2-head-cert.pem:/opt/head/r2d2-head-cert.pem:ro
       - /srv/r2d2-head/r2d2-head-key.pem:/opt/head/r2d2-head-key.pem:ro
       - /srv/r2d2-head/ca.pem:/opt/head/ca.pem:ro
+      # to change mail templates, replace default mail_templates.pm file
+      # - /srv/r2d2-head/mail_templates.pm:/opt/head/lib/mail_templates.pm:ro
     environment:
       - TZ=Asia/Yekaterinburg
     command: sh -c "script/check_db_hosts && script/add_route && su-exec head:head /usr/bin/perl script/head minion worker -j 1"

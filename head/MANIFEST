@@ -39,9 +39,7 @@ lib/Head/Task/TruncateLog.pm
 lib/Head/Ural/CompatChk.pm
 lib/Head/Ural/Dblog.pm
 lib/Head/Ural/NotifyClient.pm
-mail1.txt
-mail2.txt
-mail3.txt
+lib/mail_templates.pm
 Makefile.PL
 MANIFEST			This list of files
 script/add_route

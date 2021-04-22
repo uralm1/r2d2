@@ -1,14 +1,15 @@
 package Head::Ural::NotifyClient;
 use Mojo::Base -base;
 
-use Mojo::File qw(path);
 use Mojo::mysql;
+use Mojo::Loader qw(data_section load_class);
 use Net::SMTP;
 use Net::Domain qw(hostfqdn);
 use Net::LDAP qw(LDAP_SUCCESS LDAP_NO_SUCH_OBJECT);
 use Net::LDAP::Util qw(escape_filter_value);
 use Encode;
 use Carp;
+#use Data::Dumper;
 
 use Exporter qw(import);
 our @EXPORT_OK = qw(send_mail_notification retrive_login_db_attr retrive_ad_fullname_email);
@@ -19,41 +20,30 @@ sub send_mail_notification {
   my ($app, $to, $fullname, $qs, $limit_mb) = @_;
   $limit_mb //= '---';
 
-  my $_file = $app->config('mail_templates')->{$qs} or
-    die 'Mail template error. Unsupported quota mode.';
-  # read and fill mail template
-  my $templ = path($_file);
-  my $fh = eval { $templ->open('<:encoding(UTF-8)'); } or
-    die "Mail error. Can't open mail template file: $!";
+  my $mail_from = $app->config('mail_from');
+  my $mf_name = $app->config('mail_from_name');
 
-  my @content;
-  while (<$fh>) {
-    #$_ = decode_utf8($_);
-    my $s = '';
-    while (/%%([A-Za-z0-9_-]+)%%/) {
-      $s = $`;
-      if ($1 eq 'USERNAME') {
-        $s .= $fullname;
-      } elsif ($1 eq 'USEREMAIL') {
-        $s .= $to;
-      } elsif ($1 eq 'USERLIMIT') {
-        $s .= $limit_mb;
-      } else {
-        $s .= $&;
-        warn "Mail warning. Unknown template $& in template file.";
-      }
-      $_ = $';
-    }
-    push @content, encode_utf8($s . $_);
-  }
+  load_class 'mail_templates';
+  my $template = data_section 'mail_templates', "mail$qs";
+  die "Mail error. Can't retrieve mail template" unless $template;
+  $template = decode_utf8($template);
 
-  $fh->close or die "Mail error. Can't close mail template file: $!";
+  # fill mail template
+  my %repl = (
+    MAILFROM => $mf_name ? '"'.encode('MIME-Header', $mf_name)."\" <$mail_from>" : $mail_from,
+    USERNAME => $fullname,
+    USEREMAIL => $to,
+    USERLIMIT => $limit_mb,
+  );
+  $template =~ s/%%$_%%/$repl{$_}/g for (keys %repl);
+
+  my @content = map { encode_utf8($_) } split /^/, $template;
 
   # send mail
   my $smtp = Net::SMTP->new($app->config('smtp_host'), Hello => hostfqdn() // 'r2d2.domainname', Timeout => 10, Debug => 0) or
     die 'Mail error. Create smtp object failed.';
 
-  unless ($smtp->mail($app->config('mail_from'))) {
+  unless ($smtp->mail($mail_from)) {
     $smtp->quit;
     die 'Mail error. Mail command failed.';
   }
