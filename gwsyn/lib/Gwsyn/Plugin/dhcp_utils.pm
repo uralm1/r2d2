@@ -159,12 +159,12 @@ sub register {
          last;
        }
     }
-    die 'Dnsmasq pidfile is not found!' unless $pidfile;
+    die "Dnsmasq pidfile is not found!\n" unless $pidfile;
     chomp(my $pid = $pidfile->slurp);
-    die 'Dnsmasq pid is invalid!' unless $pid =~ /^\d+$/;
+    die "Dnsmasq pid is invalid!\n" unless $pid =~ /^\d+$/;
 
     #say "Dnsmasq PID: ".$pid;
-    die "error sending hup signal to pid $pid!" if kill('HUP', $pid) != 1;
+    die "error sending hup signal to pid $pid!\n" if kill('HUP', $pid) != 1;
     return 1;
   });
 

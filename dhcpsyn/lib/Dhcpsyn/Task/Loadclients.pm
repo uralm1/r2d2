@@ -11,6 +11,7 @@ sub register {
     $job->app->rlog('Started load_clients task '.$job->id." pid $$");
 
     unless (eval { $job->app->load_clients }) {
+      chomp $@;
       $job->app->rlog('Failed load_clients task '.$job->id.": $@");
       $job->fail;
       return 1;

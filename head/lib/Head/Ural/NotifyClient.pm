@@ -16,6 +16,7 @@ our @EXPORT_OK = qw(send_mail_notification retrive_login_db_attr retrive_ad_full
 
 
 # send_mail_notification($app, $user_email, $user_fullname, $user_qs, $user_limit_mb)
+# die with error message on errors
 sub send_mail_notification {
   my ($app, $to, $fullname, $qs, $limit_mb) = @_;
   $limit_mb //= '---';
@@ -25,7 +26,7 @@ sub send_mail_notification {
 
   load_class 'mail_templates';
   my $template = data_section 'mail_templates', "mail$qs";
-  die "Mail error. Can't retrieve mail template" unless $template;
+  die "Mail error. Can't retrieve mail template\n" unless $template;
   $template = decode_utf8($template);
 
   # fill mail template
@@ -41,19 +42,19 @@ sub send_mail_notification {
 
   # send mail
   my $smtp = Net::SMTP->new($app->config('smtp_host'), Hello => hostfqdn() // 'r2d2.domainname', Timeout => 10, Debug => 0) or
-    die 'Mail error. Create smtp object failed.';
+    die 'Mail error. Create smtp object failed';
 
   unless ($smtp->mail($mail_from)) {
     $smtp->quit;
-    die 'Mail error. Mail command failed.';
+    die "Mail error. Mail command failed\n";
   }
   unless ($smtp->to($to)) {
     $smtp->quit;
-    die 'Mail error. Rcpt command failed.';
+    die "Mail error. Rcpt command failed\n";
   }
   unless ($smtp->data(@content)) {
     $smtp->quit;
-    die 'Mail error. Data command failed.';
+    die "Mail error. Data command failed\n";
   }
   $smtp->quit;
   return 1;
@@ -80,7 +81,7 @@ sub retrive_login_db_attr {
   };
 
   die "Database error: $@" unless defined $e;
-  croak "User id is not found" unless $str;
+  croak "Client id is not found in database\n" unless $str;
 
   return $str;
 }
@@ -94,12 +95,12 @@ sub retrive_ad_fullname_email {
 
   my $ldap = Net::LDAP->new($app->config('ldap_servers'), port => 389, timeout => 5, version => 3);
   unless ($ldap) {
-    die "LDAP connection error. Create object failed.";
+    die "LDAP connection error. Create object failed.\n";
   }
 
   my $mesg = $ldap->bind($app->config('ldap_user'), password => $app->config('ldap_pass'));
   if ($mesg->code) {
-    die "LDAP bind error: ".$mesg->error;
+    die "LDAP bind error: ".$mesg->error."\n";
   }
 
   my $flogin = escape_filter_value $login;
@@ -109,7 +110,7 @@ sub retrive_ad_fullname_email {
     attrs => ['cn', 'sn', 'givenname', 'mail']
   );
   if ($mesg->code && $mesg->code != LDAP_NO_SUCH_OBJECT) {
-    die "LDAP search error: ".$mesg->error;
+    die "LDAP search error: ".$mesg->error."\n";
   }
 
   my $str;
@@ -127,7 +128,7 @@ sub retrive_ad_fullname_email {
     }
   } else {
     $ldap->unbind;
-    croak "No data from active directory";
+    croak "No data from active directory\n";
   }
 
   $ldap->unbind;

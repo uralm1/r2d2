@@ -10,6 +10,7 @@ sub register {
     $job->app->rlog('Started traffic_stat task '.$job->id." pid $$");
 
     unless (eval { $job->app->traffic_stat }) {
+      chomp $@;
       $job->app->rlog("Traffic statistics collection failed: $@");
       #$job->fail; # do not fail this job
       #return 1;

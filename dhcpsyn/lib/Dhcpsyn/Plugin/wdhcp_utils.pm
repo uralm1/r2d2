@@ -69,7 +69,7 @@ sub register {
     }
 
     my $m = $self->dhcp_matang->{win_dhcp};
-    croak "Matang win_dhcp matanga!" unless $m;
+    die "Matang win_dhcp matanga!" unless $m;
 
     my $failure = undef;
 
@@ -126,7 +126,7 @@ sub register {
 
     } # loop by dhcpservers
 
-    die $failure if $failure;
+    die "$failure\n" if $failure;
 
     return 1;
   });
@@ -140,7 +140,7 @@ sub register {
     croak 'Bad argument' unless defined $id;
 
     my $m = $self->dhcp_matang->{win_dhcp};
-    croak "Matang win_dhcp matanga!" unless $m;
+    die "Matang win_dhcp matanga!" unless $m;
 
     my $failure = undef;
     my $ret = 0;
@@ -167,7 +167,7 @@ sub register {
 
     } # loop by dhcpservers
 
-    die $failure if $failure;
+    die "$failure\n" if $failure;
 
     return $ret;
   });

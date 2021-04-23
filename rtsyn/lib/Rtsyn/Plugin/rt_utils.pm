@@ -62,13 +62,13 @@ sub register {
     croak 'Bad argument' unless $v;
 
     my $m = $self->rt_matang->{m_out};
-    croak "Matang m_out matanga!" unless $m;
+    die "Matang m_out matanga!" unless $m;
 
     my $ff = 0;
     my $failure = undef;
 
     my $dump = $m->{dump_sub}();
-    die "Error dumping rules $m->{chain} in $m->{table} table!" unless $dump;
+    die "Error dumping rules $m->{chain} in $m->{table} table!\n" unless $dump;
 
     for (my $i = 2; $i < @$dump; $i++) { # skip first 2 lines
       if ($dump->[$i] =~ $m->{re1}($v->{id})) {
@@ -100,7 +100,7 @@ sub register {
       }
     }
 
-    die $failure if $failure;
+    die "$failure\n" if $failure;
 
     # successfully replaced
     return 1;
@@ -115,12 +115,12 @@ sub register {
     croak 'Bad argument' unless defined $id;
 
     my $m = $self->rt_matang->{m_out};
-    croak "Matang m_out matanga!" unless $m;
+    die "Matang m_out matanga!" unless $m;
     my $ret = 0;
     my $failure = undef;
 
     my $dump = $m->{dump_sub}();
-    die "Error dumping rules $m->{chain} in $m->{table} table!" unless $dump;
+    die "Error dumping rules $m->{chain} in $m->{table} table!\n" unless $dump;
 
     for (my $i = 2; $i < @$dump; $i++) { # skip first 2 lines
       if ($dump->[$i] =~ $m->{re1}($id)) {
@@ -138,7 +138,7 @@ sub register {
       } # if regex
     } # for dump
 
-    die $failure if $failure;
+    die "$failure\n" if $failure;
 
     return $ret;
   });
@@ -286,7 +286,7 @@ sub register {
     if (!$self->system(iptables_restore => "--noflush < $rulefile")) {
       return 1; # success
     } else {
-      die "iptables_restore error";
+      die "iptables_restore error\n";
     }
   });
 

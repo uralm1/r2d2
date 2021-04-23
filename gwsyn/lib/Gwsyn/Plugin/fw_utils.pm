@@ -160,12 +160,12 @@ sub register {
     my @added_check;
     for my $n (qw/f_in f_out m_in m_out/) {
       my $m = $matang->{$n};
-      croak "Matang $n matanga!" unless $m;
+      die "Matang $n matanga!" unless $m;
 
       my $ff = 0;
 
       my $dump = $m->{dump_sub}();
-      die "Error dumping rules $m->{chain} in $m->{table} table!" unless $dump;
+      die "Error dumping rules $m->{chain} in $m->{table} table!\n" unless $dump;
 
       for (my $i = 2; $i < @$dump; $i++) { # skip first 2 lines
         if ($dump->[$i] =~ $m->{re1}($v->{id})) {
@@ -210,7 +210,7 @@ sub register {
 
     } # for filter in/out, mangle in/out
 
-    die $failure if $failure;
+    die "$failure\n" if $failure;
 
     if (@added_check && @added_check < 4) {
       $self->rlog('Added only '.join('/', @added_check).' tables/chains. This is not normal, just warn you.');
@@ -236,10 +236,10 @@ sub register {
     my @found_check;
     for my $n (qw/f_in f_out m_in m_out/) {
       my $m = $matang->{$n};
-      croak "Matang $n matanga!" unless $m;
+      die "Matang $n matanga!" unless $m;
 
       my $dump = $m->{dump_sub}();
-      die "Error dumping rules $m->{chain} in $m->{table} table!" unless $dump;
+      die "Error dumping rules $m->{chain} in $m->{table} table!\n" unless $dump;
 
       for (my $i = 2; $i < @$dump; $i++) { # skip first 2 lines
         if ($dump->[$i] =~ $m->{re1}($id)) {
@@ -259,7 +259,7 @@ sub register {
       } # for dump
     } # for filter in/out, mangle in/out
 
-    die $failure if $failure;
+    die "$failure\n" if $failure;
 
     if ($ret && @found_check < 4) {
       $self->rlog('Deleted in only '.join('/', @found_check).' tables/chains. This is not normal, just warn you.');
@@ -283,10 +283,10 @@ sub register {
     my @found_check;
     for my $n (qw/m_in m_out/) {
       my $m = $matang->{$n};
-      croak "Matang $n matanga!" unless $m;
+      die "Matang $n matanga!" unless $m;
 
       my $dump = $m->{dump_sub}();
-      die "Error dumping rules $m->{chain} in $m->{table} table!" unless $dump;
+      die "Error dumping rules $m->{chain} in $m->{table} table!\n" unless $dump;
 
       for (my $i = 2; $i < @$dump; $i++) { # skip first 2 lines
         if ($dump->[$i] =~ $m->{re1}($id)) {
@@ -307,7 +307,7 @@ sub register {
       } # for dump
     } # for mangle in/out
 
-    die $failure if $failure;
+    die "$failure\n" if $failure;
 
     if ($ret && @found_check < 2) {
       $self->rlog('(Un)Blocked in only '.join('/', @found_check).' tables/chains. This is not normal, just warn you.');
@@ -707,7 +707,7 @@ sub register {
     if (!$self->system(iptables_restore => "--noflush < $rulefile")) {
       return 1; # success
     } else {
-      die "iptables_restore error";
+      die "iptables_restore error\n";
     }
   });
 

@@ -17,9 +17,12 @@ sub register {
     # reset traffic statistics
     my $r = eval { $app->mysql_inet->db->query("UPDATE clients SET sum_in = 0, sum_out = 0") };
     unless ($r) {
-      $m = 'Yearly archive SQL operation failed';
+      $m = 'YEARLY archive SQL operation failed. Task stopped.';
       $app->log->error($m.": $@");
       $app->dblog->error($m, sync=>1);
+
+      $job->fail;
+      return;
     }
 
     $m = 'YEARLY processing finished';

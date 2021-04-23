@@ -15,6 +15,7 @@ sub register {
     #$app->dblog->info("notify_client id=$id task is called!", sync=>1);
     my $str = eval { retrive_login_db_attr($app, $id) };
     unless ($str) {
+      chomp $@;
       $app->dblog->error("Notify client id $id: $@", sync=>1);
       $job->finish;
       return 0;
@@ -23,8 +24,9 @@ sub register {
 
     my $str1 = eval { retrive_ad_fullname_email($app, $str->{login}) };
     unless ($str1) {
+      chomp $@;
       $app->dblog->error("Notify client id $id $str->{login}: $@", sync=>1);
-      _set_notified_flag($app, $id); # stop notifications for this client
+      _set_notified_flag($app, $id) if $@ =~ /^No data from/; # stop notifications for this client
       $job->finish;
       return 0;
     }
@@ -36,6 +38,7 @@ sub register {
     }
     my $r = eval { send_mail_notification($app, $str1->{email}, $str1->{fullname}, $str->{qs}, $str->{limit_in_mb}) };
     unless ($r) {
+      chomp $@;
       $app->dblog->error("Send email error, client id $id: $@", sync=>1);
       $job->finish;
       return 0;

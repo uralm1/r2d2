@@ -21,7 +21,7 @@ sub register {
       my $m = $matang->{"f_$n"};
       $self->rlog("Processing traffic stat $m->{rule_desc}.");
       my $dump = $m->{dump_sub}();
-      die "Error dumping rules $m->{chain} in $m->{table} table" unless $dump;
+      die "Error dumping rules $m->{chain} in $m->{table} table\n" unless $dump;
 
       for (my $i = 2; $i < @$dump; $i++) { # skip first 2 lines
         if ($dump->[$i] =~ $m->{re_stat}()) {
@@ -44,7 +44,7 @@ sub register {
       $tx->result;
     };
     die "Stats submit to head failed: $@" unless defined $res;
-    die 'Stats submit request error: '.($res->is_error ? substr($res->body, 0, 40) : 'none') unless $res->is_success;
+    die 'Stats submit request error: '.($res->is_error ? substr($res->body, 0, 40) : 'none')."\n" unless $res->is_success;
 
     $self->rlog('Traffic stat submitted: '.substr($res->body, 0, 20).'. Resetting rule counters.');
     for (qw/f_in f_out/) {

@@ -20,9 +20,12 @@ SELECT id, login, CURDATE(), sum_in, sum_out \
 FROM clients \
 ON DUPLICATE KEY UPDATE d_in = sum_in, d_out = sum_out") };
     unless ($r) {
-      $m = 'Daily archive SQL operation failed';
+      $m = 'DAILY archive SQL operation failed. Task stopped.';
       $app->log->error($m.": $@");
       $app->dblog->error($m, sync=>1);
+
+      $job->fail;
+      return;
     }
 
     $m = 'DAILY processing finished';

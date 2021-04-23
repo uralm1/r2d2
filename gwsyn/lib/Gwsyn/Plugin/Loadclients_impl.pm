@@ -22,10 +22,10 @@ sub register {
       $tx->result;
     };
     die "connection to head failed: $@" unless defined $res;
-    die "clients request error: ".(($res->is_error) ? substr($res->body, 0, 40) : 'none') unless $res->is_success;
+    die "clients request error: ".(($res->is_error) ? substr($res->body, 0, 40) : 'none')."\n" unless $res->is_success;
 
     my $v = $res->json;
-    die 'clients response json error' unless $v;
+    die "clients response json error\n" unless $v;
 
     my @err;
     # part 1: firewall

@@ -13,7 +13,7 @@ use Head::Command::block;
 
 use Sys::Hostname;
 
-our $VERSION = '2.64';
+our $VERSION = '2.65';
 
 # This method will run once at server start
 sub startup {

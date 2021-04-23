@@ -15,6 +15,7 @@ sub register {
     $app->log->info($m);
     $app->dblog->info($m, sync=>1);
 
+    my $error = 0;
     my $db = $app->mysql_inet->db;
 
     # archive traffic statistics
@@ -23,9 +24,10 @@ SELECT id, login, CURDATE(), sum_in, sum_out \
 FROM clients \
 ON DUPLICATE KEY UPDATE m_in = sum_in, m_out = sum_out") };
     unless ($r) {
-      $m = 'Monthly archive SQL operation failed';
+      $m = 'MONTHLY archive SQL operation failed';
       $app->log->error($m.": $@");
       $app->dblog->error($m, sync=>1);
+      $error = 1;
     }
 
     # restore limits
@@ -38,6 +40,7 @@ ON DUPLICATE KEY UPDATE m_in = sum_in, m_out = sum_out") };
       $m = 'Restoring quota limits/notifications failed';
       $app->log->error($m.": $@");
       $app->dblog->error($m, sync=>1);
+      $error = 1;
     }
 
     # reset notification flags
@@ -93,12 +96,11 @@ ON DUPLICATE KEY UPDATE m_in = sum_in, m_out = sum_out") };
       } # agents loop
     } # profiles loop
 
-
-    $m = 'MONTHLY processing finished';
+    $m = 'MONTHLY processing finished'.($error) ? ' (FAILED with ERRORS)' : '';
     $app->log->info($m);
     $app->dblog->info($m, sync=>1);
 
-    $job->finish;
+    $error ? $job->fail : $job->finish;
   });
 }
 

@@ -24,9 +24,9 @@ sub register {
     };
 
     die "connection to head failed: $@" unless defined $res;
-    die "clients request error: ".(($res->is_error) ? substr($res->body, 0, 40) : 'none') unless $res->is_success;
+    die "clients request error: ".(($res->is_error) ? substr($res->body, 0, 40) : 'none')."\n" unless $res->is_success;
     my $v = $res->json;
-    die 'clients response json error' unless $v;
+    die "clients response json error\n" unless $v;
 
     my $m = $self->dhcp_matang->{win_dhcp};
     croak "Matang win_dhcp matanga!" unless $m;
@@ -90,7 +90,7 @@ sub register {
 
     } # loop by dhcpservers
 
-    die $failure if $failure;
+    die "$failure\n" if $failure;
 
     return 1;
   });

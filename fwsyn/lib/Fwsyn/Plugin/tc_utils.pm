@@ -215,7 +215,7 @@ sub register {
     if (!$self->system("sh /etc/rc.d/rc.traf")) {
       return 1; # success
     } else {
-      die "rc.traf script error";
+      die "rc.traf script error\n";
     }
   });
 

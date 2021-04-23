@@ -209,7 +209,7 @@ sub register {
     if (!$self->system("sh /etc/tc.user_r2d2")) {
       return 1; # success
     } else {
-      die "tc.user_r2d2 script error";
+      die "tc.user_r2d2 script error\n";
     }
   });
 
