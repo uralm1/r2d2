@@ -2,13 +2,12 @@ package Head::Task::BlockClient;
 use Mojo::Base 'Mojolicious::Plugin';
 
 use Mojo::URL;
-use Carp;
 
 sub register {
   my ($self, $app) = @_;
   $app->minion->add_task(block_client => sub {
     my ($job, $id, $qs, $profile) = @_;
-    croak 'Bad job parameters' unless $id && defined $qs && $profile;
+    die 'Bad job parameters' unless $id && defined $qs && $profile;
 
     my $app = $job->app;
     my $profiles = $app->config('profiles');

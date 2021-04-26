@@ -13,7 +13,7 @@ use Head::Command::block;
 
 use Sys::Hostname;
 
-our $VERSION = '2.65';
+our $VERSION = '2.66';
 
 # This method will run once at server start
 sub startup {
@@ -24,7 +24,7 @@ sub startup {
     secrets => ['6ac63578bb604df4865ae802de3098b80c082740'],
     delcheck_compat_file => 'compat_chk.dat',
     agent_types_stat => [],
-    mail_templates => {},
+    profiles => {},
     duplicate_rlogs => 0,
   }});
   delete $self->defaults->{config}; # safety - not to pass passwords to stashes
@@ -48,6 +48,7 @@ sub startup {
   $self->plugin('Head::Plugin::Refresh_impl');
   $self->plugin('Head::Task::BlockClient');
   $self->plugin('Head::Task::NotifyClient');
+  $self->plugin('Head::Task::TrafStat');
   $self->plugin('Head::Task::ProcDaily');
   $self->plugin('Head::Task::ProcMonthly');
   $self->plugin('Head::Task::ProcYearly');
@@ -85,7 +86,6 @@ sub startup {
   $r->get('/clients/#profile')->to('clients#clients_old'); # DEPRECATED
   $r->get('/client/#id')->to('clients#client');
   $r->post('/trafstat')->to('stat#trafstat');
-  $r->post('/trafstat/#profile')->to('stat#trafstat_old'); # DEPRECATED
   $r->post('/refreshed')->to('refreshed#refreshed');
   $r->post('/blocked')->to('blocked#blocked');
   $r->post('/reloaded')->to('reloaded#reloaded');
@@ -99,6 +99,12 @@ sub validate_config {
   my $c = $self->config;
 
   my $e = undef;
+  for (qw/smtp_host mail_from/) {
+    unless ($c->{$_}) {
+      $e = "Config parameter $_ is not defined!";
+      last;
+    }
+  }
 
   if ($e) {
     say $e if $self->log->path;

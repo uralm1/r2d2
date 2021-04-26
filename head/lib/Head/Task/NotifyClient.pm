@@ -3,13 +3,12 @@ use Mojo::Base 'Mojolicious::Plugin';
 
 use Mojo::mysql;
 use Head::Ural::NotifyClient qw(send_mail_notification retrive_login_db_attr retrive_ad_fullname_email);
-use Carp;
 
 sub register {
   my ($self, $app) = @_;
   $app->minion->add_task(notify_client => sub {
     my ($job, $id) = @_;
-    croak 'Bad job parameter' unless $id;
+    die 'Bad job parameter' unless $id;
     my $app = $job->app;
 
     #$app->dblog->info("notify_client id=$id task is called!", sync=>1);

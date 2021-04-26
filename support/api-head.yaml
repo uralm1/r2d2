@@ -232,42 +232,6 @@ paths:
                 type: string
                 description: error message
 
-  /trafstat/{profile}:
-    post:
-      summary: Submit traffic statistics for profile (deprecated)
-      deprecated: true
-      parameters:
-        - name: profile
-          in: path
-          required: true
-          description: profile that submitting stats
-          schema:
-            type: string
-            example: 'gwtest1'
-      requestBody:
-        description: traffic statistics
-        required: true
-        content:
-          'application/json':
-            schema:
-              $ref: '#/components/schemas/traf_stats'
-      responses:
-        '200':
-          description: Success
-        '404':
-          description: Bad parameter
-          content:
-            text/plain:
-              schema:
-                type: string
-                description: error message
-        '503':
-          description: Operation error, bad json etc
-          content:
-            text/plain:
-              schema:
-                type: string
-                description: error message
 
   /refreshed:
     post:

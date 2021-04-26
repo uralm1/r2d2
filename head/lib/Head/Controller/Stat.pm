@@ -8,7 +8,7 @@ sub trafstat {
   my $profs = $self->req->query_params->every_param('profile');
   croak 'Bad parameter' unless $profs;
   # at least one profile parameter is required
-  return $self->render(text=>'Bad parameter', status=>503) unless(@$profs);
+  return $self->render(text=>'Bad parameter', status=>503) unless @$profs;
 
   my $fmt = $self->req->headers->content_type // '';
   if ($fmt =~ m#^application/json$#i) {
@@ -18,46 +18,27 @@ sub trafstat {
     $self->render_later;
 
     #$self->log->debug($self->dumper($j));
+
+    if ($self->check_workers) {
+      # statistics update is high priority task
+      $self->minion->enqueue(traf_stat => [time, $profs, $j] => {priority => 5});
+    } else {
+      my $m = 'Statistics not accepted. Execution subsystem error.';
+      $self->log->error($m);
+      $self->dblog->error($m);
+      return $self->render(text=>"Execution subsystem not available", status=>503);
+    }
+
+    # old mechanics
     # update database in single transaction
     my $db = $self->mysql_inet->db;
     my $tx = eval { $db->begin };
     unless ($tx) {
-      $self->log->error("Database begin transaction failure $@");
+      $self->log->error("Database begin transaction failure: $@");
       return $self->render(text=>"Database begin transaction failure", status=>503);
     }
 
     $self->_submit_traf_stats($db, $tx, $profs, $j);
-    # now exit, execution continue asyncroniously
-
-  } else {
-    return $self->render(text=>'Unsupported content', status=>503);
-  }
-}
-
-
-# DEPRECATED
-sub trafstat_old {
-  my $self = shift;
-  my $prof = $self->stash('profile');
-  return $self->render(text=>'Bad parameter', status=>503) unless $prof;
-
-  my $fmt = $self->req->headers->content_type // '';
-  if ($fmt =~ m#^application/json$#i) {
-    my $j = $self->req->json;
-    return $self->render(text=>'Bad json format', status=>503) unless $j;
-
-    $self->render_later;
-
-    #$self->log->debug($self->dumper($j));
-    # update database in single transaction
-    my $db = $self->mysql_inet->db;
-    my $tx = eval { $db->begin };
-    unless ($tx) {
-      $self->log->error("Database begin transaction failure $@");
-      return $self->render(text=>"Database begin transaction failure", status=>503);
-    }
-
-    $self->_submit_traf_stats($db, $tx, [$prof], $j);
     # now exit, execution continue asyncroniously
 
   } else {
