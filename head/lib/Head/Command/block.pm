@@ -2,9 +2,9 @@ package Head::Command::block;
 use Mojo::Base 'Mojolicious::Command';
 
 #use Carp;
-use Mojo::IOLoop;
+use Mojo::mysql;
 
-has description => '* Run blocking/unblocking process (run from cron cmd)';
+has description => '* Run block check process (run from cron cmd)';
 has usage => "Usage: APPLICATION block\n";
 
 sub run {
@@ -41,20 +41,6 @@ WHERE blocked = 0 AND sum_limit_in <= 0 AND qs > 0") };
       }
     } # loop by clients
   }
-
-  $app->log->info('Unblock clients - checking db');
-  my $unblock_results = eval { $dbconn->query("SELECT id, profile FROM clients \
-WHERE blocked = 1 AND (sum_limit_in > 0 OR qs = 0 OR qs = 1)") };
-  unless ($unblock_results) {
-    $app->log->error("Unblock: database operation error: $@");
-  } else {
-    while (my $n = $unblock_results->hash) {
-      $app->log->debug("Client to unblock: $n->{id}, $n->{profile}");
-      # unblock
-      $app->minion->enqueue(block_client => [$n->{id}, 0, $n->{profile}]);
-    } # loop by clients
-  }
-
 
   return 1;
 }

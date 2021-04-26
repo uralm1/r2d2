@@ -13,7 +13,8 @@
   checkdel_compat_file => '/tmp/compat_chk.dat',
 
   # blocking / unblocking
-  block_schedule => '18,48 * * * *',
+  block_schedule => '43 13 * * *',
+  unblock_schedule => '18,48 * * * *',
 
   # log truncation (weekly)
   logtruncate_schedule => '50 2 * * 7',
