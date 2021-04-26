@@ -11,7 +11,7 @@ sub register {
     die 'Bad job parameters' unless defined $timestamp && $profs && $j && ref($profs) eq 'ARRAY' && ref($j) eq 'HASH';
     my $app = $job->app;
 
-    my $m = 'Traffic statistics update job timestamp '.strftime "%H:%M:%S %d.%m", localtime($timestamp);
+    my $m = 'Traffic statistics update job timestamp ['.strftime "%H:%M:%S %d.%m", localtime($timestamp).']';
     $app->log->info($m);
     $app->dblog->info($m, sync=>1);
 
@@ -25,8 +25,7 @@ sub register {
       return $job->fail;
     }
 
-    my $submitted = 0; # counters
-    my $updated = 0;
+    my ($submitted, $updated) = (0, 0); # counters
 
     my $rule = ''; # 'profile IN (plk, p2, p2) AND' or ''
     for (@$profs) {
@@ -67,9 +66,11 @@ WHERE $rule id = ?", $inb, $outb, $inb, $inb, $id) };
     }
 
     # finished
-    $m = "UPDATE FINISHED, submitted: $submitted, updated: $updated";
+    $m = "Stats update finished: $submitted/$updated";
     $app->log->info($m);
     $app->dblog->info($m, sync=>1);
+
+    my ($selected, $notified, $blocked) = (0, 0, 0); # counters
 
     # run block check after update
     for my $jid (keys %$j) {
@@ -79,19 +80,22 @@ WHERE $rule id = ? AND blocked = 0 AND sum_limit_in <= 0 AND qs > 0", $jid) };
         $app->log->error("Block: database operation error: $@");
       } else {
         if (my $n = $block_results->hash) {
+          $selected++;
           my $id = $n->{id};
           my $qs = $n->{qs};
           if ($qs == 1) {
             # warn(1) client
-            if ($n->{email_notify}) {
+            if ($n->{email_notify} && !$n->{notified}) {
               $app->log->debug("Client to notify: $id, qs: $qs, $n->{profile}");
-              $app->minion->enqueue(notify_client => [$id]) unless $n->{notified};
+              $app->minion->enqueue(notify_client => [$id]);
+              $notified++;
             }
 
           } elsif ($qs == 2 || $qs == 3) {
             # limit(2) or block(3) client
             $app->log->debug("Client to block: $id, qs: $qs, $n->{profile}");
             $app->minion->enqueue(block_client => [$id, $qs, $n->{profile}]);
+            $blocked++;
 
           } else {
             $app->log->error("Unsupported qs $qs for client id $id.");
@@ -99,6 +103,11 @@ WHERE $rule id = ? AND blocked = 0 AND sum_limit_in <= 0 AND qs > 0", $jid) };
         } # has one result
       } # select without errors
     } # loop by submitted clients
+
+    # finished
+    $m = "Block check finished: $submitted/$selected/$notified/$blocked";
+    $app->log->info($m);
+    $app->dblog->info($m, sync=>1);
 
     $job->finish;
   });

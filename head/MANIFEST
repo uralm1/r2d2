@@ -20,6 +20,7 @@ lib/Head/Command/refresh.pm
 lib/Head/Command/runstat.pm
 lib/Head/Command/statprocess.pm
 lib/Head/Command/truncatelog.pm
+lib/Head/Command/unblock.pm
 lib/Head/Controller/Blocked.pm
 lib/Head/Controller/Clients.pm
 lib/Head/Controller/Log.pm
@@ -35,6 +36,7 @@ lib/Head/Task/NotifyClient.pm
 lib/Head/Task/ProcDaily.pm
 lib/Head/Task/ProcMonthly.pm
 lib/Head/Task/ProcYearly.pm
+lib/Head/Task/TrafStat.pm
 lib/Head/Task/TruncateLog.pm
 lib/Head/Ural/CompatChk.pm
 lib/Head/Ural/Dblog.pm

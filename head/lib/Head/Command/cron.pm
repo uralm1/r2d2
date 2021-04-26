@@ -84,7 +84,7 @@ sub _cron() {
     Mojo::IOLoop->timer(($time - time) => sub {
       $log->info("EVENT from schedule ($name) started.");
       my $e = eval { $self->app->commands->run(@cmd) };
-      my $es = (defined $e) ? "code: $e":"with error: $@";
+      my $es = (defined $e) ? "result: $e":"with error: $@";
       $log->info("EVENT from schedule ($name) finished $es.");
       $task->();
     });

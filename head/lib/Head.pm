@@ -14,7 +14,7 @@ use Head::Command::unblock;
 
 use Sys::Hostname;
 
-our $VERSION = '2.66';
+our $VERSION = '2.67';
 
 # This method will run once at server start
 sub startup {
