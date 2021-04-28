@@ -23,7 +23,7 @@ sub blocked {
     $self->render_later;
 
     # notify user if needed
-    $self->enqueue_notification($id);
+    $self->enqueue_notification($id, $qs_op ? 1 : 0);
 
     $self->update_blocked_flag($profs, $id, $qs_op, $subsys);
     # the last function renders result
@@ -34,9 +34,9 @@ sub blocked {
 }
 
 
-# $self->enqueue_notification($id)
+# $self->enqueue_notification($id, 0/1)
 sub enqueue_notification {
-  my ($self, $id) = @_;
+  my ($self, $id, $doing_unblock) = @_;
   croak 'Bad argument' unless $id;
 
   # retrieve email_notify from db
@@ -50,7 +50,7 @@ sub enqueue_notification {
         return;
       }
       if (my $n = $results->hash) {
-        $self->minion->enqueue(notify_client => [$id]) if $n->{email_notify};
+        $self->minion->enqueue(notify_client => [$id, $doing_unblock]) if $n->{email_notify};
 
       } else {
         my $m = "WARNING: Client id $id wasn't found in clients database. Notification not enqueued";

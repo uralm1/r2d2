@@ -7,8 +7,9 @@ use Head::Ural::NotifyClient qw(send_mail_notification retrive_login_db_attr ret
 sub register {
   my ($self, $app) = @_;
   $app->minion->add_task(notify_client => sub {
-    my ($job, $id) = @_;
+    my ($job, $id, $doing_unblock) = @_;
     die 'Bad job parameter' unless $id;
+    # $doing_unblock is optional parameter flag
     my $app = $job->app;
 
     #$app->dblog->info("notify_client id=$id task is called!", sync=>1);
@@ -35,7 +36,8 @@ sub register {
       $job->finish;
       return 0;
     }
-    my $r = eval { send_mail_notification($app, $str1->{email}, $str1->{fullname}, $str->{qs}, $str->{limit_in_mb}) };
+    my $qs_op = ($doing_unblock) ? 0 : $str->{qs};
+    my $r = eval { send_mail_notification($app, $str1->{email}, $str1->{fullname}, $qs_op, $str->{limit_in_mb}) };
     unless ($r) {
       chomp $@;
       $app->dblog->error("Send email error, client id $id: $@", sync=>1);
