@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Управление интернет</title>
+  <link rel="shortcut icon" href="/img/favicon.ico">
+  <!--link rel="stylesheet" href="/css/fonts-roboto.css"-->
+  <link rel="stylesheet" href="/css/materialize.min.css?v=101">
+  <link rel="stylesheet" href="/css/material-icons.css">
+  <link rel="stylesheet" href="/css/styles.css?v=1">
+</head>
+<body>
+  <nav class="white-text pink darken-3">
+    <div class="nav-wrapper scont">
+      % if (my $u = stash 'back_url') {
+      <a href="<%== $u %>" class="brand-logo"><i class="material-icons">arrow_back</i>Управление Интернет</a>
+      % } else {
+      <a href="/" class="brand-logo">Управление Интернет</a>
+      % }
+      <ul class="right hide-on-med-and-down">
+        <li><a href="">Test1</a></li>
+        <li><a href="">Test2</a></li>
+	<li><%= link_to 'oplog' => begin %>Лог<% end %></li>
+        <li><a href="<%== config 'help_url' %>" target="_blank"><i class="material-icons">help</i></a></li>
+      </ul>
+    </div>
+  </nav>
+  <!--[if lte IE 9]>
+    <div class="section"><div class="container"><div class="card-panel red">
+      <b class="white-text">ВНИМАНИЕ! Вы используете устаревшую версию браузера Интернет. Многие элементы страницы будут отображены некорректно. Обновите версию Вашего браузера!</b>
+    </div></div></div>
+  <![endif]-->
+<%= content %>
+  <footer class="page-footer pink darken-3">
+    <div class="footer-copyright">
+      <div class="scont">
+        <span title="Версия: <%== $version%>. Автор: Урал Хасанов, 2021">
+	  <span style="color:#ffeb3b;">R</span><span style="color:#ff9800;">2</span><span style="color:#fff;">D</span><span style="color:#ace5ff;">2</span>.<span style="color:#7fffd4;">Ui</span>
+	</span>
+        <span> &#x00b7 <a href="/about">О программе</a></span>
+        <span class="right grey-text text-lighten-2">Текущий пользователь: <%= $remote_user %></span>
+      </div>
+    </div>
+  </footer>
+  <script src="/js/materialize.min.js?v=101"></script>
+</body>
+</html>

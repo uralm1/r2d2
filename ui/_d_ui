@@ -1,0 +1,5 @@
+#!/bin/bash
+
+morbo script/ui
+#script/ui daemon
+#script/ui prefork

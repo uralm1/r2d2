@@ -1,0 +1,7 @@
+% layout 'default', back_url => '/';
+<div class="scont">
+  <h5>Oplog</h5>
+  <p>Oplog index page</p>
+</div>
+
+

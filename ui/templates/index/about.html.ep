@@ -1,0 +1,5 @@
+% layout 'default', back_url => '/';
+<div class="scont">
+  <h5>ABOUT</h5>
+  <p>About page</p>
+</div>

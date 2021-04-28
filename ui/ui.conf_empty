@@ -1,0 +1,6 @@
+{
+  # will use environment REMOTE_USER if not set
+  auth_user_header => 'auth-user',
+
+  help_url => 'https://faq.contoso.com',
+}
