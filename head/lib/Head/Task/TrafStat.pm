@@ -11,7 +11,7 @@ sub register {
     die 'Bad job parameters' unless defined $timestamp && $profs && $j && ref($profs) eq 'ARRAY' && ref($j) eq 'HASH';
     my $app = $job->app;
 
-    my $m = 'Traffic statistics update job timestamp ['.strftime "%H:%M:%S %d.%m", localtime($timestamp).']';
+    my $m = 'Traffic statistics update job timestamp ['.strftime("%H:%M:%S %d.%m", localtime($timestamp)).']';
     $app->log->info($m);
     $app->dblog->info($m, sync=>1);
 
