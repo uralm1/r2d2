@@ -19,7 +19,7 @@ sub register {
 
         my $agent_url = $agent->{url};
         # send block to agent
-        my $m = (($qs == 0) ? 'UNBLOCK' : 'BLOCK')." client id $id, qs $qs [$agent_url]";
+        my $m = (($qs == 0) ? 'UNBLOCK' : 'BLOCK')." client id $id, op $qs [$agent_url]";
         $app->log->info($m);
         $app->dblog->info($m, sync=>1);
 

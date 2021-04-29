@@ -11,7 +11,7 @@ sub register {
     die 'Bad job parameters' unless defined $timestamp && $profs && $j && ref($profs) eq 'ARRAY' && ref($j) eq 'HASH';
     my $app = $job->app;
 
-    my $m = 'Traffic statistics update job timestamp ['.strftime("%H:%M:%S %d.%m", localtime($timestamp)).']';
+    my $m = 'Stats update job ['.join(',', @$profs).'] ['.strftime("%H:%M:%S %d.%m", localtime($timestamp)).']';
     $app->log->info($m);
     $app->dblog->info($m, sync=>1);
 
@@ -105,7 +105,7 @@ WHERE $rule id = ? AND blocked = 0 AND sum_limit_in <= 0 AND qs > 0", $jid) };
     } # loop by submitted clients
 
     # finished
-    $m = "Block check finished: $submitted/$selected/$notified/$blocked";
+    $m = "Block check finished: $selected/$notified/$blocked";
     $app->log->info($m);
     $app->dblog->info($m, sync=>1);
 

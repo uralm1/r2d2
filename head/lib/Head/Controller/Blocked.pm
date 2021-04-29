@@ -23,7 +23,7 @@ sub blocked {
     $self->render_later;
 
     # notify user if needed
-    $self->enqueue_notification($id, $qs_op ? 1 : 0);
+    $self->enqueue_notification($id, $qs_op ? 0 : 1);
 
     $self->update_blocked_flag($profs, $id, $qs_op, $subsys);
     # the last function renders result
