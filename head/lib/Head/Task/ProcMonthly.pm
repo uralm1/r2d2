@@ -56,7 +56,7 @@ ON DUPLICATE KEY UPDATE m_in = sum_in, m_out = sum_out") };
     }
 
     # send RELOAD to all block agents to unblock clients in one request
-    while (my ($p, $pv) = each @{$app->config('profiles')}) {
+    while (my ($p, $pv) = each %{$app->config('profiles')}) {
     LOOP_AGENTS:
       for my $agent (@{$pv->{agents}}) {
         next LOOP_AGENTS unless $agent->{block};
@@ -64,7 +64,7 @@ ON DUPLICATE KEY UPDATE m_in = sum_in, m_out = sum_out") };
         my $agent_url = $agent->{url};
         my $agent_type = $agent->{type};
         # send reload to agent
-        $m = "Reloading agent $agent_type [$agent_url]";
+        $m = "Reloading profile $p, agent $agent_type [$agent_url]";
         $app->log->info($m);
         $app->dblog->info($m, sync=>1);
 
