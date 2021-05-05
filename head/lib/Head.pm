@@ -14,7 +14,7 @@ use Head::Command::unblock;
 
 use Sys::Hostname;
 
-our $VERSION = '2.67';
+our $VERSION = '2.68';
 
 # This method will run once at server start
 sub startup {
@@ -92,6 +92,8 @@ sub startup {
   $r->post('/reloaded')->to('reloaded#reloaded');
 
   $r->post('/log/#rsubsys' => {rsubsys => 'none'})->to('log#log');
+
+  $r->get('/ui/oplog')->to('ui_oplog#oplog');
 }
 
 

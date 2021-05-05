@@ -1,11 +1,15 @@
 .dockerignore
 _b
 _d_ui
+cpanfile
 lib/Ui.pm
 lib/Ui/Controller/Index.pm
 lib/Ui/Controller/Oplog.pm
 lib/Ui/Controller/Rep.pm
 lib/Ui/Plugin/MPagenav.pm
+lib/Ui/Plugin/Utils.pm
+lib/Ui/Ural/LogColorer.pm
+lib/Ui/Ural/OperatorResolver.pm
 Makefile.PL
 MANIFEST			This list of files
 public/css/material-icons.css
@@ -22,6 +26,8 @@ public/img/favicon.ico
 public/js/materialize.js
 public/js/materialize.min.js
 script/ui
+t/55_LogColorer.t
+t/72_OperatorResolver.t
 templates/index/about.html.ep
 templates/index/index.html.ep
 templates/layouts/default.html.ep

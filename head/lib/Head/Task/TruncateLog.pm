@@ -14,10 +14,10 @@ sub register {
     $app->log->info($m);
     $app->dblog->info($m, sync=>1);
 
-    # keep last 1000 records
+    # keep last 5000 records
     my $e = eval {
       $app->mysql_inet->db->query("DELETE FROM op_log WHERE id <= ( \
-SELECT id FROM (SELECT id FROM op_log ORDER BY id DESC LIMIT 1 OFFSET 1000) foo )");
+SELECT id FROM (SELECT id FROM op_log ORDER BY id DESC LIMIT 1 OFFSET 5000) foo )");
     };
     if (defined $e) {
       $m = 'Database oplog successfully truncated';

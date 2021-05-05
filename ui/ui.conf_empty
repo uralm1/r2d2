@@ -2,5 +2,23 @@
   # will use environment REMOTE_USER if not set
   auth_user_header => 'auth-user',
 
+  users => {
+    ural => 'admin',
+    default => 'client'
+  },
+
+  local_cert => '../cert/ui-cert.pem',
+  local_key => '../cert/ui-key.pem',
+  ca => '../cert/ca.pem',
+
+  head_url => 'http://localhost:2271',
+
+  log_lines_on_page => 100,
+
+  ldap_servers => ['ldap://dcsrv1', 'ldap://dcsrv2'],
+  ldap_user => 'ldapuser',
+  ldap_pass => 'ldappass',
+  ldap_base => 'DC=contoso,DC=local',
+
   help_url => 'https://faq.contoso.com',
 }

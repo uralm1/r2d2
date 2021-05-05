@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  version: '3.00'
+  version: '3.1'
   title: The R2d2 Head api
   description: 'API модуля Head'
 paths:
@@ -329,11 +329,52 @@ paths:
                 type: string
                 description: error message
 
+  /ui/oplog:
+    get:
+      summary: Получение лога операций
+      description: Просмотр лога операций для интерфейса пользователя.
+      parameters:
+        - name: page
+          in: query
+          description: Текущая страница (начиная с 1)
+          schema:
+            type: integer
+            example: 2
+        - name: lop
+          in: query
+          required: true
+          description: Число строк на странице (lines_on_page)
+          schema:
+            type: integer
+            example: 50
+
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ui_oplog_json'
+        '400':
+          description: Ошибка в параметрах, в основном неверный номер текущей страницы
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
 # Added by API Auto Mocking Plugin
 servers:
   # Added by API Auto Mocking Plugin
   - description: SwaggerHub API Auto Mocking
-    url: https://virtserver.swaggerhub.com/uralm1/head/3.00
+    url: https://virtserver.swaggerhub.com/uralm1/head/3.1
 
 components:
   schemas:
@@ -403,24 +444,21 @@ components:
       description: Traffic statistics
       type: object
       additionalProperties:
-        $ref: '#/components/schemas/traf_record'
+        type: object
+        description: Traffic statistics record for client id
+        properties:
+          in:
+            type: integer
+            description: input traffic (in bytes)
+            example: 100
+          out:
+            type: integer
+            description: output traffic (in bytes)
+            example: 200
       example:
         1: {in: 100, out: 200}
         2: {in: 10, out: 20}
         10: {in: 110, out: 220}
-
-    traf_record:
-      description: Traffic statistics record for client id
-      type: object
-      properties:
-        in:
-          type: integer
-          description: input traffic (in bytes)
-          example: 100
-        out:
-          type: integer
-          description: output traffic (in bytes)
-          example: 200
 
     refresh_stats:
       description: Successful refresh information
@@ -460,3 +498,58 @@ components:
           type: string
           description: Subsystem name. Имя агента должно совпадать с одним из прописанных в коде.
           example: agent@host
+          
+    ui_oplog_json:
+      description: Страница данных лога операций
+      type: object
+      properties:
+        lines_total:
+          type: integer
+          description: Всего строк в БД лога
+        pages:
+          type: integer
+          description: Всего страниц данных в логе
+        page:
+          type: integer
+          description: Текущая страница, возвращенная в данном объекте. Равна параметру запроса.
+        lines_on_page:
+          type: integer
+          description: Строк на одной странице. Равно параметру запроса.
+        d:
+          type: array
+          description: Массив строк
+          items:
+            description: Строка лога
+            type: object
+            properties:
+              id:
+                type: integer
+                description: Код записи лога
+                example: '54321'
+              date:
+                type: string
+                description: Время события (14:04:24 30/04/21)
+                example: '14:04:24 30/04/21'
+              subsys:
+                type: string
+                description: Подсистема
+                example: 'gwsyn@gwsev'
+              info:
+                type: string
+                description: Описание события
+                example: 'Finished traffic_stat'
+            example:
+              - id: 54321
+                date: '14:04:24 30/04/21'
+                subsys: 'gwsyn@gwsev'
+                info: 'Finished traffic_stat'
+      example:
+        lines_total: 1000
+        pages: 10
+        page: 1
+        lines_on_page: 100
+        d:
+          - id: 54321
+            date: '14:04:24 30/04/21'
+            subsys: 'gwsyn@gwsev'
+            info: 'Finished traffic_stat'

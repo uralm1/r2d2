@@ -1,9 +1,7 @@
 package Ui;
 use Mojo::Base 'Mojolicious';
 
-#use Ui::Command::xxx;
-
-our $VERSION = '0.1';
+our $VERSION = '0.2';
 
 # This method will run once at server start
 sub startup {
@@ -24,8 +22,8 @@ sub startup {
 
   $self->max_request_size(16777216);
 
-  #$self->plugin('Ui::Plugin::MPagenav');
-  #$self->plugin('Ui::Plugin::Utils');
+  $self->plugin('Ui::Plugin::MPagenav');
+  $self->plugin('Ui::Plugin::Utils');
 
   #push @{$self->commands->namespaces}, 'Ui::Command';
 
@@ -50,11 +48,11 @@ sub startup {
       return undef;
     }
     $c->stash(remote_user => $remote_user);
-    #$c->stash(remote_user_role => $c->users_catalog->get_user_role($remote_user));
-    #unless ($c->stash('remote_user_role')) {
-    #  $c->render(text => 'Неверный пользователь', status => 401);
-    #  return undef;
-    #}
+    $c->stash(remote_user_role => $c->get_user_role($remote_user));
+    unless ($c->stash('remote_user_role')) {
+      $c->render(text => 'Неверный пользователь', status => 401);
+      return undef;
+    }
 
     return 1;
   });

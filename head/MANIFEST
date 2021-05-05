@@ -27,6 +27,7 @@ lib/Head/Controller/Log.pm
 lib/Head/Controller/Refreshed.pm
 lib/Head/Controller/Reloaded.pm
 lib/Head/Controller/Stat.pm
+lib/Head/Controller/UiOplog.pm
 lib/Head/Controller/Utils.pm
 lib/Head/Plugin/Migrations.pm
 lib/Head/Plugin/Refresh_impl.pm
@@ -49,6 +50,7 @@ script/check_db_hosts
 script/head
 script/start_server
 t/01_get_subsys.t
+t/100_ui_get_oplog.t
 t/66_send_mail_notification.t
 t/67_retrive_login_db_attr.t
 t/68_retrive_ad_fullname_email.t

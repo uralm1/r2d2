@@ -16,3 +16,7 @@ html {
 nav .brand-logo {
   white-space:nowrap;
 }
+
+.narrow-log td {
+  padding: 5px 5px;
+}

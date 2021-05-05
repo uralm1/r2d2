@@ -1,7 +1,28 @@
 % layout 'default', back_url => '/';
 <div class="scont">
-  <h5>Oplog</h5>
-  <p>Oplog index page</p>
+  <h5>Лог системных событий</h5>
+  <table class="striped narrow-log">
+    <thead>
+      <tr>
+	<th>Id</th>
+	<th>Время</th>
+	<th>Подсистема</th>
+	<th>Событие</th>
+      </tr>
+    </thead>
+    <tbody>
+      % for (@{$log_rec->{d}}) {
+      <tr style="color:<%== log_rowcolor($_->{subsys}) %>;">
+	<td><%= $_->{id} %></td>
+	<td><%= $_->{date} %></td>
+	<td><%= $_->{subsys} %></td>
+	<td><%= $_->{info} %></td>
+      </tr>
+      % }
+    </tbody>
+  </table>
+  %= m_page_nav($log_rec->{page}, $log_rec->{pages}, {round=>3, outer=>1, start=>1, class=>'center-align', param=>'p', query=>'#top'});
+  <p>Общее число записей: <%= $log_rec->{lines_total} %></p>
 </div>
 
 

@@ -1,7 +1,8 @@
 use strict;
 use warnings;
 
-use ExtUtils::MakeMaker;
+#use ExtUtils::MakeMaker;
+use ExtUtils::MakeMaker::CPANfile;
 
 my $inst_dir = '/opt/ui';
 
@@ -10,13 +11,13 @@ WriteMakefile(
   AUTHOR => 'Ural Khasanov <uralm@uwc.ufanet.ru>',
   DISTNAME => 'ui',
   VERSION_FROM   => 'lib/Ui.pm',
-  PREREQ_PM => {
-    'Mojolicious' => '8.50',
-    'EV' => 0,
-    'Cpanel::JSON::XS' => '4.10',
-    #'IO::Socket::SSL' => '2.009',
-    'Mojo::mysql' => '1.04',
-  },
+  #PREREQ_PM => {
+  #  'Mojolicious' => '8.50',
+  #  'EV' => 0,
+  #  'Cpanel::JSON::XS' => '4.10',
+  #  'IO::Socket::SSL' => '2.009',
+  #  'Net::LDAP' => 0,
+  #},
   test => {TESTS => 't/*.t'},
   PREFIX => $inst_dir,
   LIB => "$inst_dir/lib",

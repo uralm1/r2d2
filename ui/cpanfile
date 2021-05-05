@@ -1,0 +1,15 @@
+requires 'Mojolicious', '8.50';
+requires 'EV';
+requires 'Cpanel::JSON::XS', '4.10';
+requires 'IO::Socket::SSL', '2.009';
+requires 'Net::LDAP';
+requires 'ExtUtils::MakeMaker::CPANfile';
+
+on 'configure' => sub {
+  requires 'ExtUtils::MakeMaker';
+  requires 'ExtUtils::MakeMaker::CPANfile';
+};
+
+on 'test' => sub {
+  requires 'Test::More';
+};
