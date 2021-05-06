@@ -4,8 +4,19 @@
 
 DAYS_CA=5475
 DAYS=1825
-SERVERS=( r2d2-head localhost gwtest1 plksrv1 plksrv4 erebus fw gwsev gwkns3 )
-IPS=( 10.14.72.5 10.15.0.31 10.2.13.131 10.14.0.1 10.14.0.4 192.168.12.3 10.15.0.1 10.2.78.82 10.2.68.154 )
+
+declare -A SERVERS
+SERVERS[r2d2-head]="DNS:r2d2-head.uwc.local,IP:10.14.72.5"
+SERVERS[r2d2-ui]="DNS:r2d2-ui.uwc.local,IP:10.14.72.8"
+SERVERS[localhost]="DNS:localhost,IP:10.15.0.31"
+SERVERS[gwtest1]="DNS:gwtest1.uwc.local,IP:10.2.13.131"
+SERVERS[plksrv1]="DNS:plksrv1.uwc.local,IP:10.14.0.1"
+SERVERS[plksrv4]="DNS:plksrv4.uwc.local,IP:10.14.0.4"
+SERVERS[erebus]="DNS:erebus.uwc.local,IP:192.168.12.3"
+SERVERS[fw]="DNS:fw.uwc.local,IP:10.15.0.1"
+SERVERS[gwsev]="DNS:gwsev.uwc.local,IP:10.2.78.82"
+SERVERS[gwkns3]="DNS:gwkns3.uwc.local,IP:10.2.68.154"
+
 
 # gen CA key (give a password)
 #openssl genrsa -aes256 -out ca-key.pem 4096
@@ -14,19 +25,16 @@ IPS=( 10.14.72.5 10.15.0.31 10.2.13.131 10.14.0.1 10.14.0.4 192.168.12.3 10.15.0
 #exit 0
 
 # servers
-index=0
-for s in "${SERVERS[@]}"; do
+for s in "${!SERVERS[@]}"; do
   openssl genrsa -out $s-key.pem 4096
   openssl req -subj "/CN=$s" -sha256 -new -key $s-key.pem -out $s.csr
 
-  echo subjectAltName = DNS:$s.uwc.local,IP:${IPS[$index]} > extfile.cnf
+  echo subjectAltName = ${SERVERS[$s]} > extfile.cnf
   echo extendedKeyUsage = serverAuth, clientAuth >> extfile.cnf
 
   openssl x509 -req -days $DAYS -sha256 -in $s.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out $s-cert.pem -extfile extfile.cnf
 
   openssl x509 -in $s-cert.pem -text -noout > $s-cert.txt
-
-  let "index = $index + 1"
 done
 
 ###
