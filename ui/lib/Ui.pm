@@ -29,6 +29,10 @@ sub startup {
 
   $self->defaults(version => $VERSION);
 
+  # set cert/key to useragent (for head requests)
+  $self->ua->ca($config->{ca});
+  $self->ua->cert($config->{local_cert})->key($config->{local_key});
+
   # Router authentication routine
   $self->hook(before_dispatch => sub {
     my $c = shift;

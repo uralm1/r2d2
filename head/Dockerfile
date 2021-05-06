@@ -1,4 +1,4 @@
-FROM alpine:3.12
+FROM alpine:3.13
 
 COPY cpanfile /src/
 #ENV EV_EXTRA_DEFS -DEV_NO_ATFORK
@@ -8,7 +8,6 @@ RUN apk update && \
 # install perl dependences
   curl -L https://cpanmin.us | perl - App::cpanminus && \
   cd /src && \
-# install other deps...
   cpanm --installdeps . -M https://cpan.metacpan.org && \
 # create head user
   groupadd head && \
@@ -26,10 +25,9 @@ RUN cd /src && \
   make && \
   make install && \
 # disable logs
-  rm -rf /opt/head/log
-# && \
+  rm -rf /opt/head/log && \
 # cleanup
-#  cd / && rm -rf /src
+  cd / && rm -rf /src
 
 WORKDIR /opt/head
 
