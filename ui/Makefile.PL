@@ -27,7 +27,7 @@ WriteMakefile(
   #},
   INSTALLSCRIPT => "$inst_dir/script",
   INSTALLSITESCRIPT => "$inst_dir/script",
-  EXE_FILES => ['script/ui'],
+  EXE_FILES => ['script/ui', 'script/start_server'],
   MAN1PODS => {},
   MAN3PODS => {},
 );

@@ -7,7 +7,6 @@ _r_cron
 _r_head
 _r_minion
 cpanfile
-docker-compose.yml
 Dockerfile
 head.conf_empty
 lib/Head.pm

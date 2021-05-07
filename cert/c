@@ -6,8 +6,8 @@ DAYS_CA=5475
 DAYS=1825
 
 declare -A SERVERS
-SERVERS[r2d2-head]="DNS:r2d2-head.uwc.local,IP:10.14.72.5"
-SERVERS[r2d2-ui]="DNS:r2d2-ui.uwc.local,IP:10.14.72.8"
+SERVERS[r2d2-head]="DNS:r2d2-head.uwc.local,IP:10.14.72.5,IP:10.14.72.6,IP:10.14.72.7,IP:192.168.3.5"
+SERVERS[r2d2-ui]="DNS:r2d2-ui.uwc.local,IP:192.168.3.9"
 SERVERS[localhost]="DNS:localhost,IP:10.15.0.31"
 SERVERS[gwtest1]="DNS:gwtest1.uwc.local,IP:10.2.13.131"
 SERVERS[plksrv1]="DNS:plksrv1.uwc.local,IP:10.14.0.1"

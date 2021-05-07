@@ -1,7 +1,9 @@
 .dockerignore
 _b
 _d_ui
+_r_ui
 cpanfile
+Dockerfile
 lib/Ui.pm
 lib/Ui/Controller/Index.pm
 lib/Ui/Controller/Oplog.pm
@@ -25,6 +27,7 @@ public/fonts/MaterialIcons-Regular.woff2
 public/img/favicon.ico
 public/js/materialize.js
 public/js/materialize.min.js
+script/start_server
 script/ui
 t/55_LogColorer.t
 t/72_OperatorResolver.t

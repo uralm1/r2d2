@@ -1,0 +1,148 @@
+version: "3.7"
+services:
+  head:
+    image: uralm1/r2d2-head
+    container_name: r2d2-head
+    hostname: r2d2-head
+    domainname: uwc.local
+    networks:
+      uwcnet:
+        ipv4_address: 10.14.72.5
+      backnet:
+        ipv4_address: 192.168.3.5
+    dns:
+      - 10.14.0.2
+      - 10.14.0.4
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - /srv/r2d2/head.conf:/opt/head/head.conf:ro
+      - /srv/r2d2/r2d2-head-cert.pem:/opt/head/r2d2-head-cert.pem:ro
+      - /srv/r2d2/r2d2-head-key.pem:/opt/head/r2d2-head-key.pem:ro
+      - /srv/r2d2/ca.pem:/opt/head/ca.pem:ro
+    environment:
+      - TZ=Asia/Yekaterinburg
+    depends_on:
+      - head-worker
+    restart: unless-stopped
+
+  head-worker:
+    image: uralm1/r2d2-head
+    container_name: r2d2-head-minion
+    hostname: r2d2-head-minion
+    domainname: uwc.local
+    networks:
+      uwcnet:
+        ipv4_address: 10.14.72.7
+      backnet:
+    dns:
+      - 10.14.0.2
+      - 10.14.0.4
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - /srv/r2d2/head.conf:/opt/head/head.conf:ro
+      - /srv/r2d2/r2d2-head-cert.pem:/opt/head/r2d2-head-cert.pem:ro
+      - /srv/r2d2/r2d2-head-key.pem:/opt/head/r2d2-head-key.pem:ro
+      - /srv/r2d2/ca.pem:/opt/head/ca.pem:ro
+      # to change mail templates, replace default mail_templates.pm file
+      # - /srv/r2d2-head/mail_templates.pm:/opt/head/lib/mail_templates.pm:ro
+    environment:
+      - TZ=Asia/Yekaterinburg
+    command: sh -c "script/check_db_hosts && script/add_route && su-exec head:head /usr/bin/perl script/head minion worker -j 1"
+    #command: sh -c "script/check_db_hosts && su-exec head:head /usr/bin/perl script/head minion worker -j 1"
+    restart: unless-stopped
+
+  head-cron:
+    image: uralm1/r2d2-head
+    container_name: r2d2-head-cron
+    hostname: r2d2-head-cron
+    domainname: uwc.local
+    networks:
+      uwcnet:
+        ipv4_address: 10.14.72.6
+      backnet:
+    dns:
+      - 10.14.0.2
+      - 10.14.0.4
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - /srv/r2d2/head.conf:/opt/head/head.conf:ro
+      - /srv/r2d2/r2d2-head-cert.pem:/opt/head/r2d2-head-cert.pem:ro
+      - /srv/r2d2/r2d2-head-key.pem:/opt/head/r2d2-head-key.pem:ro
+      - /srv/r2d2/ca.pem:/opt/head/ca.pem:ro
+    environment:
+      - TZ=Asia/Yekaterinburg
+    command: sh -c "script/check_db_hosts && script/add_route && su-exec head:head /usr/bin/perl script/head cron"
+    #command: sh -c "script/check_db_hosts && su-exec head:head /usr/bin/perl script/head cron"
+    depends_on:
+      - head-worker
+      - head
+    restart: unless-stopped
+
+  ui:
+    image: uralm1/r2d2-ui
+    container_name: r2d2-ui
+    hostname: r2d2-ui
+    domainname: uwc.local
+    networks:
+      backnet:
+        ipv4_address: 192.168.3.9
+    dns:
+      - 10.14.0.2
+      - 10.14.0.4
+    volumes:
+      - /srv/r2d2/ui.conf:/opt/ui/ui.conf:ro
+      - /srv/r2d2/r2d2-ui-cert.pem:/opt/ui/r2d2-ui-cert.pem:ro
+      - /srv/r2d2/r2d2-ui-key.pem:/opt/ui/r2d2-ui-key.pem:ro
+      - /srv/r2d2/ca.pem:/opt/ui/ca.pem:ro
+      - public:/opt/ui/public
+    environment:
+      - TZ=Asia/Yekaterinburg
+    depends_on:
+      - head
+    restart: unless-stopped
+
+  proxy:
+    image: uralm1/uwc-llng-proxy
+    container_name: r2d2-ui-proxy
+    hostname: stat
+    domainname: uwc.ufanet.ru
+    networks:
+      uwcnet:
+        ipv4_address: 10.14.72.8
+      backnet:
+    dns:
+      - 10.14.0.2
+      - 10.14.0.4
+    volumes:
+      - /etc/ssl/certs/uwc.ufanet.ru.pem:/etc/ssl/certs/u.pem:ro
+      - /etc/ssl/private/uwc.ufanet.ru-key.pem:/etc/ssl/private/u.key:ro
+      - public:/opt/ui/public
+    environment:
+      - TZ=Asia/Yekaterinburg
+      - PUBLIC_ROOT=/opt/ui/public
+      - PROXY_ADDR=http://r2d2-ui:3000/
+    depends_on:
+      - ui
+    links:
+      - ui:r2d2-ui
+    restart: unless-stopped
+
+volumes:
+  public:
+
+networks:
+  backnet:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.3.0/24
+          ip_range: 192.168.3.32/27
+          gateway: 192.168.3.1
+  uwcnet:
+    external:
+      name: uwcnet
+

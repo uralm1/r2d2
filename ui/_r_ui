@@ -1,10 +1,13 @@
 #!/bin/bash
 
-#docker volume create r2d2-ui_public
+#docker volume create r2d2_public
 docker run -d --name r2d2-ui \
   -h r2d2-ui \
-  -v /srv/r2d2-ui/ui.conf:/opt/ui/ui.conf:ro \
-  -v r2d2-ui_public:/opt/ui/public \
+  -v /srv/r2d2/ui.conf:/opt/ui/ui.conf:ro \
+  -v /srv/r2d2/r2d2-ui-cert.pem:/opt/ui/r2d2-ui-cert.pem:ro \
+  -v /srv/r2d2/r2d2-ui-key.pem:/opt/ui/r2d2-ui-key.pem:ro \
+  -v /srv/r2d2/ca.pem:/opt/ui/ca.pem:ro \
+  -v r2d2_public:/opt/ui/public \
   -e TZ=Asia/Yekaterinburg \
   -p 3000:3000 \
   uralm1/r2d2-ui
