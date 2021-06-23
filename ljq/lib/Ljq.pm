@@ -16,7 +16,7 @@ has [qw(remove_after)] => 172800;
 has tasks => sub { {} };
 has 'file';
 
-our $VERSION = '1.1';
+our $VERSION = '1.2';
 
 sub add_task {
   my ($self, $name, $task) = @_;
@@ -357,7 +357,7 @@ sub _job_id {
 
 sub _jobs { $_[0]->_data->{jobs} //= {} }
 
-sub _load { Storable::retrieve($_[1]) }
+sub _load { Storable::retrieve($_[1]) // {} }
 
 sub _save { Storable::store($_[1] => $_[2]) }
 
