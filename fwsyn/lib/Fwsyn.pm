@@ -11,7 +11,7 @@ use Fwsyn::Command::trafstat;
 #use Carp;
 use Sys::Hostname;
 
-our $VERSION = '2.58';
+our $VERSION = '2.59';
 
 # This method will run once at server start
 sub startup {

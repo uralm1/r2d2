@@ -11,7 +11,7 @@ use Gwsyn::Command::trafstat;
 #use Carp;
 use Sys::Hostname;
 
-our $VERSION = '2.59';
+our $VERSION = '2.60';
 
 # This method will run once at server start
 sub startup {

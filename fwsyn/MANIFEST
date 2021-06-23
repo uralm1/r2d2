@@ -31,6 +31,7 @@ script/fwsyn
 support/fwsyn
 support/fwsyn-cron
 support/fwsyn-worker
+support/fwsyn.logrotate
 support/rc.fwsyn
 t/01_get_subsys.t
 t/15_fw_delete.t

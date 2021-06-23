@@ -25,7 +25,7 @@ sub register {
 
       for (my $i = 2; $i < @$dump; $i++) { # skip first 2 lines
         if ($dump->[$i] =~ $m->{re_stat}()) {
-          $self->log->info("rule $1 $n $2 ip $3 id $4");
+          #$self->log->debug("rule $1 $n $2 ip $3 id $4");
           $buf{$4}{$n} = $2 if defined($2) and defined($4) and $2 > 0;
         }
       } # for dump

@@ -1,0 +1,6 @@
+/etc/r2d2/fwsyn*.log {
+	rotate 3
+	copytruncate
+	missingok
+	size=1024k
+}
