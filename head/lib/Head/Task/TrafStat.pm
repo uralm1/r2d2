@@ -66,7 +66,7 @@ WHERE $rule id = ?", $inb, $outb, $inb, $inb, $id) };
     }
 
     # finished
-    $m = "Stats update finished: $submitted/$updated";
+    $m = "Stats update finished: submitted $submitted, updated $updated";
     $app->log->info($m);
     $app->dblog->info($m, sync=>1);
 
@@ -105,7 +105,7 @@ WHERE $rule id = ? AND blocked = 0 AND sum_limit_in <= 0 AND qs > 0", $jid) };
     } # loop by submitted clients
 
     # finished
-    $m = "Block check finished: $selected/$notified/$blocked";
+    $m = "Block check finished: selected $selected, notified $notified, blocked $blocked";
     $app->log->info($m);
     $app->dblog->info($m, sync=>1);
 

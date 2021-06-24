@@ -7,7 +7,7 @@
   minion_db_conn => 'mysql://user:pass@srv/inet_minion',
 
   # db check schedule
-  check_compat_schedule => '*/2 * * * *',
+  check_compat_schedule => '*/5 * * * *',
   checkdel_compat_schedule => '2,32 * * * *',
 
   checkdel_compat_file => '/tmp/compat_chk.dat',

@@ -81,7 +81,19 @@ sub startup {
         $app->rlog('Updating clients failed: execution subsystem error.', sync=>1);
         sleep(3);
       }
-      $app->ljq->enqueue(load_clients => [] => {attempts => 5});
+      my $id = $app->ljq->enqueue('load_clients');
+      # wait indefinitely until task finishes successfully
+      my $state;
+      do {
+        my $job = $app->ljq->job($id);
+        $state = $job->info->{state};
+        sleep(3) if $state eq 'inactive' or $state eq 'active';
+        if ($state eq 'failed') {
+          $app->rlog('Updating clients attempt failed: possibly Head is dead.', sync=>1);
+          sleep(5);
+          $job->retry;
+        }
+      } until $state eq 'finished';
     }
   });
 
