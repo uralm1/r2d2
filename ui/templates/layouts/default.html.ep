@@ -9,10 +9,24 @@
   <!--link rel="stylesheet" href="/css/fonts-roboto.css"-->
   <link rel="stylesheet" href="/css/materialize.min.css?v=101">
   <link rel="stylesheet" href="/css/material-icons.css">
-  <link rel="stylesheet" href="/css/styles.css?v=1">
+  <link rel="stylesheet" href="/css/styles.css?v=4">
 </head>
 <body>
-  <nav class="white-text pink darken-3">
+% my $newversion = check_newversion;
+%== $newversion if $newversion;
+  <ul id="servers-dropdown" class="dropdown-content">
+    <li><%= link_to 'servers' => begin %>Серверы<% end %></li>
+    <li><%= link_to 'serversnew' => begin %>Добавить новый&hellip;<% end %></li>
+    <li><a href="#!" id="srveditmenu">Изменить&hellip;</a></li>
+    <li><a href="#!" id="srvdeletemenu">Удалить</a></li>
+  </ul>
+  <ul id="clients-dropdown" class="dropdown-content">
+    <li><%= link_to 'servers' => begin %>Клиенты<% end %></li>
+    <li><a href="#!">Добавить нового&hellip;</a></li>
+    <li><a href="#!">Изменить&hellip;</a></li>
+    <li><a href="#!">Удалить</a></li>
+  </ul>
+  <nav class="white-text pink darken-2">
     <div class="nav-wrapper scont">
       % if (my $u = stash 'back_url') {
       <a href="<%== $u %>" class="brand-logo"><i class="material-icons">arrow_back</i>Управление Интернет</a>
@@ -20,8 +34,8 @@
       <a href="/" class="brand-logo">Управление Интернет</a>
       % }
       <ul class="right hide-on-med-and-down">
-        <li><a href="">Test1</a></li>
-        <li><a href="">Test2</a></li>
+	<li><a class="dropdown-trigger" href="#!" data-target="servers-dropdown">Серверы<i class="material-icons right">arrow_drop_down</i></a></li>
+	<li><a class="dropdown-trigger" href="#!" data-target="clients-dropdown">Клиенты<i class="material-icons right">arrow_drop_down</i></a></li>
 	<li><%= link_to 'oplog' => begin %>Лог<% end %></li>
         <li><a href="<%== config 'help_url' %>" target="_blank"><i class="material-icons">help</i></a></li>
       </ul>
@@ -32,8 +46,8 @@
       <b class="white-text">ВНИМАНИЕ! Вы используете устаревшую версию браузера Интернет. Многие элементы страницы будут отображены некорректно. Обновите версию Вашего браузера!</b>
     </div></div></div>
   <![endif]-->
-<%= content %>
-  <footer class="page-footer pink darken-3">
+%= content
+  <footer class="page-footer pink darken-2">
     <div class="footer-copyright">
       <div class="scont">
         <span title="Версия: <%== $version%>. Автор: Урал Хасанов, 2021">
@@ -44,6 +58,19 @@
       </div>
     </div>
   </footer>
-  <script src="/js/materialize.min.js?v=101"></script>
+<script src="/js/jquery-3.6.0.min.js"></script>
+<script src="/js/materialize.min.js?v=101"></script>
+<script>
+  $(document).ready(function(){
+    $('.dropdown-trigger').dropdown({coverTrigger:false,constrainWidth:false});
+    $('#srveditmenu').click(function(){M.toast({html:'Ошибка. Сервер не выбран.',displayLength:3000})});
+    $('#srvdeletemenu').click(function(){M.toast({html:'Ошибка. Сервер не выбран.',displayLength:3000})});
+% if ($newversion) {
+    $('#newversion-modal').modal();$('#newversion-modal').modal('open');
+% }
+  });
+</script>
+%= content 'done_toast'
+%= content 'script0'
 </body>
 </html>

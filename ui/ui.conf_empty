@@ -13,7 +13,52 @@
 
   head_url => 'http://localhost:2271',
 
+  lines_on_page => 20,
   log_lines_on_page => 100,
+
+  rt_names => [
+    [ 'Уфанет' => '0' ],
+    [ 'Билайн' => '1' ],
+  ],
+
+  defjump_names => [
+    [ 'ACCEPT (весь ip)' => 'ACCEPT' ],
+    [ 'DROP (отключен)' => 'DROP' ],
+    [ 'HTTP_ICMP (http, icmp)' => 'HTTP_ICMP' ],
+    [ 'HTTP_IM_ICMP (http, mail, im, icmp)' => 'HTTP_IM_ICMP' ],
+    [ 'ICMP_ONLY (icmp, just for fun)' => 'ICMP_ONLY' ],
+  ],
+
+  qs_names => [
+    [ 'Отключена (Анлим)' => '0' ],
+    [ 'Мягкая (Извещение)' => '1' ],
+    [ 'Средняя (Снижение скорости)' => '2' ],
+    [ 'Жесткая (Отключение)' => '3' ],
+  ],
+
+  speed_plans => [
+    { name => 'Рабочая улитка (1/1.2 мбит)', key => '10241280',
+      img => '/img/speed10241280.png',
+      in => 'quantum 6400 rate 1mbit prio 5', out => 'quantum 6400 rate 1mbit ceil 1280kbit prio 5' },
+    { name => 'Почётный пенсионер (1.3/1.3 мбит)', key => '12801280',
+      img => '/img/speed12801280.png',
+      in => 'quantum 6400 rate 1mbit ceil 1280kbit prio 5', out => 'quantum 6400 rate 1mbit ceil 1280kbit prio 5' },
+    { name => 'Адвокат бизнесмена (1.5/1.5 мбит)', key => '15361536',
+      img => '/img/speed15361536.png',
+      in => 'quantum 6400 rate 1mbit ceil 1536kbit prio 5', out => 'quantum 6400 rate 1mbit ceil 1536kbit prio 5' },
+    { name => 'Директор по продажам (2/2 мбит)', key => '20482048',
+      img => '/img/speed20482048.png',
+      in => 'quantum 6400 rate 1mbit ceil 2mbit prio 5', out => 'quantum 6400 rate 1mbit ceil 2mbit prio 5' },
+    { name => 'Помощник президента (4/4 мбит)', key => '40964096',
+      img => '/img/speed40964096.png',
+      in => 'quantum 6400 rate 1mbit ceil 4mbit prio 5', out => 'quantum 6400 rate 1mbit ceil 4mbit prio 5' },
+    { name => 'Бог интернета (8/8 мбит)', key => '81928192',
+      img => '/img/speed81928192.png',
+      in => 'quantum 6400 rate 1mbit ceil 8mbit prio 5', out => 'quantum 6400 rate 1mbit ceil 8mbit prio 5' },
+    { name => 'Индивидуал (индивидуальные настройки)', key => 'userdef',
+      img => '/img/speeduserdef.png',
+      in => '', out => '' },
+  ],
 
   ldap_servers => ['ldap://dcsrv1', 'ldap://dcsrv2'],
   ldap_user => 'ldapuser',

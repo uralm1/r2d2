@@ -1,7 +1,7 @@
 package Ui;
 use Mojo::Base 'Mojolicious';
 
-our $VERSION = '0.2';
+our $VERSION = '0.3';
 
 # This method will run once at server start
 sub startup {
@@ -70,6 +70,14 @@ sub startup {
   $r->get('/rep/users')->to('rep#users');
 
   $r->get('/oplog')->to('oplog#index');
+
+  $r->get('/servers')->to('servers#index');
+  $r->get('/servers/edit')->to('servers#edit');
+  $r->post('/servers/edit')->to('servers#editpost');
+  $r->get('/servers/new')->to('servers#newget');
+  $r->post('/servers/new')->to('servers#newpost');
+  $r->get('/servers/delete')->to('servers#delete');
+  $r->post('/servers/delete')->to('servers#deletepost');
 }
 
 

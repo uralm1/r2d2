@@ -6,7 +6,5 @@ destdir=ural@srv-echo:r2d2-head/
 cert_path="../cert"
 keys="$cert_path/ca.pem $cert_path/r2d2-head-cert.pem $cert_path/r2d2-head-key.pem"
 
-mail_templates="mail1.txt mail2.txt mail3.txt"
-
-scp $keys docker-compose.yml _r_cmd head.conf_empty $mail_templates $destdir
+scp $keys docker-compose.yml _r_cmd head.conf_empty $destdir
 

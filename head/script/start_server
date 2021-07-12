@@ -15,4 +15,4 @@ my $sp = "?cert=$c->{local_cert}&key=$c->{local_key}&ca=$c->{ca}&verify=0x03";
 
 use Mojolicious::Commands;
 
-Mojolicious::Commands->start_app('Head', 'prefork', '-l', 'https://*:2271'.$sp, '-P', '/opt/head/run/head.pid');
+Mojolicious::Commands->start_app('Head', 'prefork', '-l', 'https://*:2271'.$sp, '-P', '/opt/head/run/head.pid', '-w', '6');

@@ -157,3 +157,23 @@ ALTER TABLE `clients` ADD `blocked` tinyint(1) NOT NULL AFTER `notified`;
 ALTER TABLE `clients` DROP `notified`;
 ALTER TABLE `clients` DROP `blocked`;
 
+-- 5 up
+CREATE TABLE IF NOT EXISTS `servers` (
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `desc` varchar(255) NOT NULL,
+  `create_time` datetime DEFAULT NULL,
+  `clients_id` int(11) UNSIGNED NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+ALTER TABLE `clients` DROP INDEX `login`, ADD INDEX `login` (`login`) USING BTREE;
+ALTER TABLE `clients` CHANGE `login` `login` VARCHAR(30) NULL;
+ALTER TABLE `clients` CHANGE `desc` `desc` VARCHAR(255) NULL;
+
+-- 5 down
+DROP TABLE IF EXISTS `servers`;
+ALTER TABLE `clients` DROP INDEX `login`, ADD UNIQUE `login` (`login`) USING BTREE;
+ALTER TABLE `clients` CHANGE `login` `login` VARCHAR(30) NOT NULL;
+ALTER TABLE `clients` CHANGE `desc` `desc` VARCHAR(255) NOT NULL;
+

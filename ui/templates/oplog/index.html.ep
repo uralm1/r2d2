@@ -1,6 +1,6 @@
 % layout 'default', back_url => '/';
 <div class="scont">
-  <h5>Лог системных событий</h5>
+  <h4>Лог системных событий</h4>
   <table class="striped narrow-log">
     <thead>
       <tr>

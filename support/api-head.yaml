@@ -169,7 +169,7 @@ paths:
         - name: client_id
           in: path
           required: true
-          description: client id
+          description: 'Client id'
           schema:
             type: integer
             example: 11
@@ -328,6 +328,173 @@ paths:
               schema:
                 type: string
                 description: error message
+  /ui/servers:
+    get:
+      summary: Получение списка серверов
+      description: Запрос списка серверов для интерфейса пользователя.
+      parameters:
+        - name: page
+          in: query
+          description: Текущая страница (начиная с 1)
+          schema:
+            type: integer
+            example: 2
+        - name: lop
+          in: query
+          required: true
+          description: Число строк на странице (lines_on_page)
+          schema:
+            type: integer
+            example: 20
+
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ui_servers_json'
+        '400':
+          description: Ошибка в параметрах, в основном неверный номер текущей страницы
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+  /ui/server/{server_id}:
+    get:
+      summary: 'Запрос данных по серверу'
+      parameters:
+        - name: server_id
+          in: path
+          required: true
+          description: 'Server id'
+          schema:
+            type: integer
+            example: 11
+            
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/server_record'
+        '404':
+          description: Not found, including bad id parameter
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+    put:
+      summary: 'Редактирование данных сервера'
+      parameters:
+        - name: server_id
+          in: path
+          required: true
+          description: 'Server id'
+          schema:
+            type: integer
+            example: 11
+
+      requestBody:
+        description: 'Server data'
+        required: true
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/server_record'
+
+      responses:
+        '200':
+          description: Success
+        '404':
+          description: Not found, including bad id parameter
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+    delete:
+      summary: 'Удаление сервера'
+      parameters:
+        - name: server_id
+          in: path
+          required: true
+          description: 'Server id'
+          schema:
+            type: integer
+            example: 11
+
+      responses:
+        '200':
+          description: Success
+        '404':
+          description: Not found, including bad id parameter
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+  /ui/server:
+    post:
+      summary: 'Добавление нового сервера'
+      requestBody:
+        description: 'Server data'
+        required: true
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/server_record'
+
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                type: integer
+                description: 'Inserted server id'
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message      
 
   /ui/oplog:
     get:
@@ -409,7 +576,7 @@ components:
           example: '11:22:33:44:55:66'
         rt:
           type: integer
-          description: route type (0-ufanet, 1-beeline)
+          description: 'route type (0-ufanet, 1-beeline)'
           example: 1
         no_dhcp:
           type: integer
@@ -429,11 +596,11 @@ components:
           example: 'quantum 6400 rate 1mbit ceil 1280kbit prio 5'
         qs:
           type: integer
-          description: quote mode (0-disabled, 1-notify, 2-limit, 3-block)
+          description: 'quote mode (0-disabled, 1-notify, 2-limit, 3-block)'
           example: 2
         blocked:
           type: integer
-          description: blocked flag (0-unblocked, 1-blocked)
+          description: 'blocked flag (0-unblocked, 1-blocked)'
           example: 0
         profile:
           type: string
@@ -553,3 +720,112 @@ components:
             date: '14:04:24 30/04/21'
             subsys: 'gwsyn@gwsev'
             info: 'Finished traffic_stat'
+
+    ui_servers_json:
+      description: 'Страница данных перечня серверов'
+      type: object
+      properties:
+        lines_total:
+          type: integer
+          description: Всего строк данных
+        pages:
+          type: integer
+          description: Всего страниц данных
+        page:
+          type: integer
+          description: Текущая страница, возвращенная в данном объекте. Равна параметру запроса.
+        lines_on_page:
+          type: integer
+          description: Строк на одной странице. Равно параметру запроса.
+        d:
+          type: array
+          description: Массив строк
+          items:
+            $ref: '#/components/schemas/server_record'
+
+      example:
+        lines_total: 1000
+        pages: 50
+        page: 1
+        lines_on_page: 20
+        d:
+          - id: 54321
+            name: 'Сервер DC1'
+            desc: 'Описание сервера'
+            create_time: '14:04:24 30/04/21'
+            ip: '1.2.3.4'
+            mac: '11:22:33:44:55:66'
+            rt: 1
+            no_dhcp: 0
+            defjump: 'ACCEPT'
+            speed_in: 'quantum 6400 rate 1mbit prio 5'
+            speed_out: 'quantum 6400 rate 1mbit prio 5'
+            qs: 2
+            limit_in: 1073741824
+            blocked: 0
+            profile: 'gwtest1'
+            
+    server_record:
+      description: 'Server record'
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Код сервера
+          example: '54321'
+        name:
+          type: string
+          description: Наименование
+          example: 'Сервер DC1'
+        desc:
+          type: string
+          description: Описание сервера
+          example: 'Краткое описание'
+        create_time:
+          type: string
+          description: 'Время создания (14:04:24 30/04/21)'
+          example: '14:04:24 30/04/21'
+        ip:
+          type: string
+          description: client ip4
+          example: '10.15.0.33'
+        mac:
+          type: string
+          description: client mac
+          example: '11:22:33:44:55:66'
+        rt:
+          type: integer
+          description: 'route type (0-ufanet, 1-beeline)'
+          example: 1
+        no_dhcp:
+          type: integer
+          description: '(0-use dhcp, 1-dont use)'
+          example: 0
+        defjump:
+          type: string
+          description: 'ACCEPT/DROP/HTTP_ICMP/HTTP_IM_ICMP/ICMP_ONLY'
+          example: 'ACCEPT'
+        speed_in:
+          type: string
+          description: 'dl speed tc parameters'
+          example: 'quantum 6400 rate 1mbit prio 5'
+        speed_out:
+          type: string
+          description: 'ul speed tc parameters'
+          example: 'quantum 6400 rate 1mbit ceil 1280kbit prio 5'
+        qs:
+          type: integer
+          description: 'quote mode (0-disabled, 1-notify, 2-limit, 3-block)'
+          example: 2
+        limit_in:
+          type: integer
+          description: 'quota limit in bytes'
+          example: 1073741824
+        blocked:
+          type: integer
+          description: 'blocked flag (0-unblocked, 1-blocked)'
+          example: 0
+        profile:
+          type: string
+          description: 'client profile name'
+          example: 'gwtest1'

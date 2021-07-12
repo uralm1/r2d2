@@ -33,6 +33,19 @@ sub register {
     my $stats = $self->minion->stats;
     return ($stats->{active_workers} != 0 || $stats->{inactive_workers} != 0);
   });
+
+
+  # $self->exists_and_number404($value)
+  # renders error if not number
+  $app->helper(exists_and_number404 => sub {
+    my ($self, $v) = @_;
+    unless (defined $v && $v =~ /^\d+$/) {
+      $self->render(text => 'Bad parameter', status=>404);
+      return undef;
+    }
+    return 1;
+  });
+
 }
 
 1;

@@ -6,9 +6,11 @@ requires 'Mojo::mysql', '1.04';
 requires 'Minion', '9.03';
 requires 'Minion::Backend::mysql';
 requires 'Algorithm::Cron', '0.10';
-requires 'NetAddr::IP';
+requires 'NetAddr::IP::Lite';
 requires 'Net::SMTP';
 requires 'Net::LDAP';
+requires 'JSON::Validator';
+requires 'Regexp::Common';
 requires 'ExtUtils::MakeMaker::CPANfile';
 
 on 'configure' => sub {

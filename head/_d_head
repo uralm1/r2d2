@@ -9,6 +9,6 @@ MOJO_LISTEN='http://*:2271'
 #echo $MOJO_LISTEN
 export MOJO_LISTEN
 
-#morbo script/head
-script/head daemon
+morbo script/head
+#script/head daemon
 #script/head prefork

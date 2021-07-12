@@ -14,7 +14,7 @@ use Head::Command::unblock;
 
 use Sys::Hostname;
 
-our $VERSION = '2.68';
+our $VERSION = '2.69';
 
 # This method will run once at server start
 sub startup {
@@ -47,6 +47,7 @@ sub startup {
   $self->plugin('Head::Plugin::Utils');
   $self->plugin('Head::Plugin::Migrations');
   $self->plugin('Head::Plugin::Refresh_impl');
+  $self->plugin('Head::Plugin::Json_schemas');
   $self->plugin('Head::Task::BlockClient');
   $self->plugin('Head::Task::NotifyClient');
   $self->plugin('Head::Task::TrafStat');
@@ -94,6 +95,11 @@ sub startup {
   $r->post('/log/#rsubsys' => {rsubsys => 'none'})->to('log#log');
 
   $r->get('/ui/oplog')->to('ui_oplog#oplog');
+  $r->get('/ui/servers')->to('ui_servers#servers');
+  $r->get('/ui/server/#id')->to('ui_servers#serverget');
+  $r->put('/ui/server/#id')->to('ui_servers#serverput');
+  $r->delete('/ui/server/#id')->to('ui_servers#serverdelete');
+  $r->post('/ui/server')->to('ui_servers#serverpost');
 }
 
 

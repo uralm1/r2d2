@@ -1,5 +1,19 @@
 % layout 'default', back_url => '/';
 <div class="scont">
-  <h5>ABOUT</h5>
-  <p>About page</p>
+  <h4>О программе</h4>
+  <div class="row">
+    <div class col s12>
+      <h6><b>Управление комплексом &quot;R2D2&quot;. Версия: <%== $version %></b></h6>
+    </div>
+    <div class col s12>
+      <p>
+Разработана в группе сетевого администрирования ГУП РБ "Уфаводоканал", 2020-21 г.<br>
+автор: Хасанов Урал &lt;<a href="https://rc.uwc.ufanet.ru" target="_blank">uralm@uwc.ufanet.ru</a>&gt;, 2020-21 г.
+      </p>
+      <p>
+      <b>История версий:</b>
+      <pre class="about-hist"><%== $hist %></pre>
+      </p>
+    </div>
+  </div>
 </div>
