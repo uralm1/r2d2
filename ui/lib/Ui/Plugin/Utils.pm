@@ -100,6 +100,14 @@ sub register {
   });
 
 
+  # $guid_str = guid2string($guid_octets)
+  $app->helper(guid2string => sub {
+    my $strguid = unpack('H*', $_[1]);
+    $strguid =~ s/^(\w\w)(\w\w)(\w\w)(\w\w)(\w\w)(\w\w)(\w\w)(\w\w)(\w\w\w\w)/$4$3$2$1-$6$5-$8$7-$9-/;
+    return $strguid;
+  });
+
+
   # my $full_operator_name = oprs($login)
   $app->helper(oprs => sub {
     my ($self, $login) = @_;

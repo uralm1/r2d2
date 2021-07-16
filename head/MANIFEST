@@ -21,13 +21,16 @@ lib/Head/Command/statprocess.pm
 lib/Head/Command/truncatelog.pm
 lib/Head/Command/unblock.pm
 lib/Head/Controller/Blocked.pm
-lib/Head/Controller/Clients.pm
+lib/Head/Controller/Devices.pm
 lib/Head/Controller/Log.pm
 lib/Head/Controller/Refreshed.pm
 lib/Head/Controller/Reloaded.pm
 lib/Head/Controller/Stat.pm
+lib/Head/Controller/UiClients.pm
 lib/Head/Controller/UiOplog.pm
+lib/Head/Controller/UiServers.pm
 lib/Head/Controller/Utils.pm
+lib/Head/Plugin/Json_schemas.pm
 lib/Head/Plugin/Migrations.pm
 lib/Head/Plugin/Refresh_impl.pm
 lib/Head/Plugin/Utils.pm

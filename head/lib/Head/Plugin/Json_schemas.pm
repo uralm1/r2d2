@@ -60,3 +60,26 @@ __DATA__
   }
 }
 
+@@ client_record
+{
+  "type": "object",
+  "required": ["cn", "desc", "guid", "login", "email"],
+  "properties": {
+    "id": { "type":"integer" },
+    "cn": { "type":"string", "minLength":1 },
+    "desc": { "type":"string" },
+    "create_time": { "type":"string" },
+    "guid": {
+      "type":"string",
+      "description":"Guid regexp or empty",
+      "pattern":"^$|^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+    },
+    "login": { "type":"string", "minLength":1 },
+    "email": {
+      "type":"string",
+      "description":"Email regexp or empty",
+      "pattern":"^$|^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$"
+    }
+  }
+}
+

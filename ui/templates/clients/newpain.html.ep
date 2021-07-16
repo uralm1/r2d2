@@ -1,0 +1,54 @@
+% layout 'default', back_url => '/clients';
+% if (validation->has_error) {
+%   content_with done_toast => begin
+<script>$(document).ready(function(){M.toast({html:'Ошибка. Неверные данные.',displayLength:3000})})</script>
+%   end
+% }
+<div class="scont">
+  <h4>Новый клиент (вручную)</h5>
+
+  %= form_for clientsnewpain => (method=>'POST') => begin
+    <div class="row">
+      <div class="input-field col s12 m8 l5">
+	%= text_field 'cn', id => 'cn'
+	%= label_for cn => 'Фамилия Имя Отчество'
+	%= t 'span', class => 'helper-text', 'data-error' => 'Ошибка. Поле не должно быть пустым.'
+      </div>
+    </div>
+    <div class="row">
+      <div class="input-field col s12 m8 l5">
+	%= text_area 'desc', id => 'desc', class => 'materialize-textarea'
+	%= label_for desc => 'Комментарий'
+	%= t 'span', class => 'helper-text', 'Дополнительная информация (пользователям не видно)'
+      </div>
+    </div>
+    <div class="row">
+      <div class="input-field col s12 m8 l5">
+	%= text_field 'login', id => 'login'
+	%= label_for login => 'Логин'
+	%= t 'span', class => 'helper-text', 'data-error' => 'Ошибка. Поле не должно быть пустым.', 'Логин клиента в корпоративном облаке'
+      </div>
+    </div>
+    <div class="row">
+      <div class="input-field col s12 m8 l5">
+	%= text_field 'email', id => 'email'
+	%= label_for email => 'Email'
+	%= t 'span', class => 'helper-text', 'data-error' => 'Ошибка. Формат mailbox@domain.tld', 'Адрес электронной почты для уведомлений'
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col s12">
+	<button class="btn-large waves-effect waves-light" type="submit">Добавить клиента*</button>
+	<span class="spaceleft">* Несмотря на предупреждения.</span>
+      </div>
+    </div>
+  % end
+</div>
+% content_for script0 => begin
+<script>
+  $(document).ready(function(){
+    $('input.field-with-error,textarea.field-with-error').removeClass('valid').addClass('invalid');
+  });
+</script>
+% end

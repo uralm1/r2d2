@@ -14,7 +14,7 @@ use Head::Command::unblock;
 
 use Sys::Hostname;
 
-our $VERSION = '2.69';
+our $VERSION = '2.70';
 
 # This method will run once at server start
 sub startup {
@@ -84,9 +84,11 @@ sub startup {
 
   $r->get('/subsys')->to('utils#subsys');
 
-  $r->get('/clients')->to('clients#clients');
-  $r->get('/clients/#profile')->to('clients#clients_old'); # DEPRECATED
-  $r->get('/client/#id')->to('clients#client');
+  $r->get('/clients')->to('devices#devices'); #
+  $r->get('/devices')->to('devices#devices');
+  $r->get('/clients/#profile')->to('devices#devices_old'); # DEPRECATED
+  $r->get('/client/#id')->to('devices#device'); #
+  $r->get('/device/#id')->to('devices#device');
   $r->post('/trafstat')->to('stat#trafstat');
   $r->post('/refreshed')->to('refreshed#refreshed');
   $r->post('/blocked')->to('blocked#blocked');
@@ -100,6 +102,7 @@ sub startup {
   $r->put('/ui/server/#id')->to('ui_servers#serverput');
   $r->delete('/ui/server/#id')->to('ui_servers#serverdelete');
   $r->post('/ui/server')->to('ui_servers#serverpost');
+  $r->post('/ui/client')->to('ui_clients#clientpost');
 }
 
 

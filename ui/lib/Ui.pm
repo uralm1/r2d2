@@ -78,6 +78,11 @@ sub startup {
   $r->post('/servers/new')->to('servers#newpost');
   $r->get('/servers/delete')->to('servers#delete');
   $r->post('/servers/delete')->to('servers#deletepost');
+
+  $r->get('/clients')->to('clients#index');
+  $r->get('/clients/new')->to('clients#newget');
+  $r->post('/clients/new')->to('clients#newpost');
+  $r->post('/clients/newpain')->to('clients#newpainpost');
 }
 
 

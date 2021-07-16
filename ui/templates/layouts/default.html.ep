@@ -21,10 +21,10 @@
     <li><a href="#!" id="srvdeletemenu">Удалить</a></li>
   </ul>
   <ul id="clients-dropdown" class="dropdown-content">
-    <li><%= link_to 'servers' => begin %>Клиенты<% end %></li>
-    <li><a href="#!">Добавить нового&hellip;</a></li>
-    <li><a href="#!">Изменить&hellip;</a></li>
-    <li><a href="#!">Удалить</a></li>
+    <li><%= link_to 'clients' => begin %>Клиенты<% end %></li>
+    <li><%= link_to 'clientsnew' => begin %>Создать нового&hellip;<% end %></li>
+    <li><a href="#!" id="clientseditmenu">Изменить&hellip;</a></li>
+    <li><a href="#!" id="clientsdeletemenu">Удалить</a></li>
   </ul>
   <nav class="white-text pink darken-2">
     <div class="nav-wrapper scont">
@@ -63,8 +63,12 @@
 <script>
   $(document).ready(function(){
     $('.dropdown-trigger').dropdown({coverTrigger:false,constrainWidth:false});
-    $('#srveditmenu').click(function(){M.toast({html:'Ошибка. Сервер не выбран.',displayLength:3000})});
-    $('#srvdeletemenu').click(function(){M.toast({html:'Ошибка. Сервер не выбран.',displayLength:3000})});
+    let srverr_action = function() {M.toast({html:'Ошибка. Сервер не выбран.',displayLength:3000})};
+    let clientserr_action = function() {M.toast({html:'Ошибка. Клиент не выбран.',displayLength:3000})};
+    $('#srveditmenu').click(srverr_action);
+    $('#srvdeletemenu').click(srverr_action);
+    $('#clientseditmenu').click(clientserr_action);
+    $('#clientsdeletemenu').click(clientserr_action);
 % if ($newversion) {
     $('#newversion-modal').modal();$('#newversion-modal').modal('open');
 % }

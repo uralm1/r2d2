@@ -53,3 +53,7 @@ pre.newversion-hist {
   word-wrap:break-word;
   font-size:0.85em;
 }
+
+.no-margin-bottom {
+  margin-bottom:0;
+}

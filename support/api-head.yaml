@@ -92,7 +92,7 @@ paths:
 
   /clients:
     get:
-      summary: Load clients data for profiles
+      summary: Load devices data for profiles
       parameters:
         - name: profile
           in: query
@@ -109,7 +109,42 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/client_record'
+                  $ref: '#/components/schemas/device_record'
+        '404':
+          description: Not found
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+  /devices:
+    get:
+      summary: Load devices data for profiles
+      parameters:
+        - name: profile
+          in: query
+          description: profile name (multiple are possible)
+          schema:
+            type: string
+            example: 'gwtest1'
+            
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/device_record'
         '404':
           description: Not found
           content:
@@ -127,7 +162,7 @@ paths:
 
   /clients/{profile}:
     get:
-      summary: Load clients data for profile (deprecated)
+      summary: Load devices data for profile (deprecated)
       deprecated: true
       parameters:
         - name: profile
@@ -146,7 +181,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/client_record'
+                  $ref: '#/components/schemas/device_record'
         '404':
           description: Not found
           content:
@@ -164,12 +199,12 @@ paths:
 
   /client/{client_id}:
     get:
-      summary: Load client data
+      summary: Load device data
       parameters:
         - name: client_id
           in: path
           required: true
-          description: 'Client id'
+          description: 'Device id'
           schema:
             type: integer
             example: 11
@@ -180,7 +215,41 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/client_record'
+                $ref: '#/components/schemas/device_record'
+        '404':
+          description: Not found, including bad id parameter
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+  /device/{client_id}:
+    get:
+      summary: Load device data
+      parameters:
+        - name: client_id
+          in: path
+          required: true
+          description: 'Device id'
+          schema:
+            type: integer
+            example: 11
+            
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/device_record'
         '404':
           description: Not found, including bad id parameter
           content:
@@ -496,6 +565,33 @@ paths:
                 type: string
                 description: error message      
 
+  /ui/client:
+    post:
+      summary: 'Добавление нового клиента'
+      requestBody:
+        description: 'Client data'
+        required: true
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/client_record'
+
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                type: integer
+                description: 'Inserted client id'
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message      
+
   /ui/oplog:
     get:
       summary: Получение лога операций
@@ -558,21 +654,21 @@ components:
           example: Initialization started
           description: String to put into log
           
-    client_record:
-      description: Client record
+    device_record:
+      description: Device record
       type: object
       properties:
         id:
           type: integer
-          description: client id
+          description: device id
           example: 11
         ip:
           type: string
-          description: client ip4
+          description: device ip4
           example: '10.15.0.33'
         mac:
           type: string
-          description: client mac
+          description: device mac
           example: '11:22:33:44:55:66'
         rt:
           type: integer
@@ -771,7 +867,7 @@ components:
       properties:
         id:
           type: integer
-          description: Код сервера
+          description: 'Код сервера (not required on new)'
           example: '54321'
         name:
           type: string
@@ -779,11 +875,11 @@ components:
           example: 'Сервер DC1'
         desc:
           type: string
-          description: Описание сервера
+          description: 'Описание сервера, возможно пустое'
           example: 'Краткое описание'
         create_time:
           type: string
-          description: 'Время создания (14:04:24 30/04/21)'
+          description: 'Время создания (14:04:24 30/04/21, not required on new)'
           example: '14:04:24 30/04/21'
         ip:
           type: string
@@ -829,3 +925,55 @@ components:
           type: string
           description: 'client profile name'
           example: 'gwtest1'
+      required:
+        - name
+        - desc
+        - ip
+        - mac
+        - no_dhcp
+        - rt
+        - defjump
+        - speed_in
+        - speed_out
+        - qs
+        - limit_in
+        - profile
+
+    client_record:
+      description: 'Client record'
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Код клиента (not required on new)'
+          example: '54321'
+        cn:
+          type: string
+          description: 'Фамилия Иия Отчество'
+          example: 'Иванов Иван Иванович'
+        desc:
+          type: string
+          description: 'Описание клиента, возможно пустое'
+          example: 'Краткое описание'
+        guid:
+          type: string
+          description: 'ObjectGUID клиента, возможно пустое для клиентов добавленных вручную'
+          example: 'b95108ab-236a-4534-9ef0-6b8fa1cd59fd'
+        create_time:
+          type: string
+          description: 'Время создания (14:04:24 30/04/21, not required on new)'
+          example: '14:04:24 30/04/21'
+        login:
+          type: string
+          description: 'Логин клиента'
+          example: 'user'
+        email:
+          type: string
+          description: 'Email клиента'
+          example: 'user@domain.tld'
+      required:
+        - cn
+        - desc
+        - guid
+        - email
+        - login
