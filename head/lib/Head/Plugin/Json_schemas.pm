@@ -32,12 +32,17 @@ __DATA__
 @@ server_record
 {
   "type": "object",
-  "required": ["name", "desc", "ip", "mac", "no_dhcp", "rt", "defjump", "speed_in", "speed_out", "qs", "limit_in", "profile"],
+  "required": ["cn", "desc", "email", "ip", "mac", "no_dhcp", "rt", "defjump", "speed_in", "speed_out", "qs", "limit_in", "profile"],
   "properties": {
     "id": { "type":"integer" },
-    "name": { "type":"string", "minLength":1 },
+    "cn": { "type":"string", "minLength":1 },
     "desc": { "type":"string" },
     "create_time": { "type":"string" },
+    "email": {
+      "type":"string",
+      "description":"Email regexp or empty",
+      "pattern":"^$|^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$"
+    },
     "ip": {
       "type":"string",
       "description":"Regexp::Common ^$RE{net}{IPv4}$",

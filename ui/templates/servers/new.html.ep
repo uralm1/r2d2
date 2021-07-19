@@ -10,9 +10,9 @@
   %= form_for serversnew => (method=>'POST') => begin
     <div class="row">
       <div class="input-field col s12 m8 l5">
-	%= text_field 'name', id => 'name'
-	%= label_for name => 'Название сервера'
-	%= t 'span', class => 'helper-text', 'data-error' => 'Ошибка'
+	%= text_field 'cn', id => 'cn'
+	%= label_for cn => 'Название сервера'
+	%= t 'span', class => 'helper-text', 'data-error' => 'Ошибка, не должно быть пустым'
       </div>
     </div>
     <div class="row">
@@ -20,6 +20,11 @@
 	%= text_area 'desc', id => 'desc', class => 'materialize-textarea'
 	%= label_for desc => 'Комментарий'
 	%= t 'span', class => 'helper-text', 'Дополнительная информация (пользователям не видно)'
+      </div>
+      <div class="input-field col s12 m8 l4">
+	%= text_field 'email', id => 'email'
+	%= label_for email => 'Email (необязательный)'
+	%= t 'span', class => 'helper-text', 'data-error' => 'Ошибка. Формат mailbox@domain.tld', 'Адрес электронной почты для уведомлений'
       </div>
     </div>
 

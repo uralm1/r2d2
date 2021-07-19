@@ -164,17 +164,9 @@ ALTER TABLE `clients_sync` RENAME `devices_sync`;
 ALTER TABLE `adaily` CHANGE `client_id` `device_id` INT(11) UNSIGNED NOT NULL;
 ALTER TABLE `amonthly` CHANGE `client_id` `device_id` INT(11) UNSIGNED NOT NULL;
 
-CREATE TABLE IF NOT EXISTS `servers` (
-  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) NOT NULL,
-  `desc` varchar(255) NOT NULL,
-  `create_time` datetime DEFAULT NULL,
-  `devices_id` int(11) UNSIGNED NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
 CREATE TABLE IF NOT EXISTS `clients` (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `type` tinyint(3) UNSIGNED NOT NULL,
   `guid` char(36) NOT NULL CHARACTER SET ascii,
   `login` varchar(255) NOT NULL,
   `desc` varchar(255) NOT NULL,
@@ -191,7 +183,6 @@ ALTER TABLE `devices` CHANGE `desc` `desc` VARCHAR(255) NULL;
 ALTER TABLE `devices` ADD `clients_id` INT(11) UNSIGNED NULL AFTER `profile`;
 
 -- 5 down
-DROP TABLE IF EXISTS `servers`;
 DROP TABLE IF EXISTS `clients`;
 ALTER TABLE `devices` DROP INDEX `login`, ADD UNIQUE `login` (`login`) USING BTREE;
 ALTER TABLE `devices` CHANGE `login` `login` VARCHAR(30) NOT NULL;

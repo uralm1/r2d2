@@ -7,8 +7,8 @@
     %= hidden_field id => $srv_id
     <div class="row">
       <div class="input-field col s12 m8 l5">
-	%= text_field 'name' => $srv_rec->{name}, id => 'name', disabled => undef
-	%= label_for name => 'Название сервера'
+	%= text_field 'cn' => $srv_rec->{cn}, id => 'cn', disabled => undef
+	%= label_for cn => 'Название сервера'
 	%= t 'span', class => 'helper-text'
       </div>
       <div class="input-field col s12 m4 l3 offset-l1">
@@ -21,6 +21,11 @@
 	%= text_area desc => $srv_rec->{desc}, id => 'desc', class => 'materialize-textarea', disabled => undef
 	%= label_for desc => 'Комментарий'
 	%= t 'span', class => 'helper-text', 'Дополнительная информация'
+      </div>
+      <div class="input-field col s12 m8 l4">
+	%= text_field email => $srv_rec->{email}, id => 'email', disabled => undef
+	%= label_for email => 'Email (необязательный)'
+	%= t 'span', class => 'helper-text', 'Адрес электронной почты для уведомлений'
       </div>
     </div>
 

@@ -18,8 +18,8 @@ sub clientpost {
     $self->render_later;
 
     $self->mysql_inet->db->query("INSERT INTO clients \
-(create_time, guid, login, clients.desc, cn, email, lost) \
-VALUES (NOW(), ?, ?, ?, ?, ?, 0)",
+(create_time, type, guid, login, clients.desc, cn, email, lost) \
+VALUES (NOW(), 0, ?, ?, ?, ?, ?, 0)",
       $j->{guid},
       $j->{login},
       $j->{desc},

@@ -15,7 +15,7 @@ sub servers {
 
   $self->render_later;
 
-  $self->mysql_inet->db->query("SELECT COUNT(*) FROM servers INNER JOIN devices ON devices_id = devices.id" =>
+  $self->mysql_inet->db->query("SELECT COUNT(*) FROM clients INNER JOIN devices ON clients_id = clients.id WHERE type = 1" =>
     sub {
       my ($db, $err, $results) = @_;
       return $self->render(text => 'Database error, total lines counting', status=>503) if $err;
@@ -27,10 +27,10 @@ sub servers {
       return $self->render(text => 'Bad parameter value', status => 400) if $page < 1 ||
         ($num_pages > 0 && $page > $num_pages);
 
-      $db->query("SELECT s.id, name, s.desc, DATE_FORMAT(s.create_time, '%k:%i:%s %e/%m/%y') AS create_time, \
+      $db->query("SELECT c.id, cn, c.desc, DATE_FORMAT(c.create_time, '%k:%i:%s %e/%m/%y') AS create_time, email, \
 ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, profile \
-FROM servers s INNER JOIN devices d ON s.devices_id = d.id \
-ORDER BY s.id ASC LIMIT ? OFFSET ?",
+FROM clients c INNER JOIN devices d ON d.clients_id = c.id \
+WHERE type = 1 ORDER BY c.id ASC LIMIT ? OFFSET ?",
 $lines_on_page, ($page - 1) * $lines_on_page =>
         sub {
           my ($db, $err, $results) = @_;
@@ -62,10 +62,10 @@ sub serverget {
   return $self->render(text=>'Bad parameter', status => 404) unless (defined($id) && $id =~ /^\d+$/);
 
   $self->render_later;
-  $self->mysql_inet->db->query("SELECT s.id, name, s.desc, DATE_FORMAT(s.create_time, '%k:%i:%s %e/%m/%y') AS create_time, \
+  $self->mysql_inet->db->query("SELECT c.id, cn, c.desc, DATE_FORMAT(c.create_time, '%k:%i:%s %e/%m/%y') AS create_time, email, \
 ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, profile \
-FROM servers s INNER JOIN devices d ON s.devices_id = d.id \
-WHERE s.id = ?", $id =>
+FROM clients c INNER JOIN devices d ON d.clients_id = c.id \
+WHERE type = 1 AND c.id = ?", $id =>
     sub {
       my ($db, $err, $results) = @_;
       return $self->render(text => 'Database error, retrieving server', status => 503) if $err;
@@ -87,7 +87,7 @@ sub _build_server_rec {
   my $h = shift;
   my $ipo = NetAddr::IP::Lite->new($h->{ip}) || die 'IP address failure';
   my $sr = { ip => $ipo->addr };
-  for (qw/id name desc create_time mac rt defjump speed_in speed_out no_dhcp qs limit_in blocked profile/) {
+  for (qw/id cn desc create_time email mac rt defjump speed_in speed_out no_dhcp qs limit_in blocked profile/) {
     die 'Undefined server record attribute' unless exists $h->{$_};
     $sr->{$_} = $h->{$_};
   }
@@ -114,11 +114,12 @@ sub serverput {
     $self->log->debug($self->dumper($j));
     $self->render_later;
 
-    $self->mysql_inet->db->query("UPDATE servers s INNER JOIN devices d ON s.devices_id = d.id \
-SET name = ?, s.desc = ?, ip = ?, mac = ?, no_dhcp = ?, rt = ?, defjump = ?, speed_in = ?, speed_out = ?, qs = ?, limit_in = ?, email_notify = 0 \
-WHERE s.id = ?",
-      $j->{name},
+    $self->mysql_inet->db->query("UPDATE clients c INNER JOIN devices d ON d.clients_id = c.id \
+SET cn = ?, c.desc = ?, email = ?, ip = ?, mac = ?, no_dhcp = ?, rt = ?, defjump = ?, speed_in = ?, speed_out = ?, qs = ?, limit_in = ?, email_notify = 0 \
+WHERE c.type = 1 AND c.id = ?",
+      $j->{cn},
       $j->{desc},
+      $j->{email},
       scalar($ipo->numeric),
       $j->{mac},
       $j->{no_dhcp},
@@ -169,9 +170,20 @@ sub serverpost {
     my $tx = eval { $db->begin };
     return $self->render(text => "Database error, transaction failure: $@", status => 503) unless $tx;
 
-    my $results = eval { $db->query("INSERT INTO devices \
-(create_time, ip, mac, no_dhcp, rt, defjump, speed_in, speed_out, qs, limit_in, sum_limit_in, profile, email_notify, notified, blocked, bot) \
-VALUES (NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 1)",
+    my $results = eval { $db->query("INSERT INTO clients \
+(create_time, type, guid, login, clients.desc, cn, email, lost) \
+VALUES (NOW(), 1, '', '', ?, ?, ?, 0)",
+      $j->{desc},
+      $j->{cn},
+      $j->{email}
+    ) };
+    return $self->render(text => "Database error, inserting servers: $@", status => 503) unless $results;
+
+    my $last_id = $results->last_insert_id;
+
+    $results = eval { $db->query("INSERT INTO devices \
+(create_time, ip, mac, no_dhcp, rt, defjump, speed_in, speed_out, qs, limit_in, sum_limit_in, profile, email_notify, notified, blocked, bot, clients_id) \
+VALUES (NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 1, ?)",
       scalar($ipo->numeric),
       $j->{mac},
       $j->{no_dhcp},
@@ -182,21 +194,10 @@ VALUES (NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 1)",
       $j->{qs},
       $j->{limit_in},
       $j->{limit_in},
-      $j->{profile})
-    };
+      $j->{profile},
+      $last_id
+    ) };
     return $self->render(text => "Database error, inserting devices: $@", status => 503) unless $results;
-
-    my $last_id = $results->last_insert_id;
-    $results = eval { $db->query("INSERT INTO servers \
-(name, servers.desc, create_time, devices_id) \
-VALUES (?, ?, NOW(), ?)",
-      $j->{name},
-      $j->{desc},
-      $last_id)
-    };
-    return $self->render(text => "Database error, inserting servers: $@", status => 503) unless $results;
-
-    $last_id = $results->last_insert_id;
 
     eval { $tx->commit };
     return $self->render(text => "Database error, transaction commit failure: $@", status => 503) if $@;
@@ -220,8 +221,8 @@ sub serverdelete {
 
   $self->render_later;
 
-  $self->mysql_inet->db->query("DELETE servers, devices FROM servers INNER JOIN devices ON servers.devices_id = devices.id \
-WHERE servers.id = ?", $id =>
+  $self->mysql_inet->db->query("DELETE clients, devices FROM clients INNER JOIN devices ON clients_id = clients.id \
+WHERE clients.type = 1 AND clients.id = ?", $id =>
     sub {
       my ($db, $err, $results) = @_;
       return $self->render(text => "Database error, deleting server: $err", status => 503) if $err;

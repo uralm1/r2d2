@@ -32,7 +32,7 @@
     <div class="row">
       <div class="input-field col s12 m8 l5">
 	%= text_field 'email', id => 'email'
-	%= label_for email => 'Email'
+	%= label_for email => 'Email (необязательный)'
 	%= t 'span', class => 'helper-text', 'data-error' => 'Ошибка. Формат mailbox@domain.tld', 'Адрес электронной почты для уведомлений'
       </div>
     </div>

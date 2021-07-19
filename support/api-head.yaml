@@ -853,7 +853,7 @@ components:
         lines_on_page: 20
         d:
           - id: 54321
-            name: 'Сервер DC1'
+            cn: 'Сервер DC1'
             desc: 'Описание сервера'
             create_time: '14:04:24 30/04/21'
             ip: '1.2.3.4'
@@ -876,7 +876,7 @@ components:
           type: integer
           description: 'Код сервера (not required on new)'
           example: '54321'
-        name:
+        cn:
           type: string
           description: Наименование
           example: 'Сервер DC1'
@@ -933,7 +933,7 @@ components:
           description: 'client profile name'
           example: 'gwtest1'
       required:
-        - name
+        - cn
         - desc
         - ip
         - mac

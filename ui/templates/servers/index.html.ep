@@ -28,7 +28,7 @@
 	    <span></span>
 	  </label>
 	</td>
-	<td><%= $_->{name} %></td>
+	<td><%= $_->{cn} %></td>
 	<td><%= $_->{ip} %></td>
 	<td><%= $_->{mac} %></td>
 	<td><%== $_->{qs} == 0 ? '*Анлим*' : btomb($_->{limit_in}).'&nbsp;Мб' %></td>

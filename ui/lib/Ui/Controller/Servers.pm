@@ -78,8 +78,9 @@ sub editpost {
   return unless $self->exists_and_number($id);
 
   my $j = { id => $id }; # resulting json
-  $j->{name} = $v->required('name', 'not_empty')->param;
+  $j->{cn} = $v->required('cn', 'not_empty')->param;
   $j->{desc} = $v->optional('desc')->param;
+  $j->{email} = $v->optional('email')->like(qr/^$|^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/)->param;
   $j->{ip} = $v->required('ip', 'not_empty')->like(qr/^$RE{net}{IPv4}$/)->param;
   $j->{mac} = $v->required('mac', 'not_empty')->like(qr/^$RE{net}{MAC}$/)->param;
   $j->{no_dhcp} = $v->optional('no_dhcp')->like(qr/^[01]$/)->param // 0;
@@ -161,8 +162,9 @@ sub newpost {
   return $self->render(text=>'Не дал показания') unless $v->has_data;
 
   my $j = { }; # resulting json
-  $j->{name} = $v->required('name', 'not_empty')->param;
+  $j->{cn} = $v->required('cn', 'not_empty')->param;
   $j->{desc} = $v->optional('desc')->param;
+  $j->{email} = $v->optional('email')->like(qr/^$|^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/)->param;
   $j->{ip} = $v->required('ip', 'not_empty')->like(qr/^$RE{net}{IPv4}$/)->param;
   $j->{mac} = $v->required('mac', 'not_empty')->like(qr/^$RE{net}{MAC}$/)->param;
   $j->{no_dhcp} = $v->optional('no_dhcp')->like(qr/^[01]$/)->param // 0;
