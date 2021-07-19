@@ -11,12 +11,12 @@ sub register {
   $args ||= {};
 
   # send refresh request to agent
-  # $app->refresh_id($agent_url, $client_id);
+  # $app->refresh_id($agent_url, $device_id);
   $app->helper(refresh_id => sub {
     my ($self, $agent_url, $id) = @_;
     croak 'Bad arguments' unless ($agent_url and $id);
 
-    my $m = "REFRESH client id $id [$agent_url]";
+    my $m = "REFRESH device id $id [$agent_url]";
     $self->log->info($m);
     $self->dblog->info($m);
 
@@ -27,14 +27,14 @@ sub register {
         if (defined $res) {
           if ($res->is_success) {
             # successful update
-            my $m = "Client id $id refresh request successfully received by agent [$agent_url]".($res->body ? ': '.$res->body : '');
+            my $m = "Device id $id refresh request successfully received by agent [$agent_url]".($res->body ? ': '.$res->body : '');
             $self->log->info($m);
             $self->dblog->info($m);
 
           } else {
             # request error 503
             if ($res->is_error) {
-              my $m = "Client id $id error: ".$res->body;
+              my $m = "Device id $id error: ".$res->body;
               $self->log->error($m);
               $self->dblog->error($m);
             }
@@ -42,7 +42,7 @@ sub register {
         } else {
           # connection to agent failed
           $self->log->error("Connection to agent [$agent_url] failed: $@");
-          $self->dblog->error("Client id $id error: connection to agent [$agent_url] failed");
+          $self->dblog->error("Device id $id error: connection to agent [$agent_url] failed");
         }
 
       } # request closure

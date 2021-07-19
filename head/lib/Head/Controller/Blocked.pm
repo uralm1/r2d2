@@ -40,11 +40,11 @@ sub enqueue_notification {
   croak 'Bad argument' unless $id;
 
   # retrieve email_notify from db
-  $self->mysql_inet->db->query("SELECT email_notify FROM clients WHERE id = ?", $id
+  $self->mysql_inet->db->query("SELECT email_notify FROM devices WHERE id = ?", $id
     => sub {
       my ($db, $err, $results) = @_;
       if ($err) {
-        my $m = "Error retriving email_notify flag for client id $id from database. Notification not enqueued";
+        my $m = "Error retriving email_notify flag for device id $id from database. Notification not enqueued";
         $self->log->error("$m: $err");
         $self->dblog->error($m);
         return;
@@ -53,7 +53,7 @@ sub enqueue_notification {
         $self->minion->enqueue(notify_client => [$id, $doing_unblock]) if $n->{email_notify};
 
       } else {
-        my $m = "WARNING: Client id $id wasn't found in clients database. Notification not enqueued";
+        my $m = "WARNING: Device id $id wasn't found in devices database. Notification not enqueued";
         $self->dblog->error($m);
       }
     } # closure
@@ -80,11 +80,11 @@ sub update_blocked_flag {
   #$self->log->debug("WHERE rule: *$rule*");
 
   # start database flag-update that continue in callback
-  $db->query("UPDATE clients SET blocked = ? WHERE $rule id = ?", is_blocked($qs_op) ? 1 : 0, $id
+  $db->query("UPDATE devices SET blocked = ? WHERE $rule id = ?", is_blocked($qs_op) ? 1 : 0, $id
     => sub {
       my ($db, $err, $results) = @_;
       if ($err) {
-        my $m = "Database blocked flag update failed for client id $id";
+        my $m = "Database blocked flag update failed for device id $id";
         $self->log->error("$m: $err");
         $self->dblog->error($m);
         return $self->render(text=>"Database update failed", status=>503);
@@ -92,9 +92,9 @@ sub update_blocked_flag {
 
       my $op = is_blocked($qs_op) ? 'blocked' : 'unblocked';
       if ($results->affected_rows > 0) {
-        $self->dblog->info("Client id $id $subsys $op successfully");
+        $self->dblog->info("Device id $id $subsys $op successfully");
       } else {
-        $self->dblog->info("Client id $id $subsys $op but nothing is updated");
+        $self->dblog->info("Device id $id $subsys $op but nothing is updated");
       }
       $self->rendered(200);
     } # closure

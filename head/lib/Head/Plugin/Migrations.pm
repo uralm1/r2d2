@@ -158,16 +158,22 @@ ALTER TABLE `clients` DROP `notified`;
 ALTER TABLE `clients` DROP `blocked`;
 
 -- 5 up
+ALTER TABLE `clients` RENAME `devices`;
+ALTER TABLE `clients_sync` RENAME `devices_sync`;
+
+ALTER TABLE `adaily` CHANGE `client_id` `device_id` INT(11) UNSIGNED NOT NULL;
+ALTER TABLE `amonthly` CHANGE `client_id` `device_id` INT(11) UNSIGNED NOT NULL;
+
 CREATE TABLE IF NOT EXISTS `servers` (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `desc` varchar(255) NOT NULL,
   `create_time` datetime DEFAULT NULL,
-  `clients_id` int(11) UNSIGNED NOT NULL,
+  `devices_id` int(11) UNSIGNED NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `customers` (
+CREATE TABLE IF NOT EXISTS `clients` (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `guid` char(36) NOT NULL CHARACTER SET ascii,
   `login` varchar(255) NOT NULL,
@@ -179,14 +185,22 @@ CREATE TABLE IF NOT EXISTS `customers` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-ALTER TABLE `clients` DROP INDEX `login`, ADD INDEX `login` (`login`) USING BTREE;
-ALTER TABLE `clients` CHANGE `login` `login` VARCHAR(30) NULL;
-ALTER TABLE `clients` CHANGE `desc` `desc` VARCHAR(255) NULL;
+ALTER TABLE `devices` DROP INDEX `login`, ADD INDEX `login` (`login`) USING BTREE;
+ALTER TABLE `devices` CHANGE `login` `login` VARCHAR(30) NULL;
+ALTER TABLE `devices` CHANGE `desc` `desc` VARCHAR(255) NULL;
+ALTER TABLE `devices` ADD `clients_id` INT(11) UNSIGNED NULL AFTER `profile`;
 
 -- 5 down
 DROP TABLE IF EXISTS `servers`;
-DROP TABLE IF EXISTS `customers`;
-ALTER TABLE `clients` DROP INDEX `login`, ADD UNIQUE `login` (`login`) USING BTREE;
-ALTER TABLE `clients` CHANGE `login` `login` VARCHAR(30) NOT NULL;
-ALTER TABLE `clients` CHANGE `desc` `desc` VARCHAR(255) NOT NULL;
+DROP TABLE IF EXISTS `clients`;
+ALTER TABLE `devices` DROP INDEX `login`, ADD UNIQUE `login` (`login`) USING BTREE;
+ALTER TABLE `devices` CHANGE `login` `login` VARCHAR(30) NOT NULL;
+ALTER TABLE `devices` CHANGE `desc` `desc` VARCHAR(255) NOT NULL;
+ALTER TABLE `devices` DROP `clients_id`;
+
+ALTER TABLE `adaily` CHANGE `device_id` `client_id` INT(11) UNSIGNED NOT NULL;
+ALTER TABLE `amonthly` CHANGE `device_id` `client_id` INT(11) UNSIGNED NOT NULL;
+
+ALTER TABLE `devices` RENAME `clients`;
+ALTER TABLE `devices_sync` RENAME `clients_sync`;
 

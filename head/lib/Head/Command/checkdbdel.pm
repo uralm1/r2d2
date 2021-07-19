@@ -25,7 +25,7 @@ sub run {
       # loop by agents
       for my $agent (@{$profile->{agents}}) {
         my $agent_url = $agent->{url};
-        my $m = "REFRESH deleted client id $id $agent_url";
+        my $m = "REFRESH deleted device id $id $agent_url";
         $app->log->info($m);
         $app->dblog->info($m);
 
@@ -33,7 +33,7 @@ sub run {
       }
 
     } else {
-      $app->log->error("Refresh deleted client id $id failed: invalid profile!");
+      $app->log->error("Refresh deleted device id $id failed: invalid profile!");
     }
   })->update();
 

@@ -24,35 +24,7 @@ sub devices {
   #$self->log->debug("WHERE rule: *$rule*");
 
   $db->query("SELECT id, ip, mac, rt, defjump, speed_in, speed_out, no_dhcp, qs, blocked, profile \
-FROM clients $rule ORDER BY id ASC" =>
-    sub {
-      my ($db, $err, $results) = @_;
-      if ($err) {
-        $self->log->error($err);
-        return $self->render(text=>'Database failure', status=>503);
-      }
-
-      if (my $rc = $results->hashes) {
-        $self->render(json => $rc->map(sub {
-          return eval { _build_device_rec($_) };
-        })->compact);
-      } else {
-        return $self->render(text=>'Not found', status=>404);
-      }
-    }
-  );
-}
-
-
-# DEPRECATED
-sub devices_old {
-  my $self = shift;
-  my $prof = $self->stash('profile');
-  return $self->render(text=>'Bad parameter', status=>503) unless $prof;
-
-  $self->render_later;
-  $self->mysql_inet->db->query("SELECT id, ip, mac, rt, defjump, speed_in, speed_out, no_dhcp, qs, blocked, profile \
-FROM clients WHERE profile = ? ORDER BY id ASC", $prof =>
+FROM devices $rule ORDER BY id ASC" =>
     sub {
       my ($db, $err, $results) = @_;
       if ($err) {
@@ -79,7 +51,7 @@ sub device {
 
   $self->render_later;
   $self->mysql_inet->db->query("SELECT id, ip, mac, rt, defjump, speed_in, speed_out, no_dhcp, qs, blocked, profile \
-FROM clients WHERE id = ?", $id =>
+FROM devices WHERE id = ?", $id =>
     sub {
       my ($db, $err, $results) = @_;
       if ($err) {

@@ -38,22 +38,22 @@ sub update_db_flags {
   croak 'Bad arguments' unless ($profs and $id and $subsys);
 
   my ($agent_type) = ($subsys =~ /^([^@]+)/);
-  die "client id $id bad subsys parameter $subsys" unless $agent_type;
+  die "device id $id bad subsys parameter $subsys" unless $agent_type;
 
   # define callback
   my $_cb = sub {
     my ($db, $err, $results) = @_;
     if ($err) {
-      my $m = "Database flags update failed for client id $id";
+      my $m = "Database flags update failed for device id $id";
       $self->log->error("$m: $err");
       $self->dblog->error($m);
       return $self->render(text=>"Database update failed", status=>503);
     }
 
     if ($results->affected_rows > 0) {
-      $self->dblog->info("Client id $id $subsys refreshed successfully");
+      $self->dblog->info("Device id $id $subsys refreshed successfully");
     } else {
-      $self->dblog->info("Client id $id $subsys refreshed but nothing is updated");
+      $self->dblog->info("Device id $id $subsys refreshed but nothing is updated");
     }
     $self->rendered(200);
   };
@@ -73,8 +73,8 @@ sub update_db_flags {
   # start database operation that continue in callback
   # RTSYN
   if ($agent_type eq 'rtsyn') {
-    $db->query("UPDATE clients, clients_sync s \
-SET s.sync_rt = 0 WHERE $rule clients.id = ? AND clients.login = s.login", $id
+    $db->query("UPDATE devices, devices_sync s \
+SET s.sync_rt = 0 WHERE $rule devices.id = ? AND devices.login = s.login", $id
       => $_cb
     );
 
@@ -83,40 +83,40 @@ SET s.sync_rt = 0 WHERE $rule clients.id = ? AND clients.login = s.login", $id
     # this is BAD WORKAROUND to ensure compatibility bitween old flags scheme
     # and multiple agents of the same type in one profile
     if ($subsys =~ /\@plksrv1$/i) {
-      $db->query("UPDATE clients, clients_sync s \
-SET s.sync_dhcp = s.sync_dhcp & 2 WHERE $rule clients.id = ? AND clients.login = s.login", $id
+      $db->query("UPDATE devices, devices_sync s \
+SET s.sync_dhcp = s.sync_dhcp & 2 WHERE $rule devices.id = ? AND devices.login = s.login", $id
         => $_cb
       );
     } elsif ($subsys =~ /\@plksrv4$/i) {
-      $db->query("UPDATE clients, clients_sync s \
-SET s.sync_dhcp = s.sync_dhcp & 1 WHERE $rule clients.id = ? AND clients.login = s.login", $id
+      $db->query("UPDATE devices, devices_sync s \
+SET s.sync_dhcp = s.sync_dhcp & 1 WHERE $rule devices.id = ? AND devices.login = s.login", $id
         => $_cb
       );
     } else {
       # UNKNOWN? issue warning
-      $self->dblog->info("Client id $id dhcpsyn unknown subsys $subsys. Check this.");
-      $db->query("UPDATE clients, clients_sync s \
-SET s.sync_dhcp = 0 WHERE $rule clients.id = ? AND clients.login = s.login", $id
+      $self->dblog->info("Device id $id dhcpsyn unknown subsys $subsys. Check this.");
+      $db->query("UPDATE devices, devices_sync s \
+SET s.sync_dhcp = 0 WHERE $rule devices.id = ? AND devices.login = s.login", $id
         => $_cb
       );
     }
 
   # FWSYN
   } elsif ($agent_type eq 'fwsyn') {
-    $db->query("UPDATE clients, clients_sync s \
-SET s.sync_fw = 0 WHERE $rule clients.id = ? AND clients.login = s.login", $id
+    $db->query("UPDATE devices, devices_sync s \
+SET s.sync_fw = 0 WHERE $rule devices.id = ? AND devices.login = s.login", $id
       => $_cb
     );
 
   # GWSYN
   } elsif ($agent_type eq 'gwsyn') {
-    $db->query("UPDATE clients, clients_sync s \
-SET s.sync_rt = 0, s.sync_dhcp = 0, s.sync_fw = 0 WHERE $rule clients.id = ? AND clients.login = s.login", $id
+    $db->query("UPDATE devices, devices_sync s \
+SET s.sync_rt = 0, s.sync_dhcp = 0, s.sync_fw = 0 WHERE $rule devices.id = ? AND devices.login = s.login", $id
       => $_cb
     );
 
   } else {
-    die "client id $id, unsupported agent $subsys";
+    die "device id $id, unsupported agent $subsys";
   }
   # end if switch by agent_type
 }

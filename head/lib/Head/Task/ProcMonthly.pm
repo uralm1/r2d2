@@ -19,9 +19,9 @@ sub register {
     my $db = $app->mysql_inet->db;
 
     # archive traffic statistics
-    my $r = eval { $db->query("INSERT INTO amonthly (client_id, login, date, m_in, m_out) \
+    my $r = eval { $db->query("INSERT INTO amonthly (device_id, login, date, m_in, m_out) \
 SELECT id, login, CURDATE(), sum_in, sum_out \
-FROM clients \
+FROM devices \
 ON DUPLICATE KEY UPDATE m_in = sum_in, m_out = sum_out") };
     unless ($r) {
       $m = 'MONTHLY archive SQL operation failed';
@@ -35,7 +35,7 @@ ON DUPLICATE KEY UPDATE m_in = sum_in, m_out = sum_out") };
     $app->log->info($m);
     $app->dblog->info($m, sync=>1);
 
-    $r = eval { $db->query("UPDATE clients SET sum_limit_in = limit_in, blocked = 0, notified = 0") };
+    $r = eval { $db->query("UPDATE devices SET sum_limit_in = limit_in, blocked = 0, notified = 0") };
     unless ($r) {
       $m = 'Restoring quota limits/notifications failed';
       $app->log->error($m.": $@");
@@ -48,14 +48,14 @@ ON DUPLICATE KEY UPDATE m_in = sum_in, m_out = sum_out") };
     $app->log->info($m);
     $app->dblog->info($m, sync=>1);
 
-    $r = eval { $db->query("UPDATE clients_sync SET email_notified = 0") };
+    $r = eval { $db->query("UPDATE devices_sync SET email_notified = 0") };
     unless ($r) {
       $m = 'Resetting notification flags failed';
       $app->log->error($m.": $@");
       $app->dblog->error($m, sync=>1);
     }
 
-    # send RELOAD to all block agents to unblock clients in one request
+    # send RELOAD to all block agents to unblock devices in one request
     while (my ($p, $pv) = each %{$app->config('profiles')}) {
     LOOP_AGENTS:
       for my $agent (@{$pv->{agents}}) {

@@ -15,7 +15,7 @@ sub servers {
 
   $self->render_later;
 
-  $self->mysql_inet->db->query("SELECT COUNT(*) FROM servers INNER JOIN clients ON clients_id = clients.id" =>
+  $self->mysql_inet->db->query("SELECT COUNT(*) FROM servers INNER JOIN devices ON devices_id = devices.id" =>
     sub {
       my ($db, $err, $results) = @_;
       return $self->render(text => 'Database error, total lines counting', status=>503) if $err;
@@ -29,7 +29,7 @@ sub servers {
 
       $db->query("SELECT s.id, name, s.desc, DATE_FORMAT(s.create_time, '%k:%i:%s %e/%m/%y') AS create_time, \
 ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, profile \
-FROM servers s INNER JOIN clients c ON s.clients_id = c.id \
+FROM servers s INNER JOIN devices d ON s.devices_id = d.id \
 ORDER BY s.id ASC LIMIT ? OFFSET ?",
 $lines_on_page, ($page - 1) * $lines_on_page =>
         sub {
@@ -64,7 +64,7 @@ sub serverget {
   $self->render_later;
   $self->mysql_inet->db->query("SELECT s.id, name, s.desc, DATE_FORMAT(s.create_time, '%k:%i:%s %e/%m/%y') AS create_time, \
 ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, profile \
-FROM servers s INNER JOIN clients c ON s.clients_id = c.id \
+FROM servers s INNER JOIN devices d ON s.devices_id = d.id \
 WHERE s.id = ?", $id =>
     sub {
       my ($db, $err, $results) = @_;
@@ -114,7 +114,7 @@ sub serverput {
     $self->log->debug($self->dumper($j));
     $self->render_later;
 
-    $self->mysql_inet->db->query("UPDATE servers s INNER JOIN clients c ON s.clients_id = c.id \
+    $self->mysql_inet->db->query("UPDATE servers s INNER JOIN devices d ON s.devices_id = d.id \
 SET name = ?, s.desc = ?, ip = ?, mac = ?, no_dhcp = ?, rt = ?, defjump = ?, speed_in = ?, speed_out = ?, qs = ?, limit_in = ?, email_notify = 0 \
 WHERE s.id = ?",
       $j->{name},
@@ -131,7 +131,7 @@ WHERE s.id = ?",
       $id =>
       sub {
         my ($db, $err, $results) = @_;
-        return $self->render(text => 'Database error, updating server', status => 503) if $err;
+        return $self->render(text => "Database error, updating server: $err", status => 503) if $err;
 
         if ($results->affected_rows > 0) {
           $self->dblog->info("UI: Server id $id updated successfully");
@@ -169,7 +169,7 @@ sub serverpost {
     my $tx = eval { $db->begin };
     return $self->render(text => "Database error, transaction failure: $@", status => 503) unless $tx;
 
-    my $results = eval { $db->query("INSERT INTO clients \
+    my $results = eval { $db->query("INSERT INTO devices \
 (create_time, ip, mac, no_dhcp, rt, defjump, speed_in, speed_out, qs, limit_in, sum_limit_in, profile, email_notify, notified, blocked, bot) \
 VALUES (NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 1)",
       scalar($ipo->numeric),
@@ -184,11 +184,11 @@ VALUES (NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 1)",
       $j->{limit_in},
       $j->{profile})
     };
-    return $self->render(text => "Database error, inserting clients: $@", status => 503) unless $results;
+    return $self->render(text => "Database error, inserting devices: $@", status => 503) unless $results;
 
     my $last_id = $results->last_insert_id;
     $results = eval { $db->query("INSERT INTO servers \
-(name, servers.desc, create_time, clients_id) \
+(name, servers.desc, create_time, devices_id) \
 VALUES (?, ?, NOW(), ?)",
       $j->{name},
       $j->{desc},
@@ -220,7 +220,7 @@ sub serverdelete {
 
   $self->render_later;
 
-  $self->mysql_inet->db->query("DELETE servers, clients FROM servers INNER JOIN clients ON servers.clients_id = clients.id \
+  $self->mysql_inet->db->query("DELETE servers, devices FROM servers INNER JOIN devices ON servers.devices_id = devices.id \
 WHERE servers.id = ?", $id =>
     sub {
       my ($db, $err, $results) = @_;

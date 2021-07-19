@@ -3,18 +3,18 @@ use Mojo::Base 'Mojolicious::Command';
 
 #use Carp;
 
-has description => '* Manually refresh client by <id>';
-has usage => "Usage: APPLICATION refresh <client-id>\n";
+has description => '* Manually refresh device by <id>';
+has usage => "Usage: APPLICATION refresh <device-id>\n";
 
 sub run {
   my ($self, $id) = @_;
   my $app = $self->app;
-  die "Bad <client-id> argument.\n" unless (defined($id) && $id =~ /^\d+$/);
+  die "Bad <device-id> argument.\n" unless (defined($id) && $id =~ /^\d+$/);
 
   my $profiles = $app->config('profiles');
   my $dbconn = $app->mysql_inet->db;
   $app->log->info('Asyncronious refresh initiated');
-  $dbconn->query("SELECT profile FROM clients WHERE id = ?", $id =>
+  $dbconn->query("SELECT profile FROM devices WHERE id = ?", $id =>
     sub {
       my ($db, $err, $results) = @_;
       unless ($err) {
@@ -28,10 +28,10 @@ sub run {
 
           }
         } else {
-          $app->log->error("Refresh client id $id failed: invalid profile!");
+          $app->log->error("Refresh device id $id failed: invalid profile!");
         }
       } else {
-        $app->log->error('Client refresh: database operation error.');
+        $app->log->error('Device refresh: database operation error.');
       }
     }
   );

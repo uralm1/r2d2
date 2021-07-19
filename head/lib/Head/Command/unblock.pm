@@ -15,22 +15,22 @@ sub run {
 
   $app->log->error('Warning! Execution subsystem unavailable.') unless $app->check_workers;
 
-  $app->log->info('Unblock clients - checking db');
+  $app->log->info('Unblock devices - checking db');
 
   my $selected = 0; # counter
 
-  my $unblock_results = eval { $db->query("SELECT id, profile FROM clients \
+  my $unblock_results = eval { $db->query("SELECT id, profile FROM devices \
 WHERE blocked = 1 AND (sum_limit_in > 0 OR qs = 0 OR qs = 1)") };
   unless ($unblock_results) {
     $app->log->error("Unblock: database operation error: $@");
   } else {
     while (my $n = $unblock_results->hash) {
-      $app->log->debug("Client to unblock: $n->{id}, $n->{profile}");
+      $app->log->debug("Device to unblock: $n->{id}, $n->{profile}");
       # unblock
       $app->minion->enqueue(block_client => [$n->{id}, 0, $n->{profile}]);
       $selected++;
 
-    } # loop by clients
+    } # loop by devices
   }
 
   return $selected;

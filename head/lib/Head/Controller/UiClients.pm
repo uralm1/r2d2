@@ -17,8 +17,8 @@ sub clientpost {
     $self->log->debug($self->dumper($j));
     $self->render_later;
 
-    $self->mysql_inet->db->query("INSERT INTO customers \
-(create_time, guid, login, customers.desc, cn, email, lost) \
+    $self->mysql_inet->db->query("INSERT INTO clients \
+(create_time, guid, login, clients.desc, cn, email, lost) \
 VALUES (NOW(), ?, ?, ?, ?, ?, 0)",
       $j->{guid},
       $j->{login},

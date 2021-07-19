@@ -69,7 +69,7 @@ sub retrive_login_db_attr {
 
   my $str = undef;
   my $e = eval {
-    my $results = $app->mysql_inet->db->query("SELECT login, limit_in, qs, notified FROM clients WHERE id = ?", $id);
+    my $results = $app->mysql_inet->db->query("SELECT login, limit_in, qs, notified FROM devices WHERE id = ?", $id);
     if (my $n = $results->hash) {
       $str->{login} = $n->{login};
       $str->{limit_in_mb} = _btomb($n->{limit_in});
@@ -81,7 +81,7 @@ sub retrive_login_db_attr {
   };
 
   die "Database error: $@" unless defined $e;
-  croak "Client id is not found in database\n" unless $str;
+  croak "Device id is not found in database\n" unless $str;
 
   return $str;
 }

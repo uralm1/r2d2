@@ -32,7 +32,7 @@ sub load {
   } else {
     my $ref = $self->{earlydb} = {};
     my $e = eval {
-      my $results = $app->mysql_inet->db->query("SELECT id, profile FROM clients");
+      my $results = $app->mysql_inet->db->query("SELECT id, profile FROM devices");
       while (my $next = $results->hash) {
         $ref->{$next->{id}} = $next->{profile};
       }
@@ -80,7 +80,7 @@ sub eachdel {
   my $ref = $self->{actdb} = {};
   my $e = eval {
     # get actual db
-    my $results = $self->{app}->mysql_inet->db->query("SELECT id, profile FROM clients");
+    my $results = $self->{app}->mysql_inet->db->query("SELECT id, profile FROM devices");
     while (my $next = $results->hash) {
       $ref->{$next->{id}} = $next->{profile};
     }
@@ -92,7 +92,7 @@ sub eachdel {
       $cb->($id, $p) unless exists $ref->{$id};
     }
   } else {
-    $self->{app}->log->error('Client refresh: database operation error.');
+    $self->{app}->log->error('Device refresh: database operation error.');
     #die "Database error: $@\n";
   }
 

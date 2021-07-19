@@ -19,7 +19,7 @@ sub register {
 
         my $agent_url = $agent->{url};
         # send block to agent
-        my $m = (($qs == 0) ? 'UNBLOCK' : 'BLOCK')." client id $id, op $qs [$agent_url]";
+        my $m = (($qs == 0) ? 'UNBLOCK' : 'BLOCK')." device id $id, op $qs [$agent_url]";
         $app->log->info($m);
         $app->dblog->info($m, sync=>1);
 
@@ -29,18 +29,18 @@ sub register {
         unless (defined $r) {
           # connection to agent failed
           $app->log->error("Connection to agent [$agent_url] failed: $@");
-          $app->dblog->error("Client id $id error: connection to agent [$agent_url] failed", sync=>1);
+          $app->dblog->error("Device id $id error: connection to agent [$agent_url] failed", sync=>1);
         } else {
           if ($r->is_success) {
             # successful update
-            my $m = "Client id $id block/unblock request successfully received by agent [$agent_url]".($r->body ? ': '.$r->body : '');
+            my $m = "Device id $id block/unblock request successfully received by agent [$agent_url]".($r->body ? ': '.$r->body : '');
             $app->log->info($m);
             $app->dblog->info($m, sync=>1);
 
           } else {
             # request error 503
             if ($r->is_error) {
-              my $m = "Client id $id error: ".$r->body;
+              my $m = "Device id $id error: ".$r->body;
               $app->log->error($m);
               $app->dblog->error($m, sync=>1);
             }
@@ -49,7 +49,7 @@ sub register {
       } # agents loop
 
     } else {
-      my $m = "Blocking/Unblocking client id $id failed: invalid profile!";
+      my $m = "Blocking/Unblocking device id $id failed: invalid profile!";
       $app->log->error($m);
       $app->dblog->error($m, sync=>1);
     }

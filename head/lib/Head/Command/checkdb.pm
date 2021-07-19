@@ -13,12 +13,12 @@ sub run {
   my $profiles = $app->config('profiles');
   my $dbconn = $app->mysql_inet->db;
   $app->log->info('Asyncronious update - checking db for changes');
-  $dbconn->query("SELECT clients.id, profile, s.sync_rt, s.sync_fw, s.sync_dhcp FROM clients, clients_sync s\
-WHERE (s.sync_rt > 0 OR s.sync_fw > 0 OR s.sync_dhcp > 0) AND clients.login = s.login" =>
+  $dbconn->query("SELECT devices.id, profile, s.sync_rt, s.sync_fw, s.sync_dhcp FROM devices, devices_sync s\
+WHERE (s.sync_rt > 0 OR s.sync_fw > 0 OR s.sync_dhcp > 0) AND devices.login = s.login" =>
     sub {
       my ($db, $err, $results) = @_;
       unless ($err) {
-        # loop by clients
+        # loop by devices
         while (my $n = $results->hash) {
           my $id = $n->{id};
           my %oldflags = (rtsyn=>$n->{sync_rt}, dhcpsyn=>$n->{sync_dhcp}, fwsyn=>$n->{sync_fw});
@@ -39,11 +39,11 @@ WHERE (s.sync_rt > 0 OR s.sync_fw > 0 OR s.sync_dhcp > 0) AND clients.login = s.
 
             }
           } else {
-            $app->log->error("Refresh client id $id failed: invalid profile!");
+            $app->log->error("Refresh device id $id failed: invalid profile!");
           }
         } # while
       } else {
-        $app->log->error('Client refresh: database operation error.');
+        $app->log->error('Device refresh: database operation error.');
       }
     }
   );

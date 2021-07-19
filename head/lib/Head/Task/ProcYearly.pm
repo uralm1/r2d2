@@ -15,7 +15,7 @@ sub register {
     $app->dblog->info($m, sync=>1);
 
     # reset traffic statistics
-    my $r = eval { $app->mysql_inet->db->query("UPDATE clients SET sum_in = 0, sum_out = 0") };
+    my $r = eval { $app->mysql_inet->db->query("UPDATE devices SET sum_in = 0, sum_out = 0") };
     unless ($r) {
       $m = 'YEARLY archive SQL operation failed. Task stopped.';
       $app->log->error($m.": $@");

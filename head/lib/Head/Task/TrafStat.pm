@@ -43,7 +43,7 @@ sub register {
       my $outb = $v->{out};
       $submitted++;
       if ($inb > 0 || $outb > 0) {
-        my $results = eval { $db->query("UPDATE clients SET sum_in = sum_in + ?, sum_out = sum_out + ?, \
+        my $results = eval { $db->query("UPDATE devices SET sum_in = sum_in + ?, sum_out = sum_out + ?, \
 sum_limit_in = IF(qs != 0, IF(sum_limit_in > ?, sum_limit_in - ?, 0), sum_limit_in) \
 WHERE $rule id = ?", $inb, $outb, $inb, $inb, $id) };
         if ($results) {
@@ -55,7 +55,7 @@ WHERE $rule id = ?", $inb, $outb, $inb, $inb, $id) };
           return $job->fail;
         }
       }
-    } # loop by submitted clients
+    } # loop by submitted devices
 
     eval { $tx->commit };
     if ($@) {
@@ -74,7 +74,7 @@ WHERE $rule id = ?", $inb, $outb, $inb, $inb, $id) };
 
     # run block check after update
     for my $jid (keys %$j) {
-      my $block_results = eval { $db->query("SELECT id, qs, email_notify, notified, profile FROM clients \
+      my $block_results = eval { $db->query("SELECT id, qs, email_notify, notified, profile FROM devices \
 WHERE $rule id = ? AND blocked = 0 AND sum_limit_in <= 0 AND qs > 0", $jid) };
       unless ($block_results) {
         $app->log->error("Block: database operation error: $@");
@@ -84,25 +84,25 @@ WHERE $rule id = ? AND blocked = 0 AND sum_limit_in <= 0 AND qs > 0", $jid) };
           my $id = $n->{id};
           my $qs = $n->{qs};
           if ($qs == 1) {
-            # warn(1) client
+            # warn(1) device
             if ($n->{email_notify} && !$n->{notified}) {
-              $app->log->debug("Client to notify: $id, qs: $qs, $n->{profile}");
+              $app->log->debug("Device to notify: $id, qs: $qs, $n->{profile}");
               $app->minion->enqueue(notify_client => [$id]);
               $notified++;
             }
 
           } elsif ($qs == 2 || $qs == 3) {
-            # limit(2) or block(3) client
-            $app->log->debug("Client to block: $id, qs: $qs, $n->{profile}");
+            # limit(2) or block(3) device
+            $app->log->debug("Device to block: $id, qs: $qs, $n->{profile}");
             $app->minion->enqueue(block_client => [$id, $qs, $n->{profile}]);
             $blocked++;
 
           } else {
-            $app->log->error("Unsupported qs $qs for client id $id.");
+            $app->log->error("Unsupported qs $qs for device id $id.");
           }
         } # has one result
       } # select without errors
-    } # loop by submitted clients
+    } # loop by submitted devices
 
     # finished
     $m = "Block check finished: selected $selected, notified $notified, blocked $blocked";

@@ -93,6 +93,7 @@ paths:
   /clients:
     get:
       summary: Load devices data for profiles
+      deprecated: true
       parameters:
         - name: profile
           in: query
@@ -160,48 +161,12 @@ paths:
                 type: string
                 description: error message
 
-  /clients/{profile}:
-    get:
-      summary: Load devices data for profile (deprecated)
-      deprecated: true
-      parameters:
-        - name: profile
-          in: path
-          required: true
-          description: profile name
-          schema:
-            type: string
-            example: 'gwtest1'
-            
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/device_record'
-        '404':
-          description: Not found
-          content:
-            text/plain:
-              schema:
-                type: string
-                description: error message
-        '503':
-          description: Operation error
-          content:
-            text/plain:
-              schema:
-                type: string
-                description: error message
-
-  /client/{client_id}:
+  /client/{device_id}:
     get:
       summary: Load device data
+      deprecated: true
       parameters:
-        - name: client_id
+        - name: device_id
           in: path
           required: true
           description: 'Device id'
@@ -231,11 +196,11 @@ paths:
                 type: string
                 description: error message
 
-  /device/{client_id}:
+  /device/{device_id}:
     get:
       summary: Load device data
       parameters:
-        - name: client_id
+        - name: device_id
           in: path
           required: true
           description: 'Device id'
@@ -397,6 +362,48 @@ paths:
               schema:
                 type: string
                 description: error message
+
+  /ui/list:
+    get:
+      summary: Получение списка клиентов и серверов
+      description: Запрос списка для интерфейса пользователя.
+      parameters:
+        - name: page
+          in: query
+          description: Текущая страница (начиная с 1)
+          schema:
+            type: integer
+            example: 2
+        - name: lop
+          in: query
+          required: true
+          description: Число строк на странице (lines_on_page)
+          schema:
+            type: integer
+            example: 20
+
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ui_servers_json'
+        '400':
+          description: Ошибка в параметрах, в основном неверный номер текущей страницы
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
   /ui/servers:
     get:
       summary: Получение списка серверов
