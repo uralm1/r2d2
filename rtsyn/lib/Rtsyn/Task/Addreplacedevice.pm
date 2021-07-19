@@ -1,4 +1,4 @@
-package Dhcpsyn::Task::Addreplaceclient;
+package Rtsyn::Task::Addreplacedevice;
 use Mojo::Base 'Mojolicious::Plugin';
 
 use Mojo::URL;
@@ -6,19 +6,24 @@ use Carp;
 
 sub register {
   my ($self, $app) = @_;
-  $app->ljq->add_task(addreplace_client => sub {
+  $app->ljq->add_task(addreplace_device => sub {
     my ($job, $v) = @_;
     croak 'Bad job parameter' unless $v;
     my $app = $job->app;
-    $app->rlog('Started addreplace_client task '.$job->id." pid $$");
+    $app->rlog('Started addreplace_device task '.$job->id." pid $$");
 
     my @err;
-    my $r = eval { $app->dhcp_add_replace($v) };
-    push @err, "Error adding/replacing client reservedip: $@" unless defined $r;
+    # part 1: firewall rules directly
+    my $r = eval { $app->rt_add_replace_rules($v) };
+    push @err, "Error adding/replacing rule in iptables: $@" unless defined $r;
+
+    # part 2: firewall file,no need to apply
+    $r = eval { $app->rt_add_replace($v) };
+    push @err, "Error adding/replacing rule in firewall file: $@" unless defined $r;
 
     if (@err) {
       $app->rlog(join(',', @err));
-      $app->rlog('Failed addreplace_client task '.$job->id);
+      $app->rlog('Failed addreplace_device task '.$job->id);
       $job->finish;
       return 1;
     }
@@ -35,7 +40,7 @@ sub register {
       $app->log->error('Confirmation request error: '.substr($r->body, 0, 40)) if $r->is_error;
     }
 
-    $app->rlog('Finished addreplace_client task '.$job->id);
+    $app->rlog('Finished addreplace_device task '.$job->id);
     $job->finish;
   });
 }

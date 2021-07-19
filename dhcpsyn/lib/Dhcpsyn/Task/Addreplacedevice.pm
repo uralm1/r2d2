@@ -1,4 +1,4 @@
-package Dhcpsyn::Task::Deleteclient;
+package Dhcpsyn::Task::Addreplacedevice;
 use Mojo::Base 'Mojolicious::Plugin';
 
 use Mojo::URL;
@@ -6,19 +6,19 @@ use Carp;
 
 sub register {
   my ($self, $app) = @_;
-  $app->ljq->add_task(delete_client => sub {
-    my ($job, $id) = @_;
-    croak 'Bad job parameter' unless $id;
+  $app->ljq->add_task(addreplace_device => sub {
+    my ($job, $v) = @_;
+    croak 'Bad job parameter' unless $v;
     my $app = $job->app;
-    $app->rlog('Started delete_client task '.$job->id." pid $$");
+    $app->rlog('Started addreplace_device task '.$job->id." pid $$");
 
     my @err;
-    my $r = eval { $app->dhcp_delete($id) };
-    push @err, "Error deleting client reservedip: $@" unless defined $r;
+    my $r = eval { $app->dhcp_add_replace($v) };
+    push @err, "Error adding/replacing reservedip: $@" unless defined $r;
 
     if (@err) {
       $app->rlog(join(',', @err));
-      $app->rlog('Failed delete_client task '.$job->id);
+      $app->rlog('Failed addreplace_device task '.$job->id);
       $job->finish;
       return 1;
     }
@@ -27,7 +27,7 @@ sub register {
     $r = eval {
       $app->ua->post(Mojo::URL->new('/refreshed')->to_abs($app->head_url)
         ->query(profile => $app->config('my_profiles'))
-        => json => { id => $id, subsys => $app->stash('subsys') })->result;
+        => json => { id => $v->{id}, subsys => $app->stash('subsys') })->result;
     };
     unless (defined $r) {
       $app->log->error('Confirmation request failed, probably connection refused');
@@ -35,7 +35,7 @@ sub register {
       $app->log->error('Confirmation request error: '.substr($r->body, 0, 40)) if $r->is_error;
     }
 
-    $app->rlog('Finished delete_client task '.$job->id);
+    $app->rlog('Finished addreplace_device task '.$job->id);
     $job->finish;
   });
 }

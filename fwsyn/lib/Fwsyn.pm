@@ -2,7 +2,7 @@ package Fwsyn;
 use Mojo::Base 'Mojolicious';
 
 use Mojo::File qw(path);
-use Fwsyn::Command::loadclients;
+use Fwsyn::Command::loaddevices;
 use Fwsyn::Command::dumpfiles;
 use Fwsyn::Command::dumprules;
 use Fwsyn::Command::cron;
@@ -11,7 +11,7 @@ use Fwsyn::Command::trafstat;
 #use Carp;
 use Sys::Hostname;
 
-our $VERSION = '2.59';
+our $VERSION = '2.61';
 
 # This method will run once at server start
 sub startup {
@@ -44,12 +44,12 @@ sub startup {
   $self->plugin('Fwsyn::Plugin::Utils');
   $self->plugin('Fwsyn::Plugin::fw_utils');
   $self->plugin('Fwsyn::Plugin::tc_utils');
-  $self->plugin('Fwsyn::Plugin::Loadclients_impl');
+  $self->plugin('Fwsyn::Plugin::Loaddevices_impl');
   $self->plugin('Fwsyn::Plugin::Trafficstat_impl');
-  $self->plugin('Fwsyn::Task::Loadclients');
-  $self->plugin('Fwsyn::Task::Addreplaceclient');
-  $self->plugin('Fwsyn::Task::Deleteclient');
-  $self->plugin('Fwsyn::Task::Blockclient');
+  $self->plugin('Fwsyn::Task::Loaddevices');
+  $self->plugin('Fwsyn::Task::Addreplacedevice');
+  $self->plugin('Fwsyn::Task::Deletedevice');
+  $self->plugin('Fwsyn::Task::Blockdevice');
   $self->plugin('Fwsyn::Task::Trafficstat');
   $self->commands->namespaces(['Mojolicious::Command', 'Ljq::Command', 'Fwsyn::Command']);
 
@@ -75,12 +75,12 @@ sub startup {
 
     # load clients data on startup
     unless ($config->{disable_autoload}) {
-      $app->rlog('Loading and activating clients on agent startup', sync=>1);
+      $app->rlog('Loading and activating devices on agent startup', sync=>1);
       until ($app->check_workers) {
-        $app->rlog('Updating clients failed: execution subsystem error.', sync=>1);
+        $app->rlog('Updating devices failed: execution subsystem error.', sync=>1);
         sleep(3);
       }
-      my $id = $app->ljq->enqueue('load_clients');
+      my $id = $app->ljq->enqueue('load_devices');
       # wait indefinitely until task finishes successfully
       my $state;
       do {
@@ -88,7 +88,7 @@ sub startup {
         $state = $job->info->{state};
         sleep(3) if $state eq 'inactive' or $state eq 'active';
         if ($state eq 'failed') {
-          $app->rlog('Updating clients attempt failed: possibly Head is dead.', sync=>1);
+          $app->rlog('Updating devices attempt failed: possibly Head is dead.', sync=>1);
           sleep(5);
           $job->retry;
         }

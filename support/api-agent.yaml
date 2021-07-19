@@ -33,12 +33,12 @@ paths:
 
   /refresh/{id}:
     post:
-      summary: Refresh client
+      summary: Refresh device
       parameters: 
         - name: id
           in: path
           required: true
-          description: Client id
+          description: Device id
           schema:
             type: integer
             example: 11
@@ -72,12 +72,12 @@ paths:
 
   /block/{id}/{qs}:
     post:
-      summary: Limit/block/unblock client
+      summary: Limit/block/unblock device
       parameters: 
         - name: id
           in: path
           required: true
-          description: Client id
+          description: Device id
           schema:
             type: integer
             example: 11
@@ -104,7 +104,7 @@ paths:
 
   /reload:
     post:
-      summary: Request immediate all clients reload, like on restart
+      summary: Request immediate all devices reload, like on restart
       responses:
         '200':
           description: Successfully queued

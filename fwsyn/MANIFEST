@@ -7,7 +7,7 @@ lib/Fwsyn.pm
 lib/Fwsyn/Command/cron.pm
 lib/Fwsyn/Command/dumpfiles.pm
 lib/Fwsyn/Command/dumprules.pm
-lib/Fwsyn/Command/loadclients.pm
+lib/Fwsyn/Command/loaddevices.pm
 lib/Fwsyn/Command/trafstat.pm
 lib/Fwsyn/Controller/Block.pm
 lib/Fwsyn/Controller/Refresh.pm
@@ -15,14 +15,14 @@ lib/Fwsyn/Controller/Reload.pm
 lib/Fwsyn/Controller/Stat.pm
 lib/Fwsyn/Controller/Utils.pm
 lib/Fwsyn/Plugin/fw_utils.pm
-lib/Fwsyn/Plugin/Loadclients_impl.pm
+lib/Fwsyn/Plugin/Loaddevices_impl.pm
 lib/Fwsyn/Plugin/tc_utils.pm
 lib/Fwsyn/Plugin/Trafficstat_impl.pm
 lib/Fwsyn/Plugin/Utils.pm
-lib/Fwsyn/Task/Addreplaceclient.pm
-lib/Fwsyn/Task/Blockclient.pm
-lib/Fwsyn/Task/Deleteclient.pm
-lib/Fwsyn/Task/Loadclients.pm
+lib/Fwsyn/Task/Addreplacedevice.pm
+lib/Fwsyn/Task/Blockdevice.pm
+lib/Fwsyn/Task/Deletedevice.pm
+lib/Fwsyn/Task/Loaddevices.pm
 lib/Fwsyn/Task/Trafficstat.pm
 Makefile.PL
 MANIFEST			This list of files

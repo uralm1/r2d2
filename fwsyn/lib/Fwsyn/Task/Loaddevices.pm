@@ -1,4 +1,4 @@
-package Rtsyn::Task::Loadclients;
+package Fwsyn::Task::Loaddevices;
 use Mojo::Base 'Mojolicious::Plugin';
 
 use Mojo::URL;
@@ -6,13 +6,13 @@ use Mojo::URL;
 
 sub register {
   my ($self, $app) = @_;
-  $app->ljq->add_task(load_clients => sub {
+  $app->ljq->add_task(load_devices => sub {
     my $job = shift;
-    $job->app->rlog('Started load_clients task '.$job->id." pid $$");
+    $job->app->rlog('Started load_devices task '.$job->id." pid $$");
 
-    unless (eval { $job->app->load_clients }) {
+    unless (eval { $job->app->load_devices }) {
       chomp $@;
-      $job->app->rlog("Loading clients task failed: $@");
+      $job->app->rlog("Loading devices task failed: $@");
       $job->fail;
       return 1;
     }
@@ -29,7 +29,7 @@ sub register {
       $app->log->error('Confirmation request error: '.substr($r->body, 0, 40)) if $r->is_error;
     }
 
-    $job->app->rlog('Finished load_clients task '.$job->id);
+    $job->app->rlog('Finished load_devices task '.$job->id);
     $job->finish;
   });
 }

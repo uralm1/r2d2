@@ -1,4 +1,4 @@
-package Rtsyn::Plugin::Loadclients_impl;
+package Rtsyn::Plugin::Loaddevices_impl;
 use Mojo::Base 'Mojolicious::Plugin';
 
 use Mojo::URL;
@@ -12,20 +12,20 @@ sub register {
 
   # build rulefile and load it to iptables (blocking)
   # doesn't log anything to remote log, returns 1-success, dies on error
-  $app->helper(load_clients => sub {
+  $app->helper(load_devices => sub {
     my $self = shift;
 
     my $profs = $self->config('my_profiles');
     my $res = eval {
-      my $tx = $self->ua->get(Mojo::URL->new('/clients')->to_abs($self->head_url)
+      my $tx = $self->ua->get(Mojo::URL->new('/devices')->to_abs($self->head_url)
         ->query(profile => $profs) => {Accept => 'application/json'});
       $tx->result;
     };
     die "connection to head failed: $@" unless defined $res;
-    die "clients request error: ".(($res->is_error) ? substr($res->body, 0, 40) : 'none')."\n" unless $res->is_success;
+    die "devices request error: ".(($res->is_error) ? substr($res->body, 0, 40) : 'none')."\n" unless $res->is_success;
 
     my $v = $res->json;
-    die "clients response json error\n" unless $v;
+    die "devices response json error\n" unless $v;
 
     my @err;
     if (my $r = eval { $self->rt_create_full($v) }) {

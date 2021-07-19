@@ -1,4 +1,4 @@
-package Dhcpsyn::Plugin::Loadclients_impl;
+package Dhcpsyn::Plugin::Loaddevices_impl;
 use Mojo::Base 'Mojolicious::Plugin';
 
 use Mojo::URL;
@@ -13,20 +13,20 @@ sub register {
 
   # (blocking)
   # doesn't log anything to remote log, returns 1-success, dies on error
-  $app->helper(load_clients => sub {
+  $app->helper(load_devices => sub {
     my $self = shift;
 
     my $profs = $self->config('my_profiles');
     my $res = eval {
-      my $tx = $self->ua->get(Mojo::URL->new('/clients')->to_abs($self->head_url)
+      my $tx = $self->ua->get(Mojo::URL->new('/devices')->to_abs($self->head_url)
         ->query(profile => $profs) => {Accept => 'application/json'});
       $tx->result;
     };
 
     die "connection to head failed: $@" unless defined $res;
-    die "clients request error: ".(($res->is_error) ? substr($res->body, 0, 40) : 'none')."\n" unless $res->is_success;
+    die "devices request error: ".(($res->is_error) ? substr($res->body, 0, 40) : 'none')."\n" unless $res->is_success;
     my $v = $res->json;
-    die "clients response json error\n" unless $v;
+    die "devices response json error\n" unless $v;
 
     my $m = $self->dhcp_matang->{win_dhcp};
     croak "Matang win_dhcp matanga!" unless $m;
@@ -76,13 +76,13 @@ sub register {
               }
               # add
               if ( $m->{add_sub}($dhcpserver, $ip, $bmac, $_->{id}) ) {
-                $self->rlog("Error adding client $_->{id} new reservedip $ip mac $bmac on dhcp server $dhcpserver.");
+                $self->rlog("Error adding device $_->{id} new reservedip $ip mac $bmac on dhcp server $dhcpserver.");
               }
             }
           } else {
             # add
             if ( $m->{add_sub}($dhcpserver, $ip, $bmac, $_->{id}) ) {
-              $self->rlog("Error adding client $_->{id} new reservedip $ip mac $bmac on dhcp server $dhcpserver.");
+              $self->rlog("Error adding device $_->{id} new reservedip $ip mac $bmac on dhcp server $dhcpserver.");
             }
           }
         }

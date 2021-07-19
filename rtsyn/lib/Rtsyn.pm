@@ -2,14 +2,14 @@ package Rtsyn;
 use Mojo::Base 'Mojolicious';
 
 use Mojo::File qw(path);
-use Rtsyn::Command::loadclients;
+use Rtsyn::Command::loaddevices;
 use Rtsyn::Command::dumpfiles;
 use Rtsyn::Command::dumprules;
 
 #use Carp;
 use Sys::Hostname;
 
-our $VERSION = '2.60';
+our $VERSION = '2.61';
 
 # This method will run once at server start
 sub startup {
@@ -39,10 +39,10 @@ sub startup {
 
   $self->plugin('Rtsyn::Plugin::Utils');
   $self->plugin('Rtsyn::Plugin::rt_utils');#
-  $self->plugin('Rtsyn::Plugin::Loadclients_impl');
-  $self->plugin('Rtsyn::Task::Loadclients');
-  $self->plugin('Rtsyn::Task::Addreplaceclient');
-  $self->plugin('Rtsyn::Task::Deleteclient');
+  $self->plugin('Rtsyn::Plugin::Loaddevices_impl');
+  $self->plugin('Rtsyn::Task::Loaddevices');
+  $self->plugin('Rtsyn::Task::Addreplacedevice');
+  $self->plugin('Rtsyn::Task::Deletedevice');
   $self->commands->namespaces(['Mojolicious::Command', 'Ljq::Command', 'Rtsyn::Command']);
 
   $self->defaults(subsys => $self->moniker.'@'.hostname);
@@ -67,12 +67,12 @@ sub startup {
 
     # load rules on startup
     unless ($config->{disable_autoload}) {
-      $app->rlog("Loading and activating clients rules on agent startup", sync=>1);
+      $app->rlog("Loading and activating devices rules on agent startup", sync=>1);
       until ($app->check_workers) {
-        $app->rlog('Updating clients failed: execution subsystem error.', sync=>1);
+        $app->rlog('Updating devices failed: execution subsystem error.', sync=>1);
         sleep(3);
       }
-      my $id = $app->ljq->enqueue('load_clients');
+      my $id = $app->ljq->enqueue('load_devices');
       # wait indefinitely until task finishes successfully
       my $state;
       do {
@@ -80,7 +80,7 @@ sub startup {
         $state = $job->info->{state};
         sleep(3) if $state eq 'inactive' or $state eq 'active';
         if ($state eq 'failed') {
-          $app->rlog('Updating clients attempt failed: possibly Head is dead.', sync=>1);
+          $app->rlog('Updating devices attempt failed: possibly Head is dead.', sync=>1);
           sleep(5);
           $job->retry;
         }

@@ -2,13 +2,13 @@ package Dhcpsyn;
 use Mojo::Base 'Mojolicious';
 
 use Mojo::File qw(path);
-use Dhcpsyn::Command::loadclients;
+use Dhcpsyn::Command::loaddevices;
 use Dhcpsyn::Command::dumprules;
 
 #use Carp;
 use Sys::Hostname;
 
-our $VERSION = '2.59';
+our $VERSION = '2.61';
 
 # This method will run once at server start
 sub startup {
@@ -37,10 +37,10 @@ sub startup {
 
   $self->plugin('Dhcpsyn::Plugin::Utils');
   $self->plugin('Dhcpsyn::Plugin::wdhcp_utils');
-  $self->plugin('Dhcpsyn::Plugin::Loadclients_impl');
-  $self->plugin('Dhcpsyn::Task::Loadclients');
-  $self->plugin('Dhcpsyn::Task::Addreplaceclient');
-  $self->plugin('Dhcpsyn::Task::Deleteclient');
+  $self->plugin('Dhcpsyn::Plugin::Loaddevices_impl');
+  $self->plugin('Dhcpsyn::Task::Loaddevices');
+  $self->plugin('Dhcpsyn::Task::Addreplacedevice');
+  $self->plugin('Dhcpsyn::Task::Deletedevice');
   $self->commands->namespaces(['Mojolicious::Command', 'Ljq::Command', 'Dhcpsyn::Command']);
 
   $self->defaults(subsys => $self->moniker.'@'.hostname);
@@ -62,12 +62,12 @@ sub startup {
 
     # load rules on startup
     unless ($config->{disable_autoload}) {
-      $app->rlog("Loading and activating clients rules on agent startup.", sync=>1);
+      $app->rlog("Loading and activating devices rules on agent startup.", sync=>1);
       until ($app->check_workers) {
-        $app->rlog('Updating clients failed: execution subsystem error.', sync=>1);
+        $app->rlog('Updating devices failed: execution subsystem error.', sync=>1);
         sleep(3);
       }
-      my $id = $app->ljq->enqueue('load_clients');
+      my $id = $app->ljq->enqueue('load_devices');
       # wait indefinitely until task finishes successfully
       my $state;
       do {
@@ -75,7 +75,7 @@ sub startup {
         $state = $job->info->{state};
         sleep(3) if $state eq 'inactive' or $state eq 'active';
         if ($state eq 'failed') {
-          $app->rlog('Updating clients attempt failed: possibly Head is dead.', sync=>1);
+          $app->rlog('Updating devices attempt failed: possibly Head is dead.', sync=>1);
           sleep(5);
           $job->retry;
         }

@@ -1,4 +1,4 @@
-package Fwsyn::Task::Deleteclient;
+package Rtsyn::Task::Deletedevice;
 use Mojo::Base 'Mojolicious::Plugin';
 
 use Mojo::URL;
@@ -6,31 +6,24 @@ use Carp;
 
 sub register {
   my ($self, $app) = @_;
-  $app->ljq->add_task(delete_client => sub {
+  $app->ljq->add_task(delete_device => sub {
     my ($job, $id) = @_;
     croak 'Bad job parameter' unless $id;
     my $app = $job->app;
-    $app->rlog('Started delete_client task '.$job->id." pid $$");
+    $app->rlog('Started delete_device task '.$job->id." pid $$");
 
     my @err;
     # part 1: firewall rules directly
-    my $r = eval { $app->fw_delete_rules($id) };
-    push @err, "Error deleting client rules from iptables: $@" unless defined $r;
+    my $r = eval { $app->rt_delete_rules($id) };
+    push @err, "Error deleting rule from iptables: $@" unless defined $r;
 
-    # part 1a: firewall file, no need to apply
-    $r = eval { $app->fw_delete($id) };
-    push @err, "Error deleting client rules from firewall file: $@" unless defined $r;
-
-    # part 2: tc
-    if ($r = eval { $app->tc_delete($id) }) {
-      push @err, "Error applying tc changes: $@" unless eval { $app->tc_apply };
-    } elsif (!defined $r) {
-      push @err, "Error deleting client tc rules: $@";
-    }
+    # part 2: firewall file, no need to apply
+    $r = eval { $app->rt_delete($id) };
+    push @err, "Error deleting rule from firewall file: $@" unless defined $r;
 
     if (@err) {
       $app->rlog(join(',', @err));
-      $app->rlog('Failed delete_client task '.$job->id);
+      $app->rlog('Failed delete_device task '.$job->id);
       $job->finish;
       return 1;
     }
@@ -47,7 +40,7 @@ sub register {
       $app->log->error('Confirmation request error: '.substr($r->body, 0, 40)) if $r->is_error;
     }
 
-    $app->rlog('Finished delete_client task '.$job->id);
+    $app->rlog('Finished delete_device task '.$job->id);
     $job->finish;
   });
 }

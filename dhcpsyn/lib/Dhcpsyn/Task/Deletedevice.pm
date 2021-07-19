@@ -1,4 +1,4 @@
-package Rtsyn::Task::Deleteclient;
+package Dhcpsyn::Task::Deletedevice;
 use Mojo::Base 'Mojolicious::Plugin';
 
 use Mojo::URL;
@@ -6,24 +6,19 @@ use Carp;
 
 sub register {
   my ($self, $app) = @_;
-  $app->ljq->add_task(delete_client => sub {
+  $app->ljq->add_task(delete_device => sub {
     my ($job, $id) = @_;
     croak 'Bad job parameter' unless $id;
     my $app = $job->app;
-    $app->rlog('Started delete_client task '.$job->id." pid $$");
+    $app->rlog('Started delete_device task '.$job->id." pid $$");
 
     my @err;
-    # part 1: firewall rules directly
-    my $r = eval { $app->rt_delete_rules($id) };
-    push @err, "Error deleting client rule from iptables: $@" unless defined $r;
-
-    # part 2: firewall file, no need to apply
-    $r = eval { $app->rt_delete($id) };
-    push @err, "Error deleting client rule from firewall file: $@" unless defined $r;
+    my $r = eval { $app->dhcp_delete($id) };
+    push @err, "Error deleting reservedip: $@" unless defined $r;
 
     if (@err) {
       $app->rlog(join(',', @err));
-      $app->rlog('Failed delete_client task '.$job->id);
+      $app->rlog('Failed delete_device task '.$job->id);
       $job->finish;
       return 1;
     }
@@ -40,7 +35,7 @@ sub register {
       $app->log->error('Confirmation request error: '.substr($r->body, 0, 40)) if $r->is_error;
     }
 
-    $app->rlog('Finished delete_client task '.$job->id);
+    $app->rlog('Finished delete_device task '.$job->id);
     $job->finish;
   });
 }
