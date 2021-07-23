@@ -79,8 +79,10 @@ sub editpost {
 
   my $j = { id => $id }; # resulting json
   $j->{cn} = $v->required('cn', 'not_empty')->param;
-  $j->{desc} = $v->optional('desc')->param;
-  $j->{email} = $v->optional('email')->like(qr/^$|^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/)->param;
+  $v->optional('desc', 'not_empty');
+  $j->{desc} = $v->param if $v->is_valid;
+  $v->optional('email', 'not_empty')->like(qr/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/);
+  $j->{email} = $v->param if $v->is_valid;
   $j->{ip} = $v->required('ip', 'not_empty')->like(qr/^$RE{net}{IPv4}$/)->param;
   $j->{mac} = $v->required('mac', 'not_empty')->like(qr/^$RE{net}{MAC}$/)->param;
   $j->{no_dhcp} = $v->optional('no_dhcp')->like(qr/^[01]$/)->param // 0;
@@ -146,6 +148,7 @@ sub editpost {
 }
 
 
+# new server render form
 sub newget {
   my $self = shift;
   return undef unless $self->authorize({ admin=>1 });
@@ -154,6 +157,7 @@ sub newget {
 }
 
 
+# new server submit
 sub newpost {
   my $self = shift;
   return undef unless $self->authorize({ admin=>1 });
@@ -163,8 +167,10 @@ sub newpost {
 
   my $j = { }; # resulting json
   $j->{cn} = $v->required('cn', 'not_empty')->param;
-  $j->{desc} = $v->optional('desc')->param;
-  $j->{email} = $v->optional('email')->like(qr/^$|^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/)->param;
+  $v->optional('desc', 'not_empty');
+  $j->{desc} = $v->param if $v->is_valid;
+  $v->optional('email', 'not_empty')->like(qr/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/);
+  $j->{email} = $v->param if $v->is_valid;
   $j->{ip} = $v->required('ip', 'not_empty')->like(qr/^$RE{net}{IPv4}$/)->param;
   $j->{mac} = $v->required('mac', 'not_empty')->like(qr/^$RE{net}{MAC}$/)->param;
   $j->{no_dhcp} = $v->optional('no_dhcp')->like(qr/^[01]$/)->param // 0;
@@ -218,7 +224,7 @@ sub newpost {
       if ($res->is_success) {
         # do redirect with flash
         $self->flash(oper => 'Выполнено успешно.');
-        $self->redirect_to($self->url_for('servers'));
+        $self->redirect_to($self->url_for('clients'));
       } else {
         if ($res->is_error) {
           return $self->render(text=>'Ошибка запроса: '.substr($res->body, 0, 120));

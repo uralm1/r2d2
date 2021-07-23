@@ -5,6 +5,7 @@ use POSIX qw(ceil);
 use Mojo::mysql;
 use NetAddr::IP::Lite;
 use Mojo::JSON qw(decode_json);
+use Mojo::Promise;
 
 sub list {
   my $self = shift;
@@ -16,53 +17,77 @@ sub list {
 
   $self->render_later;
 
-  $self->mysql_inet->db->query("SELECT SUM(cnt) FROM ( \
-SELECT COUNT(*) AS cnt FROM clients INNER JOIN devices ON devices_id = clients.id \
-UNION ALL \
-SELECT COUNT(*) AS cnt FROM servers INNER JOIN devices ON devices_id = devices.id \
-) tbl" =>
-    sub {
-      my ($db, $err, $results) = @_;
-      return $self->render(text => "Database error, total lines counting: $err", status=>503) if $err;
+  my $db = $self->mysql_inet->db; # we'll use same connection
+  my $q_count = $db->query_p('SELECT COUNT(*) FROM clients');
+  my $q_clients = $db->query_p("SELECT id, type, guid, login, c.desc, DATE_FORMAT(create_time, '%k:%i:%s %e/%m/%y') AS create_time, cn, email \
+FROM clients c \
+ORDER BY id ASC LIMIT ? OFFSET ?", $lines_on_page, ($page - 1) * $lines_on_page);
+  Mojo::Promise->all($q_count, $q_clients)->then(sub {
+    my ($q_count, $q_clients) = @_;
 
-      my $lines_total = $results->array->[0];
-      $results->finish;
+    my $lines_total = $q_count->[0]->array->[0];
+    my $num_pages = ceil($lines_total / $lines_on_page);
+    return $self->render(text => 'Bad parameter value', status => 400) if $page < 1 ||
+      ($num_pages > 0 && $page > $num_pages);
 
-      my $num_pages = ceil($lines_total / $lines_on_page);
-      return $self->render(text => 'Bad parameter value', status => 400) if $page < 1 ||
-        ($num_pages > 0 && $page > $num_pages);
+    my $j = [];
+    while (my $next = $q_clients->[0]->hash) {
+      my $cl = eval { _build_client_rec($next) };
+      return $self->render(text => 'Client attribute error', status => 503) unless $cl;
 
-      $db->query("SELECT CONCAT('{\"t\":\"server\",\"id\":', s.id, '}') AS e1, \
-'{}' AS e2 \
-FROM servers s INNER JOIN devices d ON s.devices_id = d.id \
-ORDER BY s.id ASC LIMIT ? OFFSET ?",
-#      $db->query("SELECT s.id, name, s.desc, DATE_FORMAT(s.create_time, '%k:%i:%s %e/%m/%y') AS create_time, \
-#ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, profile \
-#FROM servers s INNER JOIN devices d ON s.devices_id = d.id \
-#ORDER BY s.id ASC LIMIT ? OFFSET ?",
-$lines_on_page, ($page - 1) * $lines_on_page =>
-        sub {
-          my ($db, $err, $results) = @_;
-          return $self->render(text => 'Database error, retrieving servers', status => 503) if $err;
+      my $results = eval { $db->query("SELECT id, name, d.desc, DATE_FORMAT(create_time, '%k:%i:%s %e/%m/%y') AS create_time, \
+ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, profile \
+FROM devices d WHERE client_id = ? \
+ORDER BY id ASC LIMIT 20", $cl->{id}) };
+      return $self->render(text => "Database error, retrieving devices: $@", status => 503) unless $results;
+      my $devs = undef;
+      if (my $d = $results->hashes) {
+        $devs = $d->map(sub { return eval { _build_device_rec($_) } })->compact;
+      } else {
+        return $self->render(text => 'Database error, bad result', status=>503);
+      }
 
-          if (my $j = $results->hashes) {
-            $self->render(json => {
-              d => $j->map(sub {
-                  [ decode_json($_->{e1}), decode_json($_->{e2}) ]
-              }),
-              lines_total => $lines_total,
-              pages => $num_pages,
-              page => $page,
-              lines_on_page => $lines_on_page
-            });
-          } else {
-            $self->render(text => 'Database error, bad result', status => 503);
-          }
-        }
-      ); # inner query
+      $cl->{devices} = $devs;
+      push @$j, $cl;
+    }
 
-    } # outer closure
-  ); # outer query
+    $self->render(json => {
+      d => $j,
+      lines_total => $lines_total,
+      pages => $num_pages,
+      page => $page,
+      lines_on_page => $lines_on_page
+    });
+
+  })->catch(sub {
+    my $err = shift;
+    $self->render(text => "Database error: $err", status=>503) if $err;
+  });
+}
+
+
+# { clients_rec_hash } = _build_client_rec( { hash_from_database } );
+sub _build_client_rec {
+  my $h = shift;
+  my $r = {};
+  for (qw/id type guid login desc create_time cn email/) {
+    die 'Undefined client record attribute' unless exists $h->{$_};
+    $r->{$_} = $h->{$_};
+  }
+  return $r;
+}
+
+
+# { devices_rec_hash } = _build_device_rec( { hash_from_database } );
+sub _build_device_rec {
+  my $h = shift;
+  my $ipo = NetAddr::IP::Lite->new($h->{ip}) || die 'IP address failure';
+  my $r = { ip => $ipo->addr };
+  for (qw/id name desc create_time mac rt defjump speed_in speed_out no_dhcp qs limit_in blocked profile/) {
+    die 'Undefined device record attribute' unless exists $h->{$_};
+    $r->{$_} = $h->{$_};
+  }
+  return $r;
 }
 
 

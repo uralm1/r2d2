@@ -11,14 +11,12 @@ sub index {
   my $self = shift;
   return undef unless $self->authorize({ admin=>1 });
 
-  die 'Not implemented';
-
   my $active_page = $self->param('p') || 1;
   return unless $self->exists_and_number($active_page);
 
   $self->render_later;
 
-  $self->ua->get(Mojo::URL->new('/ui/servers')->to_abs($self->head_url)->
+  $self->ua->get(Mojo::URL->new('/ui/list')->to_abs($self->head_url)->
     query({page => $active_page, lop => $self->config('lines_on_page')}) =>
     {Accept => 'application/json'} =>
     sub {
@@ -29,7 +27,7 @@ sub index {
       if ($res->is_success) {
         my $v = $res->json;
         return $self->render(text=>'Ошибка формата данных') unless $v;
-        return $self->render(srv_rec => $v);
+        return $self->render(rec => $v);
       } else {
         if ($res->is_error) {
           return $self->render(text=>'Ошибка запроса: '.substr($res->body, 0, 60));
@@ -125,8 +123,10 @@ sub newpost {
     #say $sel_guid;
     $j->{cn} = $v->required('cn', 'not_empty')->param;
     $j->{login} = $v->required('login', 'not_empty')->param;
-    $j->{desc} = $v->optional('desc')->param;
-    $j->{email} = $v->optional('email')->like(qr/^$|^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/)->param;
+    $v->optional('desc', 'not_empty');
+    $j->{desc} = $v->param if $v->is_valid;
+    $v->optional('email', 'not_empty')->like(qr/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/);
+    $j->{email} = $v->param if $v->is_valid;
 
     if ($v->has_error) {
       $self->flash(oper => 'Ошибка. Неверные данные. Проверьте учетную запись пользователя.');
@@ -171,16 +171,20 @@ sub newpainpost {
   my $v = $self->validation;
   return $self->render(template => 'clients/newpain') unless $v->has_data;
 
+  #$self->log->debug("I: ".$self->dumper($v->input));
+
   my $j = { guid => '' }; # resulting json
   $j->{cn} = $v->required('cn', 'not_empty')->param;
   $j->{login} = $v->required('login', 'not_empty')->param;
-  $j->{desc} = $v->optional('desc')->param;
-  $j->{email} = $v->optional('email')->like(qr/^$|^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/)->param;
+  $v->optional('desc', 'not_empty');
+  $j->{desc} = $v->param if $v->is_valid;
+  $v->optional('email', 'not_empty')->like(qr/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/);
+  $j->{email} = $v->param if $v->is_valid;
 
   # rerender page with errors
   return $self->render(template => 'clients/newpain') if $v->has_error;
 
-  #$self->log->debug($self->dumper($j));
+  #$self->log->debug("J: ".$self->dumper($j));
 
   # post to system
   $self->render_later;
@@ -202,6 +206,37 @@ sub newpainpost {
         return $self->render(text=>'Неподдерживаемый ответ');
       }
     } # post closure
+  );
+}
+
+
+sub edit {
+  my $self = shift;
+  return undef unless $self->authorize({ admin=>1 });
+
+  my $id = $self->param('id');
+  return unless $self->exists_and_number($id);
+
+  $self->render_later;
+
+  $self->ua->get(Mojo::URL->new("/ui/client/$id")->to_abs($self->head_url) =>
+    {Accept => 'application/json'} =>
+    sub {
+      my ($ua, $tx) = @_;
+      my $res = eval { $tx->result };
+      return $self->render(text=>'Ошибка соединения с управляющим сервером') unless defined $res;
+
+      if ($res->is_success) {
+        my $v = $res->json;
+        return $self->render(text=>'Ошибка формата данных') unless $v;
+        return $self->render(client_id => $id, rec => $v);
+      } else {
+        if ($res->is_error) {
+          return $self->render(text=>'Ошибка запроса: '.substr($res->body, 0, 60));
+        }
+        return $self->render(text=>'Неподдерживаемый ответ');
+      }
+    } # get closure
   );
 }
 

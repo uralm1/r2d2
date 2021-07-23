@@ -97,12 +97,12 @@ sub startup {
 
   $r->get('/ui/oplog')->to('ui_oplog#oplog');
   $r->get('/ui/list')->to('ui_list#list');
-  $r->get('/ui/servers')->to('ui_servers#servers');
   $r->get('/ui/server/#id')->to('ui_servers#serverget');
   $r->put('/ui/server/#id')->to('ui_servers#serverput');
   $r->delete('/ui/server/#id')->to('ui_servers#serverdelete');
   $r->post('/ui/server')->to('ui_servers#serverpost');
   $r->post('/ui/client')->to('ui_clients#clientpost');
+  $r->get('/ui/client/#id')->to('ui_clients#clientget');
 }
 
 

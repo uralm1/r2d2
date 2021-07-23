@@ -83,6 +83,7 @@ sub startup {
   $r->get('/clients/new')->to('clients#newget');
   $r->post('/clients/new')->to('clients#newpost');
   $r->post('/clients/newpain')->to('clients#newpainpost');
+  $r->get('/clients/edit')->to('clients#edit');
 }
 
 

@@ -1,4 +1,4 @@
-% layout 'default', back_url => '/servers';
+% layout 'default', back_url => '/clients';
 <div class="scont">
   <h4 class="red-text text-darken-2">Удаление сервера</h5>
 

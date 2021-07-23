@@ -1,59 +1,8 @@
 package Head::Controller::UiServers;
 use Mojo::Base 'Mojolicious::Controller';
 
-use POSIX qw(ceil);
 use Mojo::mysql;
 use NetAddr::IP::Lite;
-
-sub servers {
-  my $self = shift;
-  my $page = $self->param('page') // 1; # page is always defined
-  my $lines_on_page = $self->param('lop');
-  return $self->render(text => 'Bad parameter format', status=>400) unless defined $lines_on_page &&
-    $lines_on_page =~ /^\d+$/ && $page =~ /^\d+$/ && $lines_on_page > 0;
-  return $self->render(text => 'Max 100 per page', status=>400) if $lines_on_page > 100;
-
-  $self->render_later;
-
-  $self->mysql_inet->db->query("SELECT COUNT(*) FROM clients INNER JOIN devices ON clients_id = clients.id WHERE type = 1" =>
-    sub {
-      my ($db, $err, $results) = @_;
-      return $self->render(text => 'Database error, total lines counting', status=>503) if $err;
-
-      my $lines_total = $results->array->[0];
-      $results->finish;
-
-      my $num_pages = ceil($lines_total / $lines_on_page);
-      return $self->render(text => 'Bad parameter value', status => 400) if $page < 1 ||
-        ($num_pages > 0 && $page > $num_pages);
-
-      $db->query("SELECT c.id, cn, c.desc, DATE_FORMAT(c.create_time, '%k:%i:%s %e/%m/%y') AS create_time, email, \
-ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, profile \
-FROM clients c INNER JOIN devices d ON d.clients_id = c.id \
-WHERE type = 1 ORDER BY c.id ASC LIMIT ? OFFSET ?",
-$lines_on_page, ($page - 1) * $lines_on_page =>
-        sub {
-          my ($db, $err, $results) = @_;
-          return $self->render(text => 'Database error, retrieving servers', status => 503) if $err;
-
-          if (my $j = $results->hashes) {
-            $self->render(json => {
-              d => $j->map(sub {
-                return eval { _build_server_rec($_) };
-              })->compact,
-              lines_total => $lines_total,
-              pages => $num_pages,
-              page => $page,
-              lines_on_page => $lines_on_page
-            });
-          } else {
-            $self->render(text => 'Database error, bad result', status=>503);
-          }
-        }
-      ); # inner query
-    }
-  ); # outer query
-}
 
 
 sub serverget {
@@ -64,7 +13,7 @@ sub serverget {
   $self->render_later;
   $self->mysql_inet->db->query("SELECT c.id, cn, c.desc, DATE_FORMAT(c.create_time, '%k:%i:%s %e/%m/%y') AS create_time, email, \
 ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, profile \
-FROM clients c INNER JOIN devices d ON d.clients_id = c.id \
+FROM clients c INNER JOIN devices d ON d.client_id = c.id \
 WHERE type = 1 AND c.id = ?", $id =>
     sub {
       my ($db, $err, $results) = @_;
@@ -82,7 +31,7 @@ WHERE type = 1 AND c.id = ?", $id =>
 }
 
 
-# { servers_rec_hash } = eval { _build_server_rec( { hash_from_database } )};
+# { servers_rec_hash } = _build_server_rec( { hash_from_database } );
 sub _build_server_rec {
   my $h = shift;
   my $ipo = NetAddr::IP::Lite->new($h->{ip}) || die 'IP address failure';
@@ -114,12 +63,12 @@ sub serverput {
     $self->log->debug($self->dumper($j));
     $self->render_later;
 
-    $self->mysql_inet->db->query("UPDATE clients c INNER JOIN devices d ON d.clients_id = c.id \
+    $self->mysql_inet->db->query("UPDATE clients c INNER JOIN devices d ON d.client_id = c.id \
 SET cn = ?, c.desc = ?, email = ?, ip = ?, mac = ?, no_dhcp = ?, rt = ?, defjump = ?, speed_in = ?, speed_out = ?, qs = ?, limit_in = ?, email_notify = 0 \
 WHERE c.type = 1 AND c.id = ?",
       $j->{cn},
-      $j->{desc},
-      $j->{email},
+      $j->{desc} // '',
+      $j->{email} // '',
       scalar($ipo->numeric),
       $j->{mac},
       $j->{no_dhcp},
@@ -173,16 +122,16 @@ sub serverpost {
     my $results = eval { $db->query("INSERT INTO clients \
 (create_time, type, guid, login, clients.desc, cn, email, lost) \
 VALUES (NOW(), 1, '', '', ?, ?, ?, 0)",
-      $j->{desc},
+      $j->{desc} // '',
       $j->{cn},
-      $j->{email}
+      $j->{email} // ''
     ) };
     return $self->render(text => "Database error, inserting servers: $@", status => 503) unless $results;
 
     my $last_id = $results->last_insert_id;
 
     $results = eval { $db->query("INSERT INTO devices \
-(create_time, ip, mac, no_dhcp, rt, defjump, speed_in, speed_out, qs, limit_in, sum_limit_in, profile, email_notify, notified, blocked, bot, clients_id) \
+(create_time, ip, mac, no_dhcp, rt, defjump, speed_in, speed_out, qs, limit_in, sum_limit_in, profile, email_notify, notified, blocked, bot, client_id) \
 VALUES (NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 1, ?)",
       scalar($ipo->numeric),
       $j->{mac},
@@ -221,7 +170,7 @@ sub serverdelete {
 
   $self->render_later;
 
-  $self->mysql_inet->db->query("DELETE clients, devices FROM clients INNER JOIN devices ON clients_id = clients.id \
+  $self->mysql_inet->db->query("DELETE clients, devices FROM clients INNER JOIN devices ON client_id = clients.id \
 WHERE clients.type = 1 AND clients.id = ?", $id =>
     sub {
       my ($db, $err, $results) = @_;

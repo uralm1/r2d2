@@ -4,6 +4,51 @@ use Mojo::Base 'Mojolicious::Controller';
 use Mojo::mysql;
 
 
+sub clientget {
+  my $self = shift;
+  my $id = $self->stash('id');
+  return $self->render(text=>'Bad parameter', status => 404) unless (defined($id) && $id =~ /^\d+$/);
+
+  $self->render_later;
+
+  $self->mysql_inet->db->query("SELECT id, type, guid, login, c.desc, DATE_FORMAT(create_time, '%k:%i:%s %e/%m/%y') AS create_time, cn, email \
+FROM clients c WHERE id = ?", $id =>
+    sub {
+      my ($db, $err, $results) = @_;
+      return $self->render(text => "Database error, retrieving client: $err", status => 503) if $err;
+
+      if (my $rh = $results->hash) {
+        my $cl = eval { Head::Controller::UiList::_build_client_rec($rh) };
+        return $self->render(text => 'Client attribute error', status => 503) unless $cl;
+        $results->finish;
+
+        $db->query("SELECT id, name, d.desc, DATE_FORMAT(create_time, '%k:%i:%s %e/%m/%y') AS create_time, \
+ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, profile \
+FROM devices d WHERE client_id = ? \
+ORDER BY id ASC LIMIT 20", $cl->{id} =>
+        sub {
+          my ($db, $err, $results) = @_;
+          return $self->render(text => "Database error, retrieving devices: $err", status => 503) if $err;
+
+          my $devs = undef;
+          if (my $d = $results->hashes) {
+            $devs = $d->map(sub { return eval { Head::Controller::UiList::_build_device_rec($_) } })->compact;
+          } else {
+            return $self->render(text => 'Database error, bad result', status=>503);
+          }
+
+          $cl->{devices} = $devs;
+
+          $self->render(json => $cl);
+        }); # inner query
+      } else {
+        return $self->render(text => 'Not found', status => 404);
+      }
+    }
+  ); # outer query
+}
+
+
 # new client submit
 sub clientpost {
   my $self = shift;
@@ -22,9 +67,9 @@ sub clientpost {
 VALUES (NOW(), 0, ?, ?, ?, ?, ?, 0)",
       $j->{guid},
       $j->{login},
-      $j->{desc},
+      $j->{desc} // '',
       $j->{cn},
-      $j->{email} =>
+      $j->{email} // '' =>
       sub {
         my ($db, $err, $results) = @_;
         return $self->render(text => "Database error, inserting client: $err", status => 503) if $err;

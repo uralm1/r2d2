@@ -32,7 +32,7 @@ __DATA__
 @@ server_record
 {
   "type": "object",
-  "required": ["cn", "desc", "email", "ip", "mac", "no_dhcp", "rt", "defjump", "speed_in", "speed_out", "qs", "limit_in", "profile"],
+  "required": ["cn", "ip", "mac", "no_dhcp", "rt", "defjump", "speed_in", "speed_out", "qs", "limit_in", "profile"],
   "properties": {
     "id": { "type":"integer" },
     "cn": { "type":"string", "minLength":1 },
@@ -40,8 +40,8 @@ __DATA__
     "create_time": { "type":"string" },
     "email": {
       "type":"string",
-      "description":"Email regexp or empty",
-      "pattern":"^$|^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$"
+      "description":"Email regexp",
+      "pattern":"^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$"
     },
     "ip": {
       "type":"string",
@@ -68,7 +68,7 @@ __DATA__
 @@ client_record
 {
   "type": "object",
-  "required": ["cn", "desc", "guid", "login", "email"],
+  "required": ["cn", "guid", "login"],
   "properties": {
     "id": { "type":"integer" },
     "cn": { "type":"string", "minLength":1 },
@@ -82,8 +82,8 @@ __DATA__
     "login": { "type":"string", "minLength":1 },
     "email": {
       "type":"string",
-      "description":"Email regexp or empty",
-      "pattern":"^$|^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$"
+      "description":"Email regexp",
+      "pattern":"^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$"
     }
   }
 }

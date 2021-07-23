@@ -388,48 +388,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ui_servers_json'
-        '400':
-          description: Ошибка в параметрах, в основном неверный номер текущей страницы
-          content:
-            text/plain:
-              schema:
-                type: string
-                description: error message
-        '503':
-          description: Operation error
-          content:
-            text/plain:
-              schema:
-                type: string
-                description: error message
-
-  /ui/servers:
-    get:
-      summary: Получение списка серверов
-      description: Запрос списка серверов для интерфейса пользователя.
-      parameters:
-        - name: page
-          in: query
-          description: Текущая страница (начиная с 1)
-          schema:
-            type: integer
-            example: 2
-        - name: lop
-          in: query
-          required: true
-          description: Число строк на странице (lines_on_page)
-          schema:
-            type: integer
-            example: 20
-
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ui_servers_json'
+                $ref: '#/components/schemas/ui_list_json'
         '400':
           description: Ошибка в параметрах, в основном неверный номер текущей страницы
           content:
@@ -455,8 +414,7 @@ paths:
           description: 'Server id'
           schema:
             type: integer
-            example: 11
-            
+
       responses:
         '200':
           description: Success
@@ -488,7 +446,6 @@ paths:
           description: 'Server id'
           schema:
             type: integer
-            example: 11
 
       requestBody:
         description: 'Server data'
@@ -525,7 +482,6 @@ paths:
           description: 'Server id'
           schema:
             type: integer
-            example: 11
 
       responses:
         '200':
@@ -571,6 +527,39 @@ paths:
               schema:
                 type: string
                 description: error message      
+
+  /ui/client/{client_id}:
+    get:
+      summary: 'Запрос данных по клиенту'
+      parameters:
+        - name: client_id
+          in: path
+          required: true
+          description: 'Client id'
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/client_full_record'
+        '404':
+          description: Not found, including bad id parameter
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
 
   /ui/client:
     post:
@@ -824,8 +813,8 @@ components:
             subsys: 'gwsyn@gwsev'
             info: 'Finished traffic_stat'
 
-    ui_servers_json:
-      description: 'Страница данных перечня серверов'
+    ui_list_json:
+      description: 'Страница данных перечня клиентов'
       type: object
       properties:
         lines_total:
@@ -844,7 +833,7 @@ components:
           type: array
           description: Массив строк
           items:
-            $ref: '#/components/schemas/server_record'
+            $ref: '#/components/schemas/client_full_record'
 
       example:
         lines_total: 1000
@@ -875,7 +864,6 @@ components:
         id:
           type: integer
           description: 'Код сервера (not required on new)'
-          example: '54321'
         cn:
           type: string
           description: Наименование
@@ -888,6 +876,10 @@ components:
           type: string
           description: 'Время создания (14:04:24 30/04/21, not required on new)'
           example: '14:04:24 30/04/21'
+        email:
+          type: string
+          description: 'Email для уведомлений'
+          example: 'user@domain.tld'
         ip:
           type: string
           description: client ip4
@@ -934,7 +926,6 @@ components:
           example: 'gwtest1'
       required:
         - cn
-        - desc
         - ip
         - mac
         - no_dhcp
@@ -953,7 +944,6 @@ components:
         id:
           type: integer
           description: 'Код клиента (not required on new)'
-          example: '54321'
         cn:
           type: string
           description: 'Фамилия Иия Отчество'
@@ -972,7 +962,7 @@ components:
           example: '14:04:24 30/04/21'
         login:
           type: string
-          description: 'Логин клиента'
+          description: 'Логин клиента (пустой для серверов)'
           example: 'user'
         email:
           type: string
@@ -980,7 +970,131 @@ components:
           example: 'user@domain.tld'
       required:
         - cn
+        - guid
+        - login
+
+    client_full_record:
+      description: 'Client list record including device list'
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Код клиента'
+        type:
+          type: integer
+          description: 'Тип клиента: 0-клиент, 1-сервер'
+        cn:
+          type: string
+          description: 'Фамилия Иия Отчество'
+          example: 'Иванов Иван Иванович'
+        desc:
+          type: string
+          description: 'Описание клиента, возможно пустое'
+          example: 'Краткое описание'
+        guid:
+          type: string
+          description: 'ObjectGUID клиента, возможно пустое для клиентов добавленных вручную'
+          example: 'b95108ab-236a-4534-9ef0-6b8fa1cd59fd'
+        create_time:
+          type: string
+          description: 'Время создания (14:04:24 30/04/21)'
+          example: '14:04:24 30/04/21'
+        login:
+          type: string
+          description: 'Логин клиента (пустой для серверов)'
+          example: 'user'
+        email:
+          type: string
+          description: 'Email клиента'
+          example: 'user@domain.tld'
+        devices:
+          type: array
+          description: 'Массив устройств'
+          items:
+            $ref: '#/components/schemas/client_device_record'
+      required:
+        - id
+        - type
+        - cn
         - desc
         - guid
-        - email
+        - create_time
         - login
+        - email
+        - devices
+        
+    client_device_record:
+      description: 'Client device record'
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Код устройства (not required on new)'
+        name:
+          type: string
+          description: Наименование
+          example: 'Рабочий ноутбук'
+        desc:
+          type: string
+          description: 'Описание, возможно пустое'
+          example: 'Краткое описание'
+        create_time:
+          type: string
+          description: 'Время создания (14:04:24 30/04/21, not required on new)'
+          example: '14:04:24 30/04/21'
+        ip:
+          type: string
+          description: device ip4
+          example: '10.15.0.33'
+        mac:
+          type: string
+          description: device mac
+          example: '11:22:33:44:55:66'
+        rt:
+          type: integer
+          description: 'route type (0-ufanet, 1-beeline)'
+          example: 1
+        no_dhcp:
+          type: integer
+          description: '(0-use dhcp, 1-dont use)'
+          example: 0
+        defjump:
+          type: string
+          description: 'ACCEPT/DROP/HTTP_ICMP/HTTP_IM_ICMP/ICMP_ONLY'
+          example: 'ACCEPT'
+        speed_in:
+          type: string
+          description: 'dl speed tc parameters'
+          example: 'quantum 6400 rate 1mbit prio 5'
+        speed_out:
+          type: string
+          description: 'ul speed tc parameters'
+          example: 'quantum 6400 rate 1mbit ceil 1280kbit prio 5'
+        qs:
+          type: integer
+          description: 'quote mode (0-disabled, 1-notify, 2-limit, 3-block)'
+          example: 2
+        limit_in:
+          type: integer
+          description: 'quota limit in bytes'
+          example: 1073741824
+        blocked:
+          type: integer
+          description: 'blocked flag (0-unblocked, 1-blocked)'
+          example: 0
+        profile:
+          type: string
+          description: 'device profile name'
+          example: 'gwtest1'
+      required:
+        - name
+        - ip
+        - mac
+        - no_dhcp
+        - rt
+        - defjump
+        - speed_in
+        - speed_out
+        - qs
+        - limit_in
+        - profile

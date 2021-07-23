@@ -1,4 +1,4 @@
-% layout 'default', back_url => '/servers';
+% layout 'default', back_url => '/clients';
 % if (validation->has_error) {
 %   content_with done_toast => begin
 <script>$(document).ready(function(){M.toast({html:'Ошибка. Неверные данные.',displayLength:3000})})</script>

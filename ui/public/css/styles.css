@@ -57,3 +57,40 @@ pre.newversion-hist {
 .no-margin-bottom {
   margin-bottom:0;
 }
+
+.listclienttype {
+  color:#fff;
+  font-size:.8rem!important;
+  background-color:#444444;
+  padding:4px;
+}
+
+.listservertype {
+  color:#fff;
+  font-size:.8rem!important;
+  background-color:#c2185b;
+  padding:4px;
+}
+
+.listdevicerow {
+  margin-left:2%;
+  color:#707070;
+}
+
+.listdevicerow>span {
+  margin-left:4px;
+}
+
+.tr-device {
+  border-bottom:none;
+}
+
+tr.tr-device>td {
+  padding:5px;
+}
+
+.tr-client {
+  border-bottom:1px dashed rgba(0,0,0,0.08);
+  border-top:1px solid rgba(0,0,0,0.12);
+}
+

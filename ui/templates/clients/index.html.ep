@@ -1,0 +1,112 @@
+% layout 'default', back_url => '/';
+% my $toast_msg = flash 'oper';
+% if ($toast_msg) {
+%   content_with done_toast => begin
+<script>$(document).ready(function(){M.toast({html:'<%= $toast_msg %>',displayLength:3000})})</script>
+%   end
+% }
+<div class="scont">
+  <table class="highlight">
+    <thead>
+      <tr>
+	<th style="width:7%">Выбрать</th>
+	<th>Наименование</th>
+	<th>Email</th>
+	<th>Логин</th>
+      </tr>
+    </thead>
+    <tbody>
+    % for (@{$rec->{d}}) {
+      <tr class="tr-client">
+	<td class="vcenter">
+	  <label>
+	    <input name="sg" type="radio" value="<%== $_->{id} %>" data-type="<%== $_->{type}%>"/>
+	    <span>
+	      <span class="<%== $_->{type} == 1 ? 'listservertype':'listclienttype' %>"><%== $_->{type} == 0 ? 'Клиент':$_->{type} == 1 ? 'Сервер':'Неизв.' %></span>
+	    </span>
+	  </label>
+	</td>
+	<td><%= $_->{cn} %></td>
+	<td><%= $_->{email} %></td>
+	<td><%= $_->{login} %></td>
+      </tr>
+      % for my $d (@{$_->{devices}}) {
+      <tr class="tr-device">
+	<td colspan="4">
+	  <div class="listdevicerow">
+	    <i class="material-icons tiny"><%== $_->{type} == 1 ? 'dns':'computer' %></i>
+	    <span><%= $d->{name} %></span>
+	    <span><b>ID:</b>&nbsp;<%= $d->{id}%></span>
+	    <span><b>IP:</b>&nbsp;<%= $d->{ip} %></span>
+	    <span><b>MAC:</b>&nbsp;<%= $d->{mac} %></span>
+	    % my @x = grep {$_->[1] == $d->{rt}} @{config('rt_names')};
+	    <span><b>Провайдер:</b>&nbsp;<%= $x[0][0] // 'Неизвестно' %></span>
+	    <span><b>Лимит:</b>&nbsp;<%== $d->{qs} == 0 ? '*Анлим*' : btomb($d->{limit_in}).'&nbsp;Мб' %></span>
+	    <span><b>Правило:</b>&nbsp;<%= $d->{defjump} %></span>
+	    <span><b>Место:</b>&nbsp;<%= $d->{profile} %></span>
+
+	  </div>
+	</td>
+      </tr>
+      % }
+      % unless (@{$_->{devices}}) {
+      <tr class="tr-device">
+	<td colspan="4">
+	  <div class="listdevicerow">
+	    <i class="material-icons tiny">report</i>
+	    <span>Устройства отсутствуют</span>
+	  </div>
+	</td>
+      </tr>
+      % }
+    % }
+    </tbody>
+  </table>
+  %= m_page_nav($rec->{page}, $rec->{pages}, {round=>3, outer=>1, start=>1, class=>'center-align', param=>'p', query=>'#top'});
+  <!--p>Общее число записей: <%= $rec->{lines_total} %></p-->
+</div>
+<div class="fixed-action-btn">
+  <a class="btn-floating btn-large pink darken-4" id="editbtn" data-position="left" data-tooltip="Изменить..."><i class="large material-icons">edit</i></a>
+  <ul>
+    <li><%= link_to 'clientsnew' => (class=>'btn-floating yellow darken-1 btn-tooltip', 'data-position'=>'left', 'data-tooltip'=>'Добавить нового клиента') => begin %><i class="material-icons">person_add</i><% end %></li>
+    <li><%= link_to 'serversnew' => (class=>'btn-floating yellow darken-3 btn-tooltip', 'data-position'=>'left', 'data-tooltip'=>'Добавить новый сервер') => begin %><i class="material-icons">add_box</i><% end %></li>
+    <li><a class="btn-floating red btn-tooltip" id="deletebtn" data-position="left" data-tooltip="Удалить"><i class="material-icons">delete</i></a></li>
+  </ul>
+</div>
+% content_for script0 => begin
+<script>
+  $(document).ready(function(){
+    $('.fixed-action-btn').floatingActionButton();
+    $('.btn-tooltip').tooltip();
+    let edit_action = function(){
+      let sg = $('input[type=radio][name=sg]:checked');
+      let id = sg.val();
+      if (id==undefined)
+	M.toast({html:'Ошибка. Объект не выбран.',displayLength:3000});
+      else {
+        let t = sg.attr('data-type');
+	if (t==0) location.assign('<%== url_for('clientsedit') %>?id='+id);
+	else if (t==1) location.assign('<%== url_for('serversedit') %>?id='+id);
+	else M.toast({html:'Ошибка. Неверный тип.',displayLength:3000});
+      }
+    };
+    let delete_action = function(){
+      let sg = $('input[type=radio][name=sg]:checked');
+      let id = sg.val();
+      if (id==undefined)
+	M.toast({html:'Ошибка. Объект не выбран.',displayLength:3000});
+      else {
+        let t = sg.attr('data-type');
+	if (t==0) location.assign('<%== url_for('clientsdelete') %>?id='+id);
+	else if (t==1) location.assign('<%== url_for('serversdelete') %>?id='+id);
+	else M.toast({html:'Ошибка. Неверный тип.',displayLength:3000});
+      }
+    };
+
+    $('#editbtn').click(edit_action);
+    $('#deletebtn').click(delete_action);
+    $('#deletemenu').off('click').click(delete_action);
+    $('#editmenu').off('click').click(edit_action);
+  });
+</script>
+% end

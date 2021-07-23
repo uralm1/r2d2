@@ -180,14 +180,18 @@ CREATE TABLE IF NOT EXISTS `clients` (
 ALTER TABLE `devices` DROP INDEX `login`, ADD INDEX `login` (`login`) USING BTREE;
 ALTER TABLE `devices` CHANGE `login` `login` VARCHAR(30) NULL;
 ALTER TABLE `devices` CHANGE `desc` `desc` VARCHAR(255) NULL;
-ALTER TABLE `devices` ADD `clients_id` INT(11) UNSIGNED NULL AFTER `profile`;
+ALTER TABLE `devices` ADD `name` VARCHAR(255) NOT NULL AFTER `login`;
+ALTER TABLE `devices` ADD `client_id` INT(11) UNSIGNED NULL AFTER `profile`;
+ALTER TABLE `devices` ADD INDEX (`client_id`);
 
 -- 5 down
 DROP TABLE IF EXISTS `clients`;
+ALTER TABLE `devices` DROP INDEX `client_id`;
 ALTER TABLE `devices` DROP INDEX `login`, ADD UNIQUE `login` (`login`) USING BTREE;
 ALTER TABLE `devices` CHANGE `login` `login` VARCHAR(30) NOT NULL;
 ALTER TABLE `devices` CHANGE `desc` `desc` VARCHAR(255) NOT NULL;
-ALTER TABLE `devices` DROP `clients_id`;
+ALTER TABLE `devices` DROP `name`;
+ALTER TABLE `devices` DROP `client_id`;
 
 ALTER TABLE `adaily` CHANGE `device_id` `client_id` INT(11) UNSIGNED NOT NULL;
 ALTER TABLE `amonthly` CHANGE `device_id` `client_id` INT(11) UNSIGNED NOT NULL;
