@@ -131,8 +131,8 @@ VALUES (NOW(), 1, '', '', ?, ?, ?, 0)",
     my $last_id = $results->last_insert_id;
 
     $results = eval { $db->query("INSERT INTO devices \
-(create_time, ip, mac, no_dhcp, rt, defjump, speed_in, speed_out, qs, limit_in, sum_limit_in, profile, email_notify, notified, blocked, bot, client_id) \
-VALUES (NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 1, ?)",
+(name, desc, create_time, ip, mac, no_dhcp, rt, defjump, speed_in, speed_out, qs, limit_in, sum_limit_in, profile, email_notify, notified, blocked, bot, client_id) \
+VALUES ('Серверное подключение', '', NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 1, ?)",
       scalar($ipo->numeric),
       $j->{mac},
       $j->{no_dhcp},

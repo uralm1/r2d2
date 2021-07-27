@@ -36,7 +36,7 @@ sub index {
 }
 
 
-sub edit {
+sub editget {
   my $self = shift;
   return undef unless $self->authorize({ admin=>1 });
 
@@ -55,7 +55,8 @@ sub edit {
       if ($res->is_success) {
         my $v = $res->json;
         return $self->render(text=>'Ошибка формата данных') unless $v;
-        return $self->render(srv_id => $id, srv_rec => $v);
+        return $self->render(template => 'servers/edit',
+          srv_id => $id, srv_rec => $v);
       } else {
         if ($res->is_error) {
           return $self->render(text=>'Ошибка запроса: '.substr($res->body, 0, 60));
@@ -236,7 +237,7 @@ sub newpost {
 }
 
 
-sub delete {
+sub deleteget {
   my $self = shift;
   return undef unless $self->authorize({ admin=>1 });
 

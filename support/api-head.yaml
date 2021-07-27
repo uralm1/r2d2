@@ -588,6 +588,47 @@ paths:
                 type: string
                 description: error message      
 
+  /ui/device/{client_id}:
+    post:
+      summary: 'Добавление нового клиентского устройства'
+      parameters:
+        - name: client_id
+          in: path
+          required: true
+          description: 'Client id'
+          schema:
+            type: integer
+      requestBody:
+        description: 'Device data'
+        required: true
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/client_device_record'
+
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                type: integer
+                description: 'Inserted device id'
+        '404':
+          description: Not found, including bad client_id parameter
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
   /ui/oplog:
     get:
       summary: Получение лога операций

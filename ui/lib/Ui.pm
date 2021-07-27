@@ -72,18 +72,21 @@ sub startup {
   $r->get('/oplog')->to('oplog#index');
 
   $r->get('/servers')->to('servers#index');
-  $r->get('/servers/edit')->to('servers#edit');
+  $r->get('/servers/edit')->to('servers#editget');
   $r->post('/servers/edit')->to('servers#editpost');
   $r->get('/servers/new')->to('servers#newget');
   $r->post('/servers/new')->to('servers#newpost');
-  $r->get('/servers/delete')->to('servers#delete');
+  $r->get('/servers/delete')->to('servers#deleteget');
   $r->post('/servers/delete')->to('servers#deletepost');
 
   $r->get('/clients')->to('clients#index');
   $r->get('/clients/new')->to('clients#newget');
   $r->post('/clients/new')->to('clients#newpost');
   $r->post('/clients/newpain')->to('clients#newpainpost');
-  $r->get('/clients/edit')->to('clients#edit');
+  $r->get('/clients/edit')->to('clients#editget');
+
+  $r->post('/device/new')->to('device#newpost');
+
 }
 
 

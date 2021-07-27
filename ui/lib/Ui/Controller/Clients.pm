@@ -164,6 +164,7 @@ sub newpost {
 }
 
 
+# new manual client render form and submit
 sub newpainpost {
   my $self = shift;
   return undef unless $self->authorize({ admin=>1 });
@@ -210,7 +211,7 @@ sub newpainpost {
 }
 
 
-sub edit {
+sub editget {
   my $self = shift;
   return undef unless $self->authorize({ admin=>1 });
 
@@ -229,7 +230,8 @@ sub edit {
       if ($res->is_success) {
         my $v = $res->json;
         return $self->render(text=>'Ошибка формата данных') unless $v;
-        return $self->render(client_id => $id, rec => $v);
+        return $self->render(template => 'clients/edit',
+          client_id => $id, rec => $v);
       } else {
         if ($res->is_error) {
           return $self->render(text=>'Ошибка запроса: '.substr($res->body, 0, 60));

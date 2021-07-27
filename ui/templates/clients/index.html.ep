@@ -36,7 +36,9 @@
 	  <div class="listdevicerow">
 	    <i class="material-icons tiny"><%== $_->{type} == 1 ? 'dns':'computer' %></i>
 	    <span><%= $d->{name} %></span>
-	    <span><b>ID:</b>&nbsp;<%= $d->{id}%></span>
+	    % unless ($d->{name}) {
+	    <span>ID:&nbsp;<%= $d->{id}%></span>
+	    % }
 	    <span><b>IP:</b>&nbsp;<%= $d->{ip} %></span>
 	    <span><b>MAC:</b>&nbsp;<%= $d->{mac} %></span>
 	    % my @x = grep {$_->[1] == $d->{rt}} @{config('rt_names')};
