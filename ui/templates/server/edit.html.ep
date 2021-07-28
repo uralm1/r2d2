@@ -1,28 +1,33 @@
 % layout 'default', back_url => '/clients';
 % if (validation->has_error) {
-%   content_with done_toast => begin
+%   content_with validation_toast => begin
 <script>$(document).ready(function(){M.toast({html:'Ошибка. Неверные данные.',displayLength:3000})})</script>
 %   end
 % }
 <div class="scont">
-  <h4>Новый сервер</h5>
+  <h4>Редактирование сервера</h5>
 
-  %= form_for serversnew => (method=>'POST') => begin
+  %= form_for serveredit => (method=>'POST') => begin
+    %= hidden_field id => $srv_id
     <div class="row">
       <div class="input-field col s12 m8 l5">
-	%= text_field 'cn', id => 'cn'
+	%= text_field 'cn' => $srv_rec->{cn}, id => 'cn'
 	%= label_for cn => 'Название сервера'
 	%= t 'span', class => 'helper-text', 'data-error' => 'Ошибка, не должно быть пустым'
+      </div>
+      <div class="input-field col s12 m4 l3 offset-l1">
+	%= text_field 'create-time' => $srv_rec->{create_time} // 'Не указано', id => 'create-time', disabled => undef
+	%= label_for 'create-time' => 'Дата и время создания'
       </div>
     </div>
     <div class="row">
       <div class="input-field col s12 m8 l5">
-	%= text_area 'desc', id => 'desc', class => 'materialize-textarea'
+	%= text_area desc => $srv_rec->{desc}, id => 'desc', class => 'materialize-textarea'
 	%= label_for desc => 'Комментарий'
 	%= t 'span', class => 'helper-text', 'Дополнительная информация (пользователям не видно)'
       </div>
       <div class="input-field col s12 m8 l4">
-	%= text_field 'email', id => 'email'
+	%= text_field email => $srv_rec->{email}, id => 'email'
 	%= label_for email => 'Email (необязательный)'
 	%= t 'span', class => 'helper-text', 'data-error' => 'Ошибка. Формат mailbox@domain.tld', 'Адрес электронной почты для уведомлений'
       </div>
@@ -31,21 +36,23 @@
     <h5>Местоположение</h5>
     <div class="row">
       <div class="input-field col s12 m8 l5">
-	%= select_field profile => ['plk', 'gwtest1', 'atcsev', 'kns3'], id => 'profile';
+        %= hidden_field profile => $srv_rec->{profile};
+	% param profile1 => $srv_rec->{profile} unless param 'profile1';
+	%= select_field profile1 => ['plk', 'gwtest1', 'atcsev', 'kns3'], id => 'profile', disabled => undef;
 	%#= label_for profile => 'Расположение'
-	%= t 'span', class => 'helper-text', 'data-error' => 'Ошибка', ''
+	%= t 'span', class => 'helper-text', 'Изменение местоположения не допускается'
       </div>
     </div>
 
     <h5>Сетевые параметры</h5>
     <div class="row">
       <div class="input-field col s10 m6 l4">
-	%= text_field 'ip' => '10.15.0', id => 'ip'
+	%= text_field 'ip' => $srv_rec->{ip}, id => 'ip'
 	%= label_for ip => 'IP адрес'
 	%= t 'span', class => 'helper-text', 'data-error' => 'Ошибка, формат xxx.xxx.xxx.xxx', 'IPv4 (Формат: xxx.xxx.xxx.xxx)'
       </div>
       <div class="input-field col s10 m6 l4">
-	%= text_field 'mac', id => 'mac'
+	%= text_field 'mac' => $srv_rec->{mac}, id => 'mac'
 	%= label_for mac => 'MAC'
 	%= t 'span', class => 'helper-text', 'data-error' => 'Ошибка, формат xx:xx:xx:xx:xx:xx', 'Eui-48 ethernet MAC (Формат: xx:xx:xx:xx:xx:xx)'
       </div>
@@ -53,7 +60,7 @@
     <div class="row">
       <div class="col s12">
 	<label>
-	  % param no_dhcp => 1 unless defined param 'no_dhcp';
+	  % param no_dhcp => $srv_rec->{no_dhcp} unless defined param 'no_dhcp';
 	  %= check_box no_dhcp => 1, id => 'no-dhcp', class => 'filled-in'
 	  %= t 'span', 'Сервер не использует DHCP'
 	</label>
@@ -62,12 +69,12 @@
 
     <div class="row">
       <div class="input-field col s10 m6 l4">
-	% param rt => 0 unless defined param 'rt';
+	% param rt => $srv_rec->{rt} unless defined param 'rt';
 	%= select_field rt => config('rt_names'), id => 'rt';
 	%= label_for rt => 'Провайдер'
       </div>
       <div class="input-field col s10 m6 l4">
-	% param defjump => 'ACCEPT' unless param 'defjump';
+	% param defjump => $srv_rec->{defjump} unless param 'defjump';
 	%= select_field defjump => config('defjump_names'), id => 'defjump';
 	%= label_for defjump => 'Правило'
       </div>
@@ -75,9 +82,22 @@
 
     <div class="row">
       <div class="input-field col s12 m8 l4">
-	% my $sp = config 'speed_plans';
-	% param 'speed_key' => $sp->[0]{key} unless param 'speed_key';
-	% my @sl = map {[$_->{name} => $_->{key}, 'data-icon' => $_->{img}]} @$sp;
+	% unless (param 'speed_key') {
+	%   my ($speed_key, $speed_userdef_in, $speed_userdef_out) = ('userdef', '', '');
+	%   for (@{config 'speed_plans'}) {
+	%     if ($srv_rec->{speed_in} eq $_->{in} && $srv_rec->{speed_out} eq $_->{out}) {
+	%       $speed_key = $_->{key}; # don't exit loop here
+	%     }
+	%   }
+	%   if ($speed_key eq 'userdef') {
+	%     $speed_userdef_in = $srv_rec->{speed_in} // '';
+	%     $speed_userdef_out = $srv_rec->{speed_out} // '';
+	%   }
+	%   param 'speed_key' => $speed_key;
+	%   param 'speed_userdef_in' => $speed_userdef_in;
+	%   param 'speed_userdef_out' => $speed_userdef_out;
+	% }
+	% my @sl = map {[$_->{name} => $_->{key}, 'data-icon' => $_->{img}]} @{config 'speed_plans'};
 	%= select_field speed_key => \@sl, id => 'speed';
 	%= label_for speed => 'Скорость доступа'
 	%= t 'span', class => 'helper-text', 'При выборе индивидуала, настройте скорости вручную'
@@ -97,12 +117,12 @@
     <h5>Лимиты</h5>
     <div class="row">
       <div class="input-field col s10 m6 l4">
-	% param qs => 2 unless defined param 'qs';
+	% param qs => $srv_rec->{qs} unless defined param 'qs';
 	%= select_field qs => config('qs_names'), id => 'qs';
 	%= label_for qs => 'Режим квоты'
       </div>
       <div class="input-field col s10 m6 l4">
-	% param limit_in => 1024 unless defined param 'limit_in';
+	% param limit_in => btomb $srv_rec->{limit_in} unless defined param 'limit_in';
 	%= text_field 'limit_in', id => 'limit-in'
 	%= label_for 'limit-in' => 'Лимит (Мегабайт в месяц)'
 	%= t 'span', class => 'helper-text', 'data-error' => 'Ошибка', 'Формат: число без добавления "Мб".'
@@ -111,7 +131,7 @@
 
     <div class="row">
       <div class="col s12">
-	<button class="btn-large waves-effect waves-light" type="submit">Добавить сервер</button>
+	<button class="btn-large waves-effect waves-light" type="submit">Изменить сервер</button>
 	<span class="spaceleft">Будет запущено изменение параметров сервера на агентах.</span>
       </div>
     </div>

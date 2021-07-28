@@ -70,8 +70,8 @@
 <div class="fixed-action-btn">
   <a class="btn-floating btn-large pink darken-4" id="editbtn" data-position="left" data-tooltip="Изменить..."><i class="large material-icons">edit</i></a>
   <ul>
-    <li><%= link_to 'clientsnew' => (class=>'btn-floating yellow darken-1 btn-tooltip', 'data-position'=>'left', 'data-tooltip'=>'Добавить нового клиента') => begin %><i class="material-icons">person_add</i><% end %></li>
-    <li><%= link_to 'serversnew' => (class=>'btn-floating yellow darken-3 btn-tooltip', 'data-position'=>'left', 'data-tooltip'=>'Добавить новый сервер') => begin %><i class="material-icons">add_box</i><% end %></li>
+    <li><%= link_to 'clientnew' => (class=>'btn-floating yellow darken-1 btn-tooltip', 'data-position'=>'left', 'data-tooltip'=>'Добавить нового клиента') => begin %><i class="material-icons">person_add</i><% end %></li>
+    <li><%= link_to 'servernew' => (class=>'btn-floating yellow darken-3 btn-tooltip', 'data-position'=>'left', 'data-tooltip'=>'Добавить новый сервер') => begin %><i class="material-icons">add_box</i><% end %></li>
     <li><a class="btn-floating red btn-tooltip" id="deletebtn" data-position="left" data-tooltip="Удалить"><i class="material-icons">delete</i></a></li>
   </ul>
 </div>
@@ -87,8 +87,8 @@
 	M.toast({html:'Ошибка. Объект не выбран.',displayLength:3000});
       else {
         let t = sg.attr('data-type');
-	if (t==0) location.assign('<%== url_for('clientsedit') %>?id='+id);
-	else if (t==1) location.assign('<%== url_for('serversedit') %>?id='+id);
+	if (t==0) location.assign('<%== url_for('clientedit') %>?id='+id);
+	else if (t==1) location.assign('<%== url_for('serveredit') %>?id='+id);
 	else M.toast({html:'Ошибка. Неверный тип.',displayLength:3000});
       }
     };
@@ -99,8 +99,8 @@
 	M.toast({html:'Ошибка. Объект не выбран.',displayLength:3000});
       else {
         let t = sg.attr('data-type');
-	if (t==0) location.assign('<%== url_for('clientsdelete') %>?id='+id);
-	else if (t==1) location.assign('<%== url_for('serversdelete') %>?id='+id);
+	if (t==0) location.assign('<%== url_for('clientdelete') %>?id='+id);
+	else if (t==1) location.assign('<%== url_for('serverdelete') %>?id='+id);
 	else M.toast({html:'Ошибка. Неверный тип.',displayLength:3000});
       }
     };

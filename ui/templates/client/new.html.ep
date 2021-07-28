@@ -9,7 +9,7 @@
 <div class="scont">
   <h4>Новый клиент</h4>
   <p>Найдите пользователя в глобальном каталоге по Фамилии Имени Отчеству, разделитель - пробел, или логину. Возможно частичное указание.</p>
-  %= form_for clientsnew => (method=>'GET') => begin
+  %= form_for clientnew => (method=>'GET') => begin
   <div class="row">
     <div class="input-field col s6">
       <i class="material-icons prefix">account_circle</i>
@@ -22,7 +22,7 @@
     </div>
   </div>
   % end
-  %= form_for clientsnewpain => (method=>'POST') => begin
+  %= form_for clientnewpain => (method=>'POST') => begin
   <div id="manual-modal" class="modal">
     <div class="modal-content">
       <h4>Внимание</h4>
@@ -37,7 +37,7 @@
   % end
   % if (defined $res_tab && scalar @$res_tab > 0) {
   Выберите один из 5 первых найденных вариантов (вводите более подробную строку поиска если пользователя нет в списке):<br>
-  %= form_for clientsnew => (method=>'POST') => begin
+  %= form_for clientnew => (method=>'POST') => begin
   <table class="highlight">
     <thead>
       <tr>

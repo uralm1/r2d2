@@ -8,7 +8,7 @@ use NetAddr::IP::Lite;
 sub serverget {
   my $self = shift;
   my $id = $self->stash('id');
-  return $self->render(text=>'Bad parameter', status => 404) unless (defined($id) && $id =~ /^\d+$/);
+  return unless $self->exists_and_number404($id);
 
   $self->render_later;
   $self->mysql_inet->db->query("SELECT c.id, cn, c.desc, DATE_FORMAT(c.create_time, '%k:%i:%s %e/%m/%y') AS create_time, email, \
@@ -132,7 +132,7 @@ VALUES (NOW(), 1, '', '', ?, ?, ?, 0)",
 
     $results = eval { $db->query("INSERT INTO devices \
 (name, desc, create_time, ip, mac, no_dhcp, rt, defjump, speed_in, speed_out, qs, limit_in, sum_limit_in, profile, email_notify, notified, blocked, bot, client_id) \
-VALUES ('Серверное подключение', '', NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 1, ?)",
+VALUES ('Подключение сервера', '', NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 1, ?)",
       scalar($ipo->numeric),
       $j->{mac},
       $j->{no_dhcp},

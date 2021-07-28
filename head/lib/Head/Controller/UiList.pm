@@ -32,7 +32,7 @@ ORDER BY id ASC LIMIT ? OFFSET ?", $lines_on_page, ($page - 1) * $lines_on_page)
 
     my $j = [];
     while (my $next = $q_clients->[0]->hash) {
-      my $cl = eval { _build_client_rec($next) };
+      my $cl = eval { Head::Controller::UiClients::_build_client_rec($next) };
       return $self->render(text => 'Client attribute error', status => 503) unless $cl;
 
       my $results = eval { $db->query("SELECT id, name, d.desc, DATE_FORMAT(create_time, '%k:%i:%s %e/%m/%y') AS create_time, \
@@ -42,7 +42,7 @@ ORDER BY id ASC LIMIT 20", $cl->{id}) };
       return $self->render(text => "Database error, retrieving devices: $@", status => 503) unless $results;
       my $devs = undef;
       if (my $d = $results->hashes) {
-        $devs = $d->map(sub { return eval { _build_device_rec($_) } })->compact;
+        $devs = $d->map(sub { return eval { Head::Controller::UiDevices::_build_device_rec($_) } })->compact;
       } else {
         return $self->render(text => 'Database error, bad result', status=>503);
       }
@@ -63,31 +63,6 @@ ORDER BY id ASC LIMIT 20", $cl->{id}) };
     my $err = shift;
     $self->render(text => "Database error: $err", status=>503) if $err;
   });
-}
-
-
-# { clients_rec_hash } = _build_client_rec( { hash_from_database } );
-sub _build_client_rec {
-  my $h = shift;
-  my $r = {};
-  for (qw/id type guid login desc create_time cn email/) {
-    die 'Undefined client record attribute' unless exists $h->{$_};
-    $r->{$_} = $h->{$_};
-  }
-  return $r;
-}
-
-
-# { devices_rec_hash } = _build_device_rec( { hash_from_database } );
-sub _build_device_rec {
-  my $h = shift;
-  my $ipo = NetAddr::IP::Lite->new($h->{ip}) || die 'IP address failure';
-  my $r = { ip => $ipo->addr };
-  for (qw/id name desc create_time mac rt defjump speed_in speed_out no_dhcp qs limit_in blocked profile/) {
-    die 'Undefined device record attribute' unless exists $h->{$_};
-    $r->{$_} = $h->{$_};
-  }
-  return $r;
 }
 
 

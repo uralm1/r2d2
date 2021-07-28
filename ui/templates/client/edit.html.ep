@@ -1,13 +1,18 @@
 % layout 'default', back_url => '/clients';
-% if (validation->has_error) {
+% if (my $toast_msg = flash 'oper') {
 %   content_with done_toast => begin
+<script>$(document).ready(function(){M.toast({html:'<%= $toast_msg %>',displayLength:3000})})</script>
+%   end
+% }
+% if (validation->has_error) {
+%   content_with validation_toast => begin
 <script>$(document).ready(function(){M.toast({html:'Ошибка. Неверные данные.',displayLength:3000})})</script>
 %   end
 % }
 <div class="scont">
   <h4>Редактирование клиента</h5>
 
-  %= form_for clientsedit => (method=>'POST') => begin
+  %= form_for clientedit => (method=>'POST') => begin
     %= hidden_field id => $client_id, id => 'client_id'
     <div class="row">
       <div class="input-field col s12 m8 l5">
@@ -67,7 +72,7 @@
 	  <tr>
 	    <td class="vcenter">
 	      <label>
-		<input name="sg" type="radio" value="<%== $_->{id} %>"/>
+		<input name="cg" type="radio" value="<%== $_->{id} %>"/>
 		<span></span>
 	      </label>
 	    </td>
@@ -103,19 +108,21 @@
     $('input.field-with-error,textarea.field-with-error').removeClass('valid').addClass('invalid');
 
     let edit_device_action = function(){
-      let sg = $('input[type=radio][name=sg]:checked');
-      let id = sg.val();
+      let cg = $('input[type=radio][name=cg]:checked');
+      let id = cg.val();
       if (id==undefined)
-	M.toast({html:'Ошибка. Устройство не выбрано.',displayLength:3000});
+	M.toast({html:'Ошибка. Не выбрано клиентское устройство.',displayLength:3000});
       else {
+	
       }
     };
     let delete_device_action = function(){
-      let sg = $('input[type=radio][name=sg]:checked');
-      let id = sg.val();
+      let cg = $('input[type=radio][name=cg]:checked');
+      let id = cg.val();
       if (id==undefined)
-	M.toast({html:'Ошибка. Устройство не выбрано.',displayLength:3000});
+	M.toast({html:'Ошибка. Не выбрано клиентское устройство.',displayLength:3000});
       else {
+	location.assign('<%== url_for('devicedelete')->query(clientid => $client_id) %>&id='+id);
       }
     };
     $('#deletedevice').click(delete_device_action);

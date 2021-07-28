@@ -44,7 +44,7 @@
 <div class="fixed-action-btn">
   <a class="btn-floating btn-large pink darken-4" id="editbtn" data-position="left" data-tooltip="Изменить..."><i class="large material-icons">edit</i></a>
   <ul>
-    <li><%= link_to 'serversnew' => (class=>'btn-floating yellow darken-1 btn-tooltip', 'data-position'=>'left', 'data-tooltip'=>'Добавить новый...') => begin %><i class="material-icons">add_box</i><% end %></li>
+    <li><%= link_to 'servernew' => (class=>'btn-floating yellow darken-1 btn-tooltip', 'data-position'=>'left', 'data-tooltip'=>'Добавить новый...') => begin %><i class="material-icons">add_box</i><% end %></li>
     <li><a class="btn-floating red btn-tooltip" id="deletebtn" data-position="left" data-tooltip="Удалить"><i class="material-icons">delete</i></a></li>
   </ul>
 </div>
@@ -58,14 +58,14 @@
       if (id==undefined)
 	M.toast({html:'Ошибка. Сервер не выбран.',displayLength:3000});
       else
-        location.assign('<%== url_for('serversedit') %>?id='+id);
+        location.assign('<%== url_for('serveredit') %>?id='+id);
     };
     let delete_action = function(){
       let id = $('input[type=radio][name=sg]:checked').val();
       if (id==undefined)
 	M.toast({html:'Ошибка. Сервер не выбран.',displayLength:3000});
       else
-        location.assign('<%== url_for('serversdelete') %>?id='+id);
+        location.assign('<%== url_for('serverdelete') %>?id='+id);
     };
 
     $('#editbtn').click(edit_action);

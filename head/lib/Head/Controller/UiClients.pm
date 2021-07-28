@@ -18,7 +18,7 @@ FROM clients c WHERE id = ?", $id =>
       return $self->render(text => "Database error, retrieving client: $err", status => 503) if $err;
 
       if (my $rh = $results->hash) {
-        my $cl = eval { Head::Controller::UiList::_build_client_rec($rh) };
+        my $cl = eval { _build_client_rec($rh) };
         return $self->render(text => 'Client attribute error', status => 503) unless $cl;
         $results->finish;
 
@@ -32,7 +32,7 @@ ORDER BY id ASC LIMIT 20", $cl->{id} =>
 
           my $devs = undef;
           if (my $d = $results->hashes) {
-            $devs = $d->map(sub { return eval { Head::Controller::UiList::_build_device_rec($_) } })->compact;
+            $devs = $d->map(sub { return eval { Head::Controller::UiDevices::_build_device_rec($_) } })->compact;
           } else {
             return $self->render(text => 'Database error, bad result', status=>503);
           }
@@ -46,6 +46,18 @@ ORDER BY id ASC LIMIT 20", $cl->{id} =>
       }
     }
   ); # outer query
+}
+
+
+# { clients_rec_hash } = _build_client_rec( { hash_from_database } );
+sub _build_client_rec {
+  my $h = shift;
+  my $r = {};
+  for (qw/id type guid login desc create_time cn email/) {
+    die 'Undefined client record attribute' unless exists $h->{$_};
+    $r->{$_} = $h->{$_};
+  }
+  return $r;
 }
 
 

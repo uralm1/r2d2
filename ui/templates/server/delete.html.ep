@@ -2,8 +2,8 @@
 <div class="scont">
   <h4 class="red-text text-darken-2">Удаление сервера</h5>
 
-  <h5>Вы действительно желаете удалить сервер?</h5>
-  %= form_for serversdelete => (method=>'POST') => begin
+  <h5>Вы действительно желаете удалить данный сервер?</h5>
+  %= form_for serverdelete => (method=>'POST') => begin
     %= hidden_field id => $srv_id
     <div class="row">
       <div class="input-field col s12 m8 l5">
@@ -23,7 +23,7 @@
 	%= t 'span', class => 'helper-text', 'Дополнительная информация'
       </div>
       <div class="input-field col s12 m8 l4">
-	%= text_field email => $srv_rec->{email}, id => 'email', disabled => undef
+	%= text_field email => $srv_rec->{email}, id => 'email', placeholder => '', disabled => undef
 	%= label_for email => 'Email (необязательный)'
 	%= t 'span', class => 'helper-text', 'Адрес электронной почты для уведомлений'
       </div>
@@ -37,10 +37,24 @@
       </div>
     </div>
 
+    <h5 class="grey-text text-darken-1">Сетевые параметры</h5>
+    <div class="row">
+      <div class="input-field col s10 m6 l4">
+	%= text_field 'ip' => $srv_rec->{ip}, id => 'ip', disabled => undef;
+	%= label_for ip => 'IP адрес'
+	%= t 'span', class => 'helper-text', 'IPv4'
+      </div>
+      <div class="input-field col s10 m6 l4">
+	%= text_field 'mac' => $srv_rec->{mac}, id => 'mac', disabled => undef
+	%= label_for mac => 'MAC'
+	%= t 'span', class => 'helper-text', 'Eui-48 ethernet MAC'
+      </div>
+    </div>
+
     <div class="row">
       <div class="col s12">
 	<button class="btn-large waves-effect waves-light red darken-2" type="submit">Удалить сервер</button>
-	<span class="spaceleft">Будет запущено удаление сервера на агентах.</span>
+	<span class="spaceleft">Операция необратима. Будет запущено удаление сервера на агентах.</span>
       </div>
     </div>
   % end

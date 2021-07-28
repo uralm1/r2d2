@@ -1,6 +1,6 @@
-% layout 'default', back_url => url_for('clientsedit')->query(id => $client_id);
+% layout 'default', back_url => url_for('clientedit')->query(id => $client_id);
 % if (validation->has_error) {
-%   content_with done_toast => begin
+%   content_with validation_toast => begin
 <script>$(document).ready(function(){M.toast({html:'Ошибка. Неверные данные.',displayLength:3000})})</script>
 %   end
 % }
