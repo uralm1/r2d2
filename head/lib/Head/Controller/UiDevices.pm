@@ -46,6 +46,72 @@ sub _build_device_rec {
 }
 
 
+# edit client device submit
+sub deviceput {
+  my $self = shift;
+  my $client_id = $self->stash('client_id');
+  return unless $self->exists_and_number404($client_id);
+  my $device_id = $self->stash('device_id');
+  return unless $self->exists_and_number404($device_id);
+
+  my $fmt = $self->req->headers->content_type // '';
+  if ($fmt =~ m#^application/json$#i) {
+    my $j = $self->req->json;
+    return unless $self->json_validate($j, 'client_device_record');
+
+    return $self->render(text=>'Bad id', status => 503) if exists($j->{id}) && $j->{id} != $device_id;
+
+    my $ipo = NetAddr::IP::Lite->new($j->{ip});
+    return $self->render(text=>'Bad ip', status => 503) unless $ipo;
+
+    $self->log->debug($self->dumper($j));
+    $self->render_later;
+
+    $self->mysql_inet->db->query("SELECT id FROM clients WHERE id = ? AND type = 0",
+      $client_id =>
+      sub {
+        my ($db, $err, $results) = @_;
+        return $self->render(text => "Database error, searching client: $err", status => 503) if $err;
+        return $self->render(text => 'Client not found', status => 404) if ($results->rows < 1);
+
+        $results->finish;
+
+        $db->query("UPDATE devices \
+SET name = ?, devices.desc = ?, ip = ?, mac = ?, no_dhcp = ?, rt = ?, defjump = ?, speed_in = ?, speed_out = ?, qs = ?, limit_in = ? \
+WHERE id = ? AND client_id = ?",
+          $j->{name},
+          $j->{desc} // '',
+          scalar($ipo->numeric),
+          $j->{mac},
+          $j->{no_dhcp},
+          $j->{rt},
+          $j->{defjump},
+          $j->{speed_in},
+          $j->{speed_out},
+          $j->{qs},
+          $j->{limit_in},
+          $device_id, $client_id =>
+          sub {
+            my ($db, $err, $results) = @_;
+            return $self->render(text => "Database error, updating device: $err", status => 503) if $err;
+
+            if ($results->affected_rows > 0) {
+              $self->dblog->info("UI: Device id $device_id updated successfully");
+              $self->rendered(200);
+            } else {
+              $self->dblog->info("UI: Device id $device_id not updated");
+              $self->render(text => "Device id $device_id not found", status => 404);
+            }
+          }
+        ); # inner query
+      }
+    ); # outer query
+  } else {
+    return $self->render(text=>'Unsupported content', status => 503);
+  }
+}
+
+
 # new client device submit
 sub devicepost {
   my $self = shift;

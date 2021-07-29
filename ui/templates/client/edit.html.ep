@@ -26,8 +26,12 @@
 	    %= t 'span', class => 'helper-text', 'data-error' => 'Ошибка, не должно быть пустым'
 	  </div>
 	  <div class="input-field col s12 m4 l3 offset-l1">
-	    %= text_field 'create-time' => $rec->{create_time} // 'Не указано', id => 'create-time', disabled => undef
+	    % param 'create-time' => $rec->{create_time} // 'Не указано' unless param 'create-time';
+	    %= input_tag 'create-time', type => 'hidden'
+	    % param 'create-time1' => param 'create-time';
+	    %= text_field 'create-time1', id => 'create-time', disabled => undef
 	    %= label_for 'create-time' => 'Дата и время создания'
+	    %= t 'span', class => 'helper-text', 'не редактируется'
 	  </div>
 	</div>
 	<div class="row">
@@ -67,11 +71,11 @@
 	      <tr>
 		<th style="width:5%">Выбрать</th>
 		<th>Наименование</th>
+		<th>Место</th>
 		<th>IP</th>
 		<th>mac</th>
-		<th>Лимит</th>
 		<th>Правило</th>
-		<th>Место</th>
+		<th>Лимит</th>
 	      </tr>
 	    </thead>
 	    <tbody>
@@ -84,11 +88,11 @@
 		  </label>
 		</td>
 		<td><%= $_->{name} %></td>
+		<td><%= $_->{profile} %></td>
 		<td><%= $_->{ip} %></td>
 		<td><%= $_->{mac} %></td>
-		<td><%== $_->{qs} == 0 ? '*Анлим*' : btomb($_->{limit_in}).'&nbsp;Мб' %></td>
 		<td><%= $_->{defjump} %></td>
-		<td><%= $_->{profile} %></td>
+		<td><%== $_->{qs} == 0 ? '*Анлим*' : btomb($_->{limit_in}).'&nbsp;Мб' %></td>
 	      </tr>
 	      % }
 	      % unless (@{$rec->{devices}}) {
@@ -136,7 +140,7 @@
       if (id==undefined)
 	M.toast({html:'Ошибка. Не выбрано клиентское устройство.',displayLength:3000});
       else {
-	
+	location.assign('<%== url_for('deviceedit')->query(clientid => $client_id) %>&id='+id);
       }
     };
     let delete_device_action = function(){

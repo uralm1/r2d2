@@ -71,10 +71,10 @@ sub startup {
 
   $r->get('/oplog')->to('oplog#index');
 
-  $r->get('/server/edit')->to('server#edit');
-  $r->post('/server/edit')->to('server#editpost');
   $r->get('/server/new')->to('server#newform');
   $r->post('/server/new')->to('server#newpost');
+  $r->get('/server/edit')->to('server#edit');
+  $r->post('/server/edit')->to('server#editpost');
   $r->get('/server/delete')->to('server#delete');
   $r->post('/server/delete')->to('server#deletepost');
 
@@ -85,6 +85,8 @@ sub startup {
   $r->get('/client/edit')->to('client#edit');
 
   $r->post('/device/new')->to('device#newpost');
+  $r->get('/device/edit')->to('device#edit');
+  $r->post('/device/edit')->to('device#editpost');
   $r->get('/device/delete')->to('device#delete');
   $r->post('/device/delete')->to('device#deletepost');
 

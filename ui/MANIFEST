@@ -50,6 +50,7 @@ templates/client/new.html.ep
 templates/client/newpain.html.ep
 templates/clients/index.html.ep
 templates/device/delete.html.ep
+templates/device/edit.html.ep
 templates/device/new.html.ep
 templates/index/about.html.ep
 templates/index/index.html.ep

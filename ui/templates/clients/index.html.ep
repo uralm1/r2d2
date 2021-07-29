@@ -39,13 +39,13 @@
 	    % unless ($d->{name}) {
 	    <span>ID:&nbsp;<%= $d->{id}%></span>
 	    % }
+	    <span><b>Место:</b>&nbsp;<%= $d->{profile} %></span>
 	    <span><b>IP:</b>&nbsp;<%= $d->{ip} %></span>
 	    <span><b>MAC:</b>&nbsp;<%= $d->{mac} %></span>
 	    % my @x = grep {$_->[1] == $d->{rt}} @{config('rt_names')};
 	    <span><b>Провайдер:</b>&nbsp;<%= $x[0][0] // 'Неизвестно' %></span>
-	    <span><b>Лимит:</b>&nbsp;<%== $d->{qs} == 0 ? '*Анлим*' : btomb($d->{limit_in}).'&nbsp;Мб' %></span>
 	    <span><b>Правило:</b>&nbsp;<%= $d->{defjump} %></span>
-	    <span><b>Место:</b>&nbsp;<%= $d->{profile} %></span>
+	    <span><b>Лимит:</b>&nbsp;<%== $d->{qs} == 0 ? '*Анлим*' : btomb($d->{limit_in}).'&nbsp;Мб' %></span>
 
 	  </div>
 	</td>

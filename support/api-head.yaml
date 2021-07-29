@@ -627,6 +627,48 @@ paths:
                 type: string
                 description: error message
 
+    put:
+      summary: 'Редактирование клиентского устройства'
+      parameters:
+        - name: client_id
+          in: path
+          required: true
+          description: 'Client id'
+          schema:
+            type: integer
+        - name: device_id
+          in: path
+          required: true
+          description: 'Device id'
+          schema:
+            type: integer
+
+      requestBody:
+        description: 'Server data'
+        required: true
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/client_device_record'
+
+      responses:
+        '200':
+          description: Success
+        '404':
+          description: Not found, including bad client_id or device_id parameters
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
     delete:
       summary: 'Удаление клиентского устройства'
       parameters:

@@ -64,7 +64,7 @@ sub serverput {
     $self->render_later;
 
     $self->mysql_inet->db->query("UPDATE clients c INNER JOIN devices d ON d.client_id = c.id \
-SET cn = ?, c.desc = ?, email = ?, ip = ?, mac = ?, no_dhcp = ?, rt = ?, defjump = ?, speed_in = ?, speed_out = ?, qs = ?, limit_in = ?, email_notify = 0 \
+SET cn = ?, c.desc = ?, name = 'Подключение сервера', d.desc = '', email = ?, ip = ?, mac = ?, no_dhcp = ?, rt = ?, defjump = ?, speed_in = ?, speed_out = ?, qs = ?, limit_in = ?, email_notify = 0 \
 WHERE c.type = 1 AND c.id = ?",
       $j->{cn},
       $j->{desc} // '',

@@ -104,6 +104,7 @@ sub startup {
   $r->post('/ui/client')->to('ui_clients#clientpost');
   $r->get('/ui/client/#id')->to('ui_clients#clientget');
   $r->get('/ui/device/#client_id/#device_id')->to('ui_devices#deviceget');
+  $r->put('/ui/device/#client_id/#device_id')->to('ui_devices#deviceput');
   $r->delete('/ui/device/#client_id/#device_id')->to('ui_devices#devicedelete');
   $r->post('/ui/device/#client_id')->to('ui_devices#devicepost');
 }
