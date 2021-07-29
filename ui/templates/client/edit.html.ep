@@ -10,101 +10,124 @@
 %   end
 % }
 <div class="scont">
-  <h4>Редактирование клиента</h5>
 
-  %= form_for clientedit => (method=>'POST') => begin
-    %= hidden_field id => $client_id, id => 'client_id'
-    <div class="row">
-      <div class="input-field col s12 m8 l5">
-	%= text_field 'cn' => $rec->{cn}, id => 'cn'
-	%= label_for cn => 'Фамилия Имя Отчество'
-	%= t 'span', class => 'helper-text', 'data-error' => 'Ошибка, не должно быть пустым'
-      </div>
-      <div class="input-field col s12 m4 l3 offset-l1">
-	%= text_field 'create-time' => $rec->{create_time} // 'Не указано', id => 'create-time', disabled => undef
-	%= label_for 'create-time' => 'Дата и время создания'
-      </div>
-    </div>
-    <div class="row">
-      <div class="input-field col s12 m8 l5">
-	%= text_area desc => $rec->{desc}, id => 'desc', class => 'materialize-textarea'
-	%= label_for desc => 'Комментарий'
-	%= t 'span', class => 'helper-text', 'Дополнительная информация (пользователям не видно)'
-      </div>
-    </div>
-    <div class="row">
-      <div class="input-field col s12 m8 l5">
-	%= text_field 'login' => $rec->{login}, id => 'login'
-	%= label_for login => 'Логин'
-	%= t 'span', class => 'helper-text', 'data-error' => 'Ошибка. Поле не должно быть пустым.', 'Логин клиента в корпоративном облаке'
-      </div>
-    </div>
-    <div class="row">
-      <div class="input-field col s12 m8 l5">
-	%= text_field email => $rec->{email}, id => 'email'
-	%= label_for email => 'Email (необязательный)'
-	%= t 'span', class => 'helper-text', 'data-error' => 'Ошибка. Формат mailbox@domain.tld', 'Адрес электронной почты для уведомлений'
-      </div>
-    </div>
-    <div class="row">
-      <div class="col s12">
-	<button class="btn-large waves-effect waves-light" type="submit">Изменить клиента</button>
-      </div>
-    </div>
-  % end
+  <div class="row">
+    <div class="col s12 m12 l10">
 
-    <div class="row">
-      <h5>Управление клиентскими устройствами</h5>
-      <table class="highlight">
-	<thead>
-	  <tr>
-	    <th style="width:5%">Выбрать</th>
-	    <th>Наименование</th>
-	    <th>IP</th>
-	    <th>mac</th>
-	    <th>Лимит</th>
-	    <th>Правило</th>
-	    <th>Место</th>
-	  </tr>
-	</thead>
-	<tbody>
-	  % for (@{$rec->{devices}}) {
-	  <tr>
-	    <td class="vcenter">
-	      <label>
-		<input name="cg" type="radio" value="<%== $_->{id} %>"/>
-		<span></span>
-	      </label>
-	    </td>
-	    <td><%= $_->{name} %></td>
-	    <td><%= $_->{ip} %></td>
-	    <td><%= $_->{mac} %></td>
-	    <td><%== $_->{qs} == 0 ? '*Анлим*' : btomb($_->{limit_in}).'&nbsp;Мб' %></td>
-	    <td><%= $_->{defjump} %></td>
-	    <td><%= $_->{profile} %></td>
-	  </tr>
-	  % }
-	  % unless (@{$rec->{devices}}) {
-	  <tr><td colspan="7">Клиентские устройства отсутствуют</td></tr>
-	  % }
-	</tbody>
-      </table>
-    </div>
+      <h4>Редактирование клиента</h5>
+      %= form_for clientedit => (method=>'POST') => begin
 
-    <div class="row">
-      <div class="col s12">
-      %= form_for devicenew => (method=>'POST', style=>'display:inline-block;') => begin
-        %= hidden_field client_id => $client_id
-	<button class="btn-large waves-effect waves-light" type="submit"><i class="material-icons left">add</i>Новое&hellip;</button>
+      <div id="client" class="section scrollspy">
+	%= hidden_field id => $client_id, id => 'client_id'
+	<div class="row">
+	  <div class="input-field col s12 m8 l5">
+	    %= text_field 'cn' => $rec->{cn}, id => 'cn'
+	    %= label_for cn => 'Фамилия Имя Отчество'
+	    %= t 'span', class => 'helper-text', 'data-error' => 'Ошибка, не должно быть пустым'
+	  </div>
+	  <div class="input-field col s12 m4 l3 offset-l1">
+	    %= text_field 'create-time' => $rec->{create_time} // 'Не указано', id => 'create-time', disabled => undef
+	    %= label_for 'create-time' => 'Дата и время создания'
+	  </div>
+	</div>
+	<div class="row">
+	  <div class="input-field col s12 m8 l5">
+	    %= text_area desc => $rec->{desc}, id => 'desc', class => 'materialize-textarea'
+	    %= label_for desc => 'Комментарий'
+	    %= t 'span', class => 'helper-text', 'Дополнительная информация (пользователям не видно)'
+	  </div>
+	</div>
+	<div class="row">
+	  <div class="input-field col s12 m8 l5">
+	    %= text_field 'login' => $rec->{login}, id => 'login'
+	    %= label_for login => 'Логин'
+	    %= t 'span', class => 'helper-text', 'data-error' => 'Ошибка. Поле не должно быть пустым.', 'Логин клиента в корпоративном облаке'
+	  </div>
+	</div>
+	<div class="row">
+	  <div class="input-field col s12 m8 l5">
+	    %= text_field email => $rec->{email}, id => 'email'
+	    %= label_for email => 'Email (необязательный)'
+	    %= t 'span', class => 'helper-text', 'data-error' => 'Ошибка. Формат mailbox@domain.tld', 'Адрес электронной почты для уведомлений'
+	  </div>
+	</div>
+	<div class="row">
+	  <div class="col s12">
+	    <button class="btn-large waves-effect waves-light" type="submit">Изменить клиента</button>
+	  </div>
+	</div>
+      </div>
       % end
-	<a id="editdevice" class="btn-large waves-effect waves-light spaceleft"><i class="material-icons left">edit</i>Изменить&hellip;</a>
-	<a id="deletedevice" class="btn-large waves-effect waves-light spaceleft"><i class="material-icons left">delete</i>Удалить</a>
+
+      <div id="devicemanagement" class="section scrollspy">
+	<div class="row">
+	  <h5>Управление клиентскими устройствами</h5>
+	  <table class="highlight">
+	    <thead>
+	      <tr>
+		<th style="width:5%">Выбрать</th>
+		<th>Наименование</th>
+		<th>IP</th>
+		<th>mac</th>
+		<th>Лимит</th>
+		<th>Правило</th>
+		<th>Место</th>
+	      </tr>
+	    </thead>
+	    <tbody>
+	      % for (@{$rec->{devices}}) {
+	      <tr>
+		<td class="vcenter">
+		  <label>
+		    <input name="cg" type="radio" value="<%== $_->{id} %>"/>
+		    <span></span>
+		  </label>
+		</td>
+		<td><%= $_->{name} %></td>
+		<td><%= $_->{ip} %></td>
+		<td><%= $_->{mac} %></td>
+		<td><%== $_->{qs} == 0 ? '*Анлим*' : btomb($_->{limit_in}).'&nbsp;Мб' %></td>
+		<td><%= $_->{defjump} %></td>
+		<td><%= $_->{profile} %></td>
+	      </tr>
+	      % }
+	      % unless (@{$rec->{devices}}) {
+	      <tr><td colspan="7">Клиентские устройства отсутствуют</td></tr>
+	      % }
+	    </tbody>
+	  </table>
+	</div>
+
+	<div class="row">
+	  <div class="col s12">
+	  %= form_for devicenew => (method=>'POST', style=>'display:inline-block;') => begin
+	    %= hidden_field client_id => $client_id
+	    <button class="btn-large waves-effect waves-light" type="submit"><i class="material-icons left">add</i>Новое&hellip;</button>
+	  % end
+	    <a id="editdevice" class="btn-large waves-effect waves-light spaceleft"><i class="material-icons left">edit</i>Изменить&hellip;</a>
+	    <a id="deletedevice" class="btn-large waves-effect waves-light spaceleft"><i class="material-icons left">delete</i>Удалить</a>
+	  </div>
+	</div>
+      </div>
+
+    </div>
+
+    <div class="col hide-on-med-and-down l2">
+      <div class="toc-wrapper">
+	<ul class="section table-of-contents">
+	  <li><a href="#client">Клиент</a></li>
+	  <li><a href="#devicemanagement">Управление устройствами</a></li>
+	</ul>
       </div>
     </div>
+
+  </div>
 </div>
 % content_for script0 => begin
 <script>
   $(document).ready(function(){
+    $('.scrollspy').scrollSpy();
+
     $('input.field-with-error,textarea.field-with-error').removeClass('valid').addClass('invalid');
 
     let edit_device_action = function(){

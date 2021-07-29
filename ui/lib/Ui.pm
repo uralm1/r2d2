@@ -71,7 +71,6 @@ sub startup {
 
   $r->get('/oplog')->to('oplog#index');
 
-  $r->get('/servers')->to('servers#index');
   $r->get('/server/edit')->to('server#edit');
   $r->post('/server/edit')->to('server#editpost');
   $r->get('/server/new')->to('server#newform');

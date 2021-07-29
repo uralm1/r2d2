@@ -94,3 +94,8 @@ tr.tr-device>td {
   border-top:1px solid rgba(0,0,0,0.12);
 }
 
+.toc-wrapper {
+  top:0px;
+  position:fixed;
+  margin-top:85px;
+}
