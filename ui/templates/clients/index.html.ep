@@ -1,6 +1,5 @@
 % layout 'default', back_url => '/';
-% my $toast_msg = flash 'oper';
-% if ($toast_msg) {
+% if (my $toast_msg = flash 'oper') {
 %   content_with done_toast => begin
 <script>$(document).ready(function(){M.toast({html:'<%= $toast_msg %>',displayLength:3000})})</script>
 %   end
@@ -34,11 +33,16 @@
       <tr class="tr-device">
 	<td colspan="4">
 	  <div class="listdevicerow">
-	    <i class="material-icons tiny"><%== $_->{type} == 1 ? 'dns':'computer' %></i>
-	    <span><%= $d->{name} %></span>
-	    % unless ($d->{name}) {
-	    <span>ID:&nbsp;<%= $d->{id}%></span>
-	    % }
+	    % my $link_url;
+	    % if ($_->{type} == 1) { $link_url = url_for('serveredit')->query(id=>$_->{id}) }
+	    % else { $link_url = url_for('deviceedit')->query(clientid=>$_->{id}, id=>$d->{id}) }
+	    %= link_to $link_url => (class=>"listdevicelink") => begin
+	      <i class="material-icons tiny"><%== $_->{type} == 1 ? 'dns':'computer' %></i>
+	      <span><%= $d->{name} %></span>
+	      % unless ($d->{name}) {
+	      <span>ID:&nbsp;<%= $d->{id}%></span>
+	      % }
+            % end
 	    <span><b>Место:</b>&nbsp;<%= $d->{profile} %></span>
 	    <span><b>IP:</b>&nbsp;<%= $d->{ip} %></span>
 	    <span><b>MAC:</b>&nbsp;<%= $d->{mac} %></span>
@@ -46,7 +50,6 @@
 	    <span><b>Провайдер:</b>&nbsp;<%= $x[0][0] // 'Неизвестно' %></span>
 	    <span><b>Правило:</b>&nbsp;<%= $d->{defjump} %></span>
 	    <span><b>Лимит:</b>&nbsp;<%== $d->{qs} == 0 ? '*Анлим*' : btomb($d->{limit_in}).'&nbsp;Мб' %></span>
-
 	  </div>
 	</td>
       </tr>

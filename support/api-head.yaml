@@ -561,6 +561,41 @@ paths:
                 type: string
                 description: error message
 
+    delete:
+      summary: 'Удаление клиента'
+      parameters:
+        - name: client_id
+          in: path
+          required: true
+          description: 'Client id'
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: Success
+        '400':
+          description: Deletion refused, client devices exist
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '404':
+          description: Not found, including bad id parameter
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
   /ui/client:
     post:
       summary: 'Добавление нового клиента'

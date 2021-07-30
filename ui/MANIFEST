@@ -45,6 +45,7 @@ script/start_server
 script/ui
 t/55_LogColorer.t
 t/72_OperatorResolver.t
+templates/client/delete.html.ep
 templates/client/edit.html.ep
 templates/client/new.html.ep
 templates/client/newpain.html.ep

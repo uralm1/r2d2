@@ -261,7 +261,7 @@ sub deletepost {
         }
         return $self->render(text=>'Неподдерживаемый ответ');
       }
-    } # put closure
+    } # delete closure
   );
 }
 

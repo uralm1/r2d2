@@ -98,4 +98,43 @@ VALUES (NOW(), 0, ?, ?, ?, ?, ?, 0)",
 }
 
 
+# delete client submit
+sub clientdelete {
+  my $self = shift;
+  my $id = $self->stash('id');
+  return unless $self->exists_and_number404($id);
+
+  #$self->log->debug("Deleting id: $id");
+
+  $self->render_later;
+
+  $self->mysql_inet->db->query("SELECT id FROM devices WHERE client_id = ?",
+    $id =>
+    sub {
+      my ($db, $err, $results) = @_;
+      return $self->render(text => "Database error, checking devices: $err", status => 503) if $err;
+      return $self->render(text => 'Refused, client devices exist', status => 400) if ($results->rows > 0);
+
+      $results->finish;
+
+      $db->query("DELETE FROM clients \
+    WHERE type = 0 AND id = ?", $id =>
+        sub {
+          my ($db, $err, $results) = @_;
+          return $self->render(text => "Database error, deleting client: $err", status => 503) if $err;
+
+          if ($results->affected_rows > 0) {
+            $self->dblog->info("UI: Client id $id deleted successfully");
+            $self->rendered(200);
+          } else {
+            $self->dblog->info("UI: Client id $id not deleted");
+            $self->render(text => "Cilent id $id not found", status => 404);
+          }
+        }
+      ); # inner query
+    }
+  ); # outer query
+}
+
+
 1;

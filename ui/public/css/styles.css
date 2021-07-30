@@ -81,6 +81,10 @@ pre.newversion-hist {
   margin-left:4px;
 }
 
+.listdevicelink {
+  color:#00738e;
+}
+
 .tr-device {
   border-bottom:none;
 }

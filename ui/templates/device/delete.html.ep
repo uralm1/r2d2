@@ -2,7 +2,11 @@
 <div class="scont">
   <h4 class="red-text text-darken-2">Удаление клиентского устройства</h5>
 
-  <h5>Вы действительно желаете удалить данное клиентское устройство?</h5>
+  <div class="row">
+    <div class="col s12">
+      <h5>Вы действительно желаете удалить данное клиентское устройство?</h5>
+    </div>
+  </div>
   %= form_for devicedelete => (method=>'POST') => begin
     %= hidden_field id => $device_id
     %= hidden_field clientid => $client_id
@@ -21,7 +25,6 @@
       <div class="input-field col s12 m8 l5">
 	%= text_area desc => $rec->{desc}, id => 'desc', class => 'materialize-textarea', disabled => undef
 	%= label_for desc => 'Комментарий'
-	%= t 'span', class => 'helper-text', 'Дополнительная информация'
       </div>
     </div>
 

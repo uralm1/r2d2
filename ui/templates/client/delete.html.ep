@@ -1,0 +1,76 @@
+% layout 'default', back_url => '/clients';
+<div class="scont">
+  <h4 class="red-text text-darken-2">Удаление клиента</h5>
+  % if (my $num_devs = @{$rec->{devices}}) {
+    <div class="row">
+      <div class="col s12">
+        <h5>Удаление клиента невозможно. Клиенту предоставлен доступ на <%== $num_devs %> устройстве(ах).</h5>
+      </div>
+    </div>
+    <div class="row">
+      <div class="input-field col s12 m8 l5">
+	%= text_field 'cn' => $rec->{cn}, id => 'cn', disabled => undef
+	%= label_for cn => 'Фамилия Имя Отчество'
+	%= t 'span', class => 'helper-text'
+      </div>
+      <div class="input-field col s12 m4 l3 offset-l1">
+	%= text_field 'create-time' => $rec->{create_time} // 'Не указано', id => 'create-time', disabled => undef
+	%= label_for 'create-time' => 'Дата и время создания'
+      </div>
+    </div>
+    <div class="row">
+      <div class="input-field col s12 m8 l5">
+	%= text_area desc => $rec->{desc}, id => 'desc', class => 'materialize-textarea', disabled => undef
+	%= label_for desc => 'Комментарий'
+      </div>
+    </div>
+    <div class="row">
+      <div class="col s12">
+      Удалите ВСЕ клиентские устройства перед удалением клиента.
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col s12">
+	<a class="btn-large waves-effect waves-light" href="/clients">Вернуться к списку</a>
+      </div>
+    </div>
+  % } else {
+
+    <h5>Вы действительно желаете удалить данного клиента?</h5>
+    %= form_for clientdelete => (method=>'POST') => begin
+      %= hidden_field id => $client_id
+      <div class="row">
+	<div class="input-field col s12 m8 l5">
+	  %= text_field 'cn' => $rec->{cn}, id => 'cn', disabled => undef
+	  %= label_for cn => 'Фамилия Имя Отчество'
+	  %= t 'span', class => 'helper-text'
+	</div>
+	<div class="input-field col s12 m4 l3 offset-l1">
+	  %= text_field 'create-time' => $rec->{create_time} // 'Не указано', id => 'create-time', disabled => undef
+	  %= label_for 'create-time' => 'Дата и время создания'
+	</div>
+      </div>
+      <div class="row">
+	<div class="input-field col s12 m8 l5">
+	  %= text_area desc => $rec->{desc}, id => 'desc', class => 'materialize-textarea', disabled => undef
+	  %= label_for desc => 'Комментарий'
+	</div>
+      </div>
+      <div class="row">
+	<div class="input-field col s12 m8 l5">
+	  %= text_field login => $rec->{login}, id => 'login', disabled => undef
+	  %= label_for login => 'Логин'
+	  %= t 'span', class => 'helper-text', 'Логин клиента в корпоративном облаке'
+	</div>
+      </div>
+
+      <div class="row">
+	<div class="col s12">
+	  <button class="btn-large waves-effect waves-light red darken-2" type="submit">Удалить клиента</button>
+	  <span class="spaceleft">Операция необратима.</span>
+	</div>
+      </div>
+    % end
+  % }
+</div>

@@ -87,7 +87,11 @@
 		    <span></span>
 		  </label>
 		</td>
-		<td><%= $_->{name} %></td>
+		<td>
+		  %= link_to url_for('deviceedit')->query(back=>1, clientid=>$client_id, id=>$_->{id}) => (class=>'listdevicelink') => begin
+		  %= $_->{name}
+		  % end
+		</td>
 		<td><%= $_->{profile} %></td>
 		<td><%= $_->{ip} %></td>
 		<td><%= $_->{mac} %></td>
@@ -140,7 +144,7 @@
       if (id==undefined)
 	M.toast({html:'Ошибка. Не выбрано клиентское устройство.',displayLength:3000});
       else {
-	location.assign('<%== url_for('deviceedit')->query(clientid => $client_id) %>&id='+id);
+	location.assign('<%== url_for('deviceedit')->query(back => 1, clientid => $client_id) %>&id='+id);
       }
     };
     let delete_device_action = function(){
