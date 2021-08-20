@@ -8,7 +8,7 @@
   <table class="highlight">
     <thead>
       <tr>
-	<th style="width:7%">Выбрать</th>
+	<th style="width:5%">Тип</th>
 	<th>Наименование</th>
 	<th>Email</th>
 	<th>Логин</th>
@@ -16,33 +16,31 @@
     </thead>
     <tbody>
     % for (@{$rec->{d}}) {
-      <tr class="tr-client">
-	<td class="vcenter">
-	  <label>
-	    <input name="sg" type="radio" value="<%== $_->{id} %>" data-type="<%== $_->{type}%>"/>
-	    <span>
-	      <span class="<%== $_->{type} == 1 ? 'listservertype':'listclienttype' %>"><%== $_->{type} == 0 ? 'Клиент':$_->{type} == 1 ? 'Сервер':'Неизв.' %></span>
-	    </span>
-	  </label>
+      <tr class="tr-client" data-type="<%= $_->{type} %>" data-clientid="<%= $_->{id} %>">
+	<td>
+	  <span class="<%== $_->{type} == 1 ? 'listservertype':'listclienttype' %>">
+	    <%== $_->{type} == 0 ? 'Клиент':$_->{type} == 1 ? 'Сервер':'Неизв.' %>
+	  </span>
 	</td>
-	<td><%= $_->{cn} %></td>
+	<td>
+	  %= link_to $_->{type} == 1 ? url_for('serveredit')->query(id => $_->{id}) : url_for('clientedit')->query(id => $_->{id}) => (class => 'listlink') => begin
+	    <%= $_->{cn} %>
+	  % end
+	</td>
 	<td><%= $_->{email} %></td>
 	<td><%= $_->{login} %></td>
       </tr>
       % for my $d (@{$_->{devices}}) {
-      <tr class="tr-device">
+      <tr class="tr-device" data-type="<%= $_->{type} %>" data-clientid="<%= $_->{id} %>" data-deviceid="<%= $d->{id} %>">
 	<td colspan="4">
 	  <div class="listdevicerow">
-	    % my $link_url;
-	    % if ($_->{type} == 1) { $link_url = url_for('serveredit')->query(id=>$_->{id}) }
-	    % else { $link_url = url_for('deviceedit')->query(clientid=>$_->{id}, id=>$d->{id}) }
-	    %= link_to $link_url => (class=>"listdevicelink") => begin
-	      <i class="material-icons tiny"><%== $_->{type} == 1 ? 'dns':'computer' %></i>
+	    <i class="material-icons tiny"><%== $_->{type} == 1 ? 'dns':'computer' %></i>
+	    %= link_to $_->{type} == 1 ? url_for('serveredit')->query(id => $_->{id}) : url_for('deviceedit')->query(clientid => $_->{id}, id => $d->{id}) => (class => 'listlink') => begin
 	      <span><%= $d->{name} %></span>
 	      % unless ($d->{name}) {
 	      <span>ID:&nbsp;<%= $d->{id}%></span>
 	      % }
-            % end
+	    % end
 	    <span><b>Место:</b>&nbsp;<%= $d->{profile} %></span>
 	    <span><b>IP:</b>&nbsp;<%= $d->{ip} %></span>
 	    <span><b>MAC:</b>&nbsp;<%= $d->{mac} %></span>
@@ -71,11 +69,11 @@
   <!--p>Общее число записей: <%= $rec->{lines_total} %></p-->
 </div>
 <div class="fixed-action-btn">
-  <a class="btn-floating btn-large pink darken-4" id="editbtn" data-position="left" data-tooltip="Изменить..."><i class="large material-icons">edit</i></a>
+  %= link_to 'clientnew' => (class=>'btn-floating yellow darken-1 btn-large btn-tooltip', 'data-position'=>'left', 'data-tooltip'=>'Добавить нового клиента') => begin
+  <i class="material-icons">add_box</i>
+  % end
   <ul>
-    <li><%= link_to 'clientnew' => (class=>'btn-floating yellow darken-1 btn-tooltip', 'data-position'=>'left', 'data-tooltip'=>'Добавить нового клиента') => begin %><i class="material-icons">person_add</i><% end %></li>
-    <li><%= link_to 'servernew' => (class=>'btn-floating yellow darken-3 btn-tooltip', 'data-position'=>'left', 'data-tooltip'=>'Добавить новый сервер') => begin %><i class="material-icons">add_box</i><% end %></li>
-    <li><a class="btn-floating red btn-tooltip" id="deletebtn" data-position="left" data-tooltip="Удалить"><i class="material-icons">delete</i></a></li>
+    <li><%= link_to 'servernew' => (class=>'btn-floating yellow darken-3 btn-tooltip', 'data-position'=>'left', 'data-tooltip'=>'Добавить новый сервер') => begin %><i class="material-icons">dns</i><% end %></li>
   </ul>
 </div>
 % content_for script0 => begin
@@ -83,35 +81,31 @@
   $(document).ready(function(){
     $('.fixed-action-btn').floatingActionButton();
     $('.btn-tooltip').tooltip();
-    let edit_action = function(){
-      let sg = $('input[type=radio][name=sg]:checked');
-      let id = sg.val();
+    $('.tr-client').click(function(){
+      var id = $(this).attr('data-clientid');
       if (id==undefined)
 	M.toast({html:'Ошибка. Объект не выбран.',displayLength:3000});
       else {
-        let t = sg.attr('data-type');
+        var t = $(this).attr('data-type');
 	if (t==0) location.assign('<%== url_for('clientedit') %>?id='+id);
 	else if (t==1) location.assign('<%== url_for('serveredit') %>?id='+id);
 	else M.toast({html:'Ошибка. Неверный тип.',displayLength:3000});
       }
-    };
-    let delete_action = function(){
-      let sg = $('input[type=radio][name=sg]:checked');
-      let id = sg.val();
-      if (id==undefined)
+    });
+    $('.tr-device').click(function(){
+      var r = $(this);
+      var clientid = r.attr('data-clientid');
+      var deviceid = r.attr('data-deviceid');
+
+      if (clientid==undefined || deviceid==undefined)
 	M.toast({html:'Ошибка. Объект не выбран.',displayLength:3000});
       else {
-        let t = sg.attr('data-type');
-	if (t==0) location.assign('<%== url_for('clientdelete') %>?id='+id);
-	else if (t==1) location.assign('<%== url_for('serverdelete') %>?id='+id);
+        var t = r.attr('data-type');
+	if (t==0) location.assign('<%== url_for('deviceedit') %>?id='+deviceid+'&clientid='+clientid);
+	else if (t==1) location.assign('<%== url_for('serveredit') %>?id='+clientid);
 	else M.toast({html:'Ошибка. Неверный тип.',displayLength:3000});
       }
-    };
-
-    $('#editbtn').click(edit_action);
-    $('#deletebtn').click(delete_action);
-    $('#deletemenu').off('click').click(delete_action);
-    $('#editmenu').off('click').click(edit_action);
+    });
   });
 </script>
 % end

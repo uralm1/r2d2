@@ -20,10 +20,8 @@
   <ul id="clients-dropdown" class="dropdown-content">
     <li><%= link_to 'clients' => begin %>Список клиентов<% end %></li>
     <li class="divider" tabindex="-1"></li>
-    <li><%= link_to 'clientnew' => begin %><i class="material-icons">person_add</i>Добавить нового клиента&hellip;<% end %></li>
-    <li><%= link_to 'servernew' => begin %><i class="material-icons">add_box</i>Добавить новый сервер&hellip;<% end %></li>
-    <li><a href="#!" id="editmenu"><i class="large material-icons">edit</i>Изменить&hellip;</a></li>
-    <li><a href="#!" id="deletemenu"><i class="material-icons">delete</i>Удалить</a></li>
+    <li><%= link_to 'clientnew' => begin %><i class="material-icons">add_box</i>Добавить нового клиента&hellip;<% end %></li>
+    <li><%= link_to 'servernew' => begin %><i class="material-icons">dns</i>Добавить новый сервер&hellip;<% end %></li>
   </ul>
   <nav class="white-text pink darken-2">
     <div class="nav-wrapper scont">
@@ -62,9 +60,6 @@
 <script>
   $(document).ready(function(){
     $('.dropdown-trigger').dropdown({coverTrigger:false,constrainWidth:false});
-    let err_action = function() {M.toast({html:'Ошибка. Объект не выбран.',displayLength:3000})};
-    $('#editmenu').click(err_action);
-    $('#deletemenu').click(err_action);
 % if ($newversion) {
     $('#newversion-modal').modal();$('#newversion-modal').modal('open');
 % }

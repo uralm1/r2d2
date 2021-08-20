@@ -1,10 +1,11 @@
-% layout 'default', back_url => '/clients';
+% layout 'default', back_url => url_for('clientedit')->query(id => $client_id);
 <div class="scont">
   <h4 class="red-text text-darken-2">Удаление клиента</h5>
   % if (my $num_devs = @{$rec->{devices}}) {
     <div class="row">
       <div class="col s12">
-        <h5>Удаление клиента невозможно. Клиенту предоставлен доступ на <%== $num_devs %> устройстве(ах).</h5>
+	%#
+        <h5>Удаление клиента невозможно. Клиенту предоставлен доступ на <%== "$num_devs устройств" . ($num_devs =~ /1$/ ? 'е' : 'ах') %>.</h5>
       </div>
     </div>
     <div class="row">
@@ -32,7 +33,7 @@
 
     <div class="row">
       <div class="col s12">
-	<a class="btn-large waves-effect waves-light" href="/clients">Вернуться к списку</a>
+	%= link_to 'Вернуться к списку' => url_for('clientedit')->query(id => $client_id) => (class => 'btn-large waves-effect waves-light')
       </div>
     </div>
   % } else {

@@ -57,7 +57,8 @@
 	</div>
 	<div class="row">
 	  <div class="col s12">
-	    <button class="btn-large waves-effect waves-light" type="submit">Изменить клиента</button>
+	    <button class="btn-large waves-effect waves-light" type="submit">Сохранить изменения</button>
+	    %= link_to 'Удалить клиента...' => url_for('clientdelete')->query(id => $client_id) => (class => 'btn-large waves-effect waves-light spaceleft')
 	  </div>
 	</div>
       </div>
@@ -69,7 +70,7 @@
 	  <table class="highlight">
 	    <thead>
 	      <tr>
-		<th style="width:5%">Выбрать</th>
+		<th style="width:4%">N</th>
 		<th>Наименование</th>
 		<th>Место</th>
 		<th>IP</th>
@@ -79,17 +80,16 @@
 	      </tr>
 	    </thead>
 	    <tbody>
+	      % my $line_num = 1;
 	      % for (@{$rec->{devices}}) {
-	      <tr>
-		<td class="vcenter">
-		  <label>
-		    <input name="cg" type="radio" value="<%== $_->{id} %>"/>
-		    <span></span>
-		  </label>
-		</td>
+	      <tr class="tr-device-edit" data-deviceid="<%= $_->{id} %>">
+		<td><%== $line_num++ %></td>
 		<td>
-		  %= link_to url_for('deviceedit')->query(back=>1, clientid=>$client_id, id=>$_->{id}) => (class=>'listdevicelink') => begin
-		  %= $_->{name}
+		  %= link_to url_for('deviceedit')->query(back => 1, clientid => $client_id, id => $_->{id}) => (class => 'listlink') => begin
+		    <span><%= $_->{name} %></span>
+	            % unless ($_->{name}) {
+	            <span>ID:&nbsp;<%= $_->{id} %></span>
+	            % }
 		  % end
 		</td>
 		<td><%= $_->{profile} %></td>
@@ -110,10 +110,8 @@
 	  <div class="col s12">
 	  %= form_for devicenew => (method=>'POST', style=>'display:inline-block;') => begin
 	    %= hidden_field client_id => $client_id
-	    <button class="btn-large waves-effect waves-light" type="submit"><i class="material-icons left">add</i>Новое&hellip;</button>
+	    <button class="btn-large waves-effect waves-light" type="submit">Добавить новое&hellip;</button>
 	  % end
-	    <a id="editdevice" class="btn-large waves-effect waves-light spaceleft"><i class="material-icons left">edit</i>Изменить&hellip;</a>
-	    <a id="deletedevice" class="btn-large waves-effect waves-light spaceleft"><i class="material-icons left">delete</i>Удалить</a>
 	  </div>
 	</div>
       </div>
@@ -138,26 +136,14 @@
 
     $('input.field-with-error,textarea.field-with-error').removeClass('valid').addClass('invalid');
 
-    let edit_device_action = function(){
-      let cg = $('input[type=radio][name=cg]:checked');
-      let id = cg.val();
-      if (id==undefined)
+    $('.tr-device-edit').click(function(){
+      var deviceid = $(this).attr('data-deviceid');
+      if (deviceid==undefined)
 	M.toast({html:'Ошибка. Не выбрано клиентское устройство.',displayLength:3000});
       else {
-	location.assign('<%== url_for('deviceedit')->query(back => 1, clientid => $client_id) %>&id='+id);
+	location.assign('<%== url_for('deviceedit')->query(back => 1, clientid => $client_id) %>&id='+deviceid);
       }
-    };
-    let delete_device_action = function(){
-      let cg = $('input[type=radio][name=cg]:checked');
-      let id = cg.val();
-      if (id==undefined)
-	M.toast({html:'Ошибка. Не выбрано клиентское устройство.',displayLength:3000});
-      else {
-	location.assign('<%== url_for('devicedelete')->query(clientid => $client_id) %>&id='+id);
-      }
-    };
-    $('#deletedevice').click(delete_device_action);
-    $('#editdevice').click(edit_device_action);
+    });
   });
 </script>
 % end

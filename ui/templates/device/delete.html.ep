@@ -1,4 +1,4 @@
-% layout 'default', back_url => url_for('clientedit')->query(id => $client_id);
+% layout 'default', back_url => (param 'back') ? url_for('deviceedit')->query(back => 1, clientid => $client_id, id => $device_id) : url_for('deviceedit')->query(clientid => $client_id, id => $device_id);
 <div class="scont">
   <h4 class="red-text text-darken-2">Удаление клиентского устройства</h5>
 

@@ -1,4 +1,4 @@
-% layout 'default', back_url => '/clients';
+% layout 'default', back_url => url_for('serveredit')->query(id => $srv_id);
 <div class="scont">
   <h4 class="red-text text-darken-2">Удаление сервера</h5>
 
@@ -51,7 +51,7 @@
 
     <div class="row">
       <div class="col s12">
-	<button class="btn-large waves-effect waves-light red darken-2" type="submit">Удалить сервер</button>
+	<button class="btn-large waves-effect waves-light red darken-2" type="submit">Выполнить удаление</button>
 	<span class="spaceleft">Операция необратима. Будет запущено удаление сервера на агентах.</span>
       </div>
     </div>
