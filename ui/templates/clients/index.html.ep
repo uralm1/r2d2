@@ -5,18 +5,19 @@
 %   end
 % }
 <div class="scont">
-  <table class="highlight">
+  <table>
     <thead>
-      <tr>
+      <tr class="tr-client-head">
 	<th style="width:5%">Тип</th>
-	<th>Наименование</th>
+	<th>Наименование клиента</th>
 	<th>Email</th>
 	<th>Логин</th>
       </tr>
     </thead>
     <tbody>
+    % my $th;
     % for (@{$rec->{d}}) {
-      <tr class="tr-client" data-type="<%= $_->{type} %>" data-clientid="<%= $_->{id} %>">
+      <tr class="tr-client" data-type="<%= $_->{type} %>" data-clientid="<%== $_->{id} %>">
 	<td>
 	  <span class="<%== $_->{type} == 1 ? 'listservertype':'listclienttype' %>">
 	    <%== $_->{type} == 0 ? 'Клиент':$_->{type} == 1 ? 'Сервер':'Неизв.' %>
@@ -30,43 +31,73 @@
 	<td><%= $_->{email} %></td>
 	<td><%= $_->{login} %></td>
       </tr>
-      % for my $d (@{$_->{devices}}) {
-      <tr class="tr-device" data-type="<%= $_->{type} %>" data-clientid="<%= $_->{id} %>" data-deviceid="<%= $d->{id} %>">
-	<td colspan="4">
-	  <div class="listdevicerow">
-	    <i class="material-icons tiny"><%== $_->{type} == 1 ? 'dns':'computer' %></i>
-	    %= link_to $_->{type} == 1 ? url_for('serveredit')->query(id => $_->{id}) : url_for('deviceedit')->query(clientid => $_->{id}, id => $d->{id}) => (class => 'listlink') => begin
-	      <span><%= $d->{name} %></span>
-	      % unless ($d->{name}) {
-	      <span>ID:&nbsp;<%= $d->{id}%></span>
-	      % }
-	    % end
-	    <span><b>Место:</b>&nbsp;<%= $d->{profile} %></span>
-	    <span><b>IP:</b>&nbsp;<%= $d->{ip} %></span>
-	    <span><b>MAC:</b>&nbsp;<%= $d->{mac} %></span>
-	    % my @x = grep {$_->[1] == $d->{rt}} @{config('rt_names')};
-	    <span><b>Провайдер:</b>&nbsp;<%= $x[0][0] // 'Неизвестно' %></span>
-	    <span><b>Правило:</b>&nbsp;<%= $d->{defjump} %></span>
-	    <span><b>Лимит:</b>&nbsp;<%== $d->{qs} == 0 ? '*Анлим*' : btomb($d->{limit_in}).'&nbsp;Мб' %></span>
-	  </div>
+      <tr class="tr-devices">
+	<td class="listdevicerow" colspan="4">
+	  <table>
+	    % unless ($th) {
+	    <thead>
+	      <tr class="tr-device-head">
+		<th style="width:25%">Наименование устройства</th>
+		<th style="width:10%">Место</th>
+		<th style="width:13%">IP</th>
+		<th style="width:18%">MAC</th>
+		<th style="width:10%">Провайдер</th>
+		<th style="width:12%">Правило</th>
+		<th style="width:12%">Лимит</th>
+	      </tr>
+	    <thead>
+	    % $th = 1; }
+	    <tbody>
+	    % for my $d (@{$_->{devices}}) {
+	    <tr class="tr-device" data-type="<%= $_->{type} %>" data-clientid="<%== $_->{id} %>" data-deviceid="<%== $d->{id} %>">
+	      <td style="width:25%">
+		<i class="material-icons tiny"><%== $_->{type} == 1 ? 'dns':'computer' %></i>
+		%= link_to $_->{type} == 1 ? url_for('serveredit')->query(id => $_->{id}) : url_for('deviceedit')->query(clientid => $_->{id}, id => $d->{id}) => (class => 'listlink') => begin
+		<span><%= $d->{name} %></span>
+		% unless ($d->{name}) {
+		<span>ID:&nbsp;<%= $d->{id}%></span>
+		% }
+		% end
+	      </td>
+	      <td style="width:10%">
+		<%= $d->{profile} %>
+	      </td>
+	      <td style="width:13%">
+		<%= $d->{ip} %>
+	      </td>
+	      <td style="width:18%">
+		<%= $d->{mac} %>
+	      </td>
+	      <td style="width:10%">
+		% my @x = grep {$_->[1] == $d->{rt}} @{config('rt_names')};
+		<%= $x[0][0] // 'Неизвестно' %>
+	      </td>
+	      <td style="width:12%">
+		<%= $d->{defjump} %>
+	      </td>
+	      <td style="width:12%">
+		<%== $d->{qs} == 0 ? '*Анлим*' : btomb($d->{limit_in}).'&nbsp;Мб' %>
+	      </td>
+	    </tr>
+	    % }
+	    % unless (@{$_->{devices}}) {
+	    <tr class="tr-device">
+	      <td colspan="7">
+		<i class="material-icons tiny">report</i>
+		<span>Устройства отсутствуют</span>
+	      </td>
+	    </tr>
+
+	    % }
+	    </tbody>
+	  </table>
 	</td>
       </tr>
-      % }
-      % unless (@{$_->{devices}}) {
-      <tr class="tr-device">
-	<td colspan="4">
-	  <div class="listdevicerow">
-	    <i class="material-icons tiny">report</i>
-	    <span>Устройства отсутствуют</span>
-	  </div>
-	</td>
-      </tr>
-      % }
     % }
     </tbody>
   </table>
   %= m_page_nav($rec->{page}, $rec->{pages}, {round=>3, outer=>1, start=>1, class=>'center-align', param=>'p', query=>'#top'});
-  <!--p>Общее число записей: <%= $rec->{lines_total} %></p-->
+  <p>Общее число клиентов: <%= $rec->{lines_total} %></p>
 </div>
 <div class="fixed-action-btn">
   %= link_to 'clientnew' => (class=>'btn-floating yellow darken-1 btn-large btn-tooltip', 'data-position'=>'left', 'data-tooltip'=>'Добавить нового клиента') => begin

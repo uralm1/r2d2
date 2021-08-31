@@ -82,7 +82,7 @@
 	    <tbody>
 	      % my $line_num = 1;
 	      % for (@{$rec->{devices}}) {
-	      <tr class="tr-device-edit" data-deviceid="<%= $_->{id} %>">
+	      <tr class="tr-device-edit" data-deviceid="<%== $_->{id} %>">
 		<td><%== $line_num++ %></td>
 		<td>
 		  %= link_to url_for('deviceedit')->query(back => 1, clientid => $client_id, id => $_->{id}) => (class => 'listlink') => begin

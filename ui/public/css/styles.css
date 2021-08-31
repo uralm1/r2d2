@@ -73,29 +73,36 @@ pre.newversion-hist {
 }
 
 .listdevicerow {
-  margin-left:2%;
-  color:#707070;
+  padding:0 0 0 18px;
 }
 
-.listdevicerow>span {
-  margin-left:4px;
-}
-
-.tr-device {
+.tr-client, .tr-devices, .tr-device, .tr-device-head {
   border-bottom:none;
+}
+
+tr.tr-client, tr.tr-device {
+  -webkit-transition: background-color .25s ease;
+  transition: background-color .25s ease;
 }
 
 .tr-client:hover, .tr-device:hover, .tr-device-edit:hover {
   cursor:pointer;
+  background-color: rgba(225,225,225,.5);
+}
+
+tr.tr-client>td, tr.tr-client-head>th {
+  padding-top:25px;
+  padding-bottom:10px;
+}
+
+tr.tr-device-head>th {
+  padding:5px;
+  border:1px solid #adadad;
 }
 
 tr.tr-device>td {
   padding:5px;
-}
-
-.tr-client {
-  border-bottom:1px dashed rgba(0,0,0,0.08);
-  border-top:1px solid rgba(0,0,0,0.12);
+  border:1px solid #adadad;
 }
 
 .toc-wrapper {
@@ -105,6 +112,6 @@ tr.tr-device>td {
 }
 
 .listlink {
-  color:rgba(0,0,0,0.87);
+  color:#000;
 }
 

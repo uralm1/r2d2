@@ -68,7 +68,7 @@
 
       <div class="row">
 	<div class="col s12">
-	  <button class="btn-large waves-effect waves-light red darken-2" type="submit">Удалить клиента</button>
+	  <button class="btn-large waves-effect waves-light red darken-2" type="submit">Выполнить удаление</button>
 	  <span class="spaceleft">Операция необратима.</span>
 	</div>
       </div>
