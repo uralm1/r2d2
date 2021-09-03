@@ -1,4 +1,4 @@
-# Fwsyn
+# Fwsyn установка runit
 
 Установка супервайзера runit для запуска агента fwsyn на старых системах без systemd или
 аналогичных менеджеров.
@@ -28,7 +28,7 @@
 ```
 Можно также выполнить `strip --strip-unneeded` для исполняемых файлов.
 
-Для запуска супервайзера `runsvdir` добавим в `/etc/inittab`.
+Для запуска супервайзера `runsvdir` добавим в `/etc/inittab`:
 
 ```
 # runit supervisor
@@ -39,7 +39,10 @@ sv:345:respawn:/sbin/runsvdir-start
 
 Каталог ссылок на активные сервисы: `/service`.
 
-Управление сервисами: `sv {start|stop|restart|status} service_name`
+Управление сервисами: `sv {start|stop|restart|status} service_name`.
 
-Статья по использованию runit на slackware: [docs.slackware.com](https://docs.slackware.com/howtos:slackware_admin:runit)
+### Ссылки
+
+- Сайт runit: [smarden.org/runit](smarden.org/runit).
+- Статья по использованию runit на slackware: [docs.slackware.com](https://docs.slackware.com/howtos:slackware_admin:runit).
 

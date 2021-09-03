@@ -27,6 +27,7 @@ done
 filelist="$filelist $keys"
 
 # service scripts
+filelist="$filelist support/runit_*"
 filelist="$filelist support/rc.fwsyn support/fwsyn.logrotate"
 
 scp $filelist $destdir
