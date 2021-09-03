@@ -1,0 +1,13 @@
+#!/bin/sh -e
+
+R2D2_PATH="/etc/r2d2"
+FWSYN="$R2D2_PATH/script/fwsyn"
+
+echo "Starting fwsyn cron..."
+
+sv start fwsyn-worker || exit 1
+sv start fwsyn || exit 1
+
+cd $R2D2_PATH
+export MOJO_MODE="production"
+exec $FWSYN cron 2>&1

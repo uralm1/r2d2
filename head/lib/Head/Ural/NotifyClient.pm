@@ -8,7 +8,7 @@ use Net::Domain qw(hostfqdn);
 use Net::LDAP qw(LDAP_SUCCESS LDAP_NO_SUCH_OBJECT);
 use Net::LDAP::Util qw(escape_filter_value);
 use Encode;
-use Carp;
+#use Carp;
 #use Data::Dumper;
 
 use Exporter qw(import);
@@ -81,7 +81,7 @@ sub retrive_login_db_attr {
   };
 
   die "Database error: $@" unless defined $e;
-  croak "Device id is not found in database\n" unless $str;
+  die "Device id is not found in database\n" unless $str;
 
   return $str;
 }
@@ -128,7 +128,7 @@ sub retrive_ad_fullname_email {
     }
   } else {
     $ldap->unbind;
-    croak "No data from active directory\n";
+    die "No data from active directory\n";
   }
 
   $ldap->unbind;

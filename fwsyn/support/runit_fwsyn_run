@@ -1,0 +1,16 @@
+#!/bin/sh -e
+
+R2D2_PATH="/etc/r2d2"
+FWSYN="$R2D2_PATH/script/fwsyn"
+#FWSYN_PID="/tmp/fwsyn-prefork.pid"
+
+echo "Starting fwsyn..."
+
+sv start fwsyn-worker || exit 1
+
+cd $R2D2_PATH
+sp=`/usr/bin/perl -MMojolicious::Plugin::Config -E 'my $c=Mojolicious::Plugin::Config->new->load("/etc/r2d2/fwsyn.conf");say "?cert=$c->{local_cert}&key=$c->{local_key}&ca=$c->{ca}&verify=0x03"'`
+export MOJO_LISTEN="https://*:2275$sp"
+export MOJO_MODE="production"
+#exec $FWSYN prefork -w 2 -P $FWSYN_PID 2>&1
+exec $FWSYN daemon 2>&1

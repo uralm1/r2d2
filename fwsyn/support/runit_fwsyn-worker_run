@@ -1,0 +1,8 @@
+#!/bin/sh -e
+
+R2D2_PATH="/etc/r2d2"
+FWSYN="$R2D2_PATH/script/fwsyn"
+
+cd $R2D2_PATH
+export MOJO_MODE="production"
+exec $FWSYN ljq worker 2>&1
