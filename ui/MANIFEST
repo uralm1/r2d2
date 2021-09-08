@@ -43,6 +43,8 @@ public/js/materialize.js
 public/js/materialize.min.js
 script/start_server
 script/ui
+t/101_get_about.t
+t/102_get_oplog.t
 t/55_LogColorer.t
 t/72_OperatorResolver.t
 templates/client/delete.html.ep

@@ -10,10 +10,6 @@ sub register {
   # renders error 503 on validation errors
   $app->helper(json_validate => sub {
     my ($self, $json, $schema) = @_;
-    unless ($json and (ref($json) eq 'HASH' or ref($json) eq 'ARRAY')) {
-      $self->render(text => 'Bad json format', status => 503);
-      return undef;
-    }
     my $jv = JSON::Validator->new;
     $jv->schema("data:///$schema"); # die on schema errors!
     $jv->coerce('numbers');

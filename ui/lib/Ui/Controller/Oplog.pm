@@ -18,18 +18,10 @@ sub index {
     sub {
       my ($ua, $tx) = @_;
       my $res = eval { $tx->result };
-      return $self->render(text=>'Ошибка соединения с управляющим сервером') unless defined $res;
+      return unless $self->request_success($res);
+      return unless my $v = $self->request_json($res);
 
-      if ($res->is_success) {
-        my $v = $res->json;
-        return $self->render(text=>'Ошибка формата данных') unless $v;
-        return $self->render(log_rec => $v);
-      } else {
-        if ($res->is_error) {
-          return $self->render(text=>'Ошибка запроса: '.substr($res->body, 0, 60));
-      }
-        return $self->render(text=>'Неподдерживаемый ответ');
-      }
+      return $self->render(log_rec => $v);
     } # get closure
   );
 }

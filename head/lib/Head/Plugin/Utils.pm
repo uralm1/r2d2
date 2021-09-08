@@ -40,10 +40,28 @@ sub register {
   $app->helper(exists_and_number404 => sub {
     my ($self, $v) = @_;
     unless (defined $v && $v =~ /^\d+$/) {
-      $self->render(text => 'Bad parameter', status=>404);
+      $self->render(text => 'Bad parameter', status => 404);
       return undef;
     }
     return 1;
+  });
+
+
+  # my $json = $self->json_content($self->req)
+  # renders error if not application/json or resulting json is undef or invalid
+  $app->helper(json_content => sub {
+    my ($self, $req) = @_;
+    my $fmt = $req->headers->content_type;
+    unless (defined $fmt && $fmt =~ m#^application/json$#i) {
+      $self->render(text => 'Unsupported content', status => 503);
+      return undef;
+    }
+    my $j = $req->json;
+    unless ($j and (ref($j) eq 'HASH' or ref($j) eq 'ARRAY')) {
+      $self->render(text => 'Bad json format', status => 503);
+      return undef;
+    }
+    return $j;
   });
 
 }

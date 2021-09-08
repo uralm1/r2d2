@@ -439,6 +439,7 @@ paths:
 
     put:
       summary: 'Редактирование данных сервера'
+      description: 'Свойство id необязательное, если указывается то должно совпадать с параметром server_id. Свойства create_time и profile игнорируются.'
       parameters:
         - name: server_id
           in: path
@@ -546,6 +547,90 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/client_full_record'
+        '404':
+          description: Not found, including bad id parameter
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+    put:
+      summary: 'Редактирование данных клиента'
+      description: 'Свойство id необязательное, если указывается то должно совпадать с параметром client_id. Свойство create_time игнорируется.'
+      parameters:
+        - name: client_id
+          in: path
+          required: true
+          description: 'Client id'
+          schema:
+            type: integer
+            
+      requestBody:
+        description: 'Client data'
+        required: true
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/client_record'
+
+      responses:
+        '200':
+          description: Success
+        '404':
+          description: Not found, including bad id parameter
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+    patch:
+      summary: 'Редактирование описания (description) клиента'
+      description: 'Свойство id необязательное, если указывается то должно совпадать с параметром client_id.'
+      parameters:
+        - name: client_id
+          in: path
+          required: true
+          description: 'Client id'
+          schema:
+            type: integer
+            
+      requestBody:
+        description: 'Client description'
+        required: true
+        content:
+          'application/json':
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: 'Код клиента'
+                desc:
+                  type: string
+                  description: 'Описание клиента, возможно пустое'
+                  example: 'Краткое описание'
+              required:
+                - desc
+
+      responses:
+        '200':
+          description: Success
         '404':
           description: Not found, including bad id parameter
           content:

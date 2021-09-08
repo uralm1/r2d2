@@ -19,6 +19,51 @@
 
       <div id="client" class="section scrollspy">
 	%= hidden_field id => $client_id, id => 'client_id'
+	%= hidden_field guid => $rec->{guid}
+
+        % if ($rec->{guid}) {
+	<div class="row">
+	  <div class="input-field col s12 m8 l5">
+	    %= text_field 'cn' => $rec->{cn}, id => 'cn', disabled => undef
+	    %= label_for cn => 'Фамилия Имя Отчество'
+	    %= t 'span', class => 'helper-text', 'Данные клиента получены из глобального каталога'
+	  </div>
+	  <div class="input-field col s12 m4 l3 offset-l1">
+	    %= text_field 'create-time' => $rec->{create_time} // 'Не указано', id => 'create-time', disabled => undef
+	    %= label_for 'create-time' => 'Дата и время создания'
+	    %= t 'span', class => 'helper-text', 'не редактируется'
+	  </div>
+	</div>
+	<div class="row">
+	  <div class="input-field col s12 m8 l5">
+	    %= text_area desc => $rec->{desc}, id => 'desc', class => 'materialize-textarea'
+	    %= label_for desc => 'Комментарий'
+	    %= t 'span', class => 'helper-text', 'Дополнительная информация (пользователям не видно)'
+	  </div>
+	</div>
+	<div class="row">
+	  <div class="input-field col s12 m8 l5">
+	    %= text_field 'login' => $rec->{login}, id => 'login', disabled => undef
+	    %= label_for login => 'Логин клиента в корпоративном облаке'
+	    %= t 'span', class => 'helper-text', 'Данные получены из глобального каталога'
+	  </div>
+	</div>
+	<div class="row">
+	  <div class="input-field col s12 m8 l5">
+	    %= text_field email => $rec->{email}, id => 'email', disabled => undef
+	    %= label_for email => 'Email (необязательный)'
+	    %= t 'span', class => 'helper-text', 'Адрес электронной почты для уведомлений'
+	  </div>
+	</div>
+	<div class="row">
+	  <div class="col s12">
+	    <button class="btn-large waves-effect waves-light" type="submit">Сохранить комментарий</button>
+	    %= link_to 'Сменить клиента...' => url_for('clientchange')->query(id => $client_id) => (class => 'btn-large waves-effect waves-light spaceleft')
+	    %= link_to 'Удалить клиента...' => url_for('clientdelete')->query(id => $client_id) => (class => 'btn-large waves-effect waves-light spaceleft')
+	  </div>
+	</div>
+
+	% } else {
 	<div class="row">
 	  <div class="input-field col s12 m8 l5">
 	    %= text_field 'cn' => $rec->{cn}, id => 'cn'
@@ -61,6 +106,8 @@
 	    %= link_to 'Удалить клиента...' => url_for('clientdelete')->query(id => $client_id) => (class => 'btn-large waves-effect waves-light spaceleft')
 	  </div>
 	</div>
+        % }
+
       </div>
       % end
 

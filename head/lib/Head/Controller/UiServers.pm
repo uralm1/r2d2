@@ -50,113 +50,102 @@ sub serverput {
   my $id = $self->stash('id');
   return unless $self->exists_and_number404($id);
 
-  my $fmt = $self->req->headers->content_type // '';
-  if ($fmt =~ m#^application/json$#i) {
-    my $j = $self->req->json;
-    return unless $self->json_validate($j, 'server_record');
+  return unless my $j = $self->json_content($self->req);
+  return unless $self->json_validate($j, 'server_record');
 
-    return $self->render(text=>'Bad id', status => 503) if exists($j->{id}) && $j->{id} != $id;
+  return $self->render(text=>'Bad id', status => 503) if exists($j->{id}) && $j->{id} != $id;
 
-    my $ipo = NetAddr::IP::Lite->new($j->{ip});
-    return $self->render(text=>'Bad ip', status => 503) unless $ipo;
+  my $ipo = NetAddr::IP::Lite->new($j->{ip});
+  return $self->render(text=>'Bad ip', status => 503) unless $ipo;
 
-    $self->log->debug($self->dumper($j));
-    $self->render_later;
+  $self->log->debug($self->dumper($j));
+  $self->render_later;
 
-    $self->mysql_inet->db->query("UPDATE clients c INNER JOIN devices d ON d.client_id = c.id \
+  $self->mysql_inet->db->query("UPDATE clients c INNER JOIN devices d ON d.client_id = c.id \
 SET cn = ?, c.desc = ?, name = 'Подключение сервера', d.desc = '', email = ?, ip = ?, mac = ?, no_dhcp = ?, rt = ?, defjump = ?, speed_in = ?, speed_out = ?, qs = ?, limit_in = ?, email_notify = 0 \
 WHERE c.type = 1 AND c.id = ?",
-      $j->{cn},
-      $j->{desc} // '',
-      $j->{email} // '',
-      scalar($ipo->numeric),
-      $j->{mac},
-      $j->{no_dhcp},
-      $j->{rt},
-      $j->{defjump},
-      $j->{speed_in},
-      $j->{speed_out},
-      $j->{qs},
-      $j->{limit_in},
-      $id =>
-      sub {
-        my ($db, $err, $results) = @_;
-        return $self->render(text => "Database error, updating server: $err", status => 503) if $err;
+    $j->{cn},
+    $j->{desc} // '',
+    $j->{email} // '',
+    scalar($ipo->numeric),
+    $j->{mac},
+    $j->{no_dhcp},
+    $j->{rt},
+    $j->{defjump},
+    $j->{speed_in},
+    $j->{speed_out},
+    $j->{qs},
+    $j->{limit_in},
+    $id =>
+    sub {
+      my ($db, $err, $results) = @_;
+      return $self->render(text => "Database error, updating server: $err", status => 503) if $err;
 
-        if ($results->affected_rows > 0) {
-          $self->dblog->info("UI: Server id $id updated successfully");
-          $self->rendered(200);
-        } else {
-          $self->dblog->info("UI: Server id $id not updated");
-          $self->render(text => "Server id $id not found", status => 404);
-        }
+      if ($results->affected_rows > 0) {
+        $self->dblog->info("UI: Server id $id updated successfully");
+        $self->rendered(200);
+      } else {
+        $self->dblog->info("UI: Server id $id not updated");
+        $self->render(text => "Server id $id not found", status => 404);
       }
-    );
-
-  } else {
-    return $self->render(text=>'Unsupported content', status => 503);
-  }
+    }
+  );
 }
 
 
 # new server submit
 sub serverpost {
   my $self = shift;
-  my $fmt = $self->req->headers->content_type // '';
-  if ($fmt =~ m#^application/json$#i) {
-    my $j = $self->req->json;
-    return unless $self->json_validate($j, 'server_record');
+  return unless my $j = $self->json_content($self->req);
+  return unless $self->json_validate($j, 'server_record');
 
-    return $self->render(text => 'Bad id', status => 503) if exists($j->{id});
+  return $self->render(text => 'Bad id', status => 503) if exists($j->{id});
 
-    my $ipo = NetAddr::IP::Lite->new($j->{ip});
-    return $self->render(text => 'Bad ip', status => 503) unless $ipo;
+  my $ipo = NetAddr::IP::Lite->new($j->{ip});
+  return $self->render(text => 'Bad ip', status => 503) unless $ipo;
 
-    $self->log->debug($self->dumper($j));
+  $self->log->debug($self->dumper($j));
 
-    # start transaction
-    my $db = $self->mysql_inet->db;
-    my $tx = eval { $db->begin };
-    return $self->render(text => "Database error, transaction failure: $@", status => 503) unless $tx;
+  # start transaction
+  my $db = $self->mysql_inet->db;
+  my $tx = eval { $db->begin };
+  return $self->render(text => "Database error, transaction failure: $@", status => 503) unless $tx;
 
-    my $results = eval { $db->query("INSERT INTO clients \
+  my $results = eval { $db->query("INSERT INTO clients \
 (create_time, type, guid, login, clients.desc, cn, email, lost) \
 VALUES (NOW(), 1, '', '', ?, ?, ?, 0)",
-      $j->{desc} // '',
-      $j->{cn},
-      $j->{email} // ''
-    ) };
-    return $self->render(text => "Database error, inserting servers: $@", status => 503) unless $results;
+    $j->{desc} // '',
+    $j->{cn},
+    $j->{email} // ''
+  ) };
+  return $self->render(text => "Database error, inserting servers: $@", status => 503) unless $results;
 
-    my $last_id = $results->last_insert_id;
+  my $last_id = $results->last_insert_id;
 
-    $results = eval { $db->query("INSERT INTO devices \
+  $results = eval { $db->query("INSERT INTO devices \
 (name, desc, create_time, ip, mac, no_dhcp, rt, defjump, speed_in, speed_out, qs, limit_in, sum_limit_in, profile, email_notify, notified, blocked, bot, client_id) \
 VALUES ('Подключение сервера', '', NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 1, ?)",
-      scalar($ipo->numeric),
-      $j->{mac},
-      $j->{no_dhcp},
-      $j->{rt},
-      $j->{defjump},
-      $j->{speed_in},
-      $j->{speed_out},
-      $j->{qs},
-      $j->{limit_in},
-      $j->{limit_in},
-      $j->{profile},
-      $last_id
-    ) };
-    return $self->render(text => "Database error, inserting devices: $@", status => 503) unless $results;
+    scalar($ipo->numeric),
+    $j->{mac},
+    $j->{no_dhcp},
+    $j->{rt},
+    $j->{defjump},
+    $j->{speed_in},
+    $j->{speed_out},
+    $j->{qs},
+    $j->{limit_in},
+    $j->{limit_in},
+    $j->{profile},
+    $last_id
+  ) };
+  return $self->render(text => "Database error, inserting devices: $@", status => 503) unless $results;
 
-    eval { $tx->commit };
-    return $self->render(text => "Database error, transaction commit failure: $@", status => 503) if $@;
+  eval { $tx->commit };
+  return $self->render(text => "Database error, transaction commit failure: $@", status => 503) if $@;
 
-    # finished
-    $self->dblog->info("UI: Server id $last_id added successfully");
-    $self->render(text => $last_id);
-  } else {
-    return $self->render(text => 'Unsupported content', status => 503);
-  }
+  # finished
+  $self->dblog->info("UI: Server id $last_id added successfully");
+  $self->render(text => $last_id);
 }
 
 

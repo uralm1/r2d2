@@ -76,18 +76,11 @@ sub newpost {
     sub {
       my ($ua, $tx) = @_;
       my $res = eval { $tx->result };
-      return $self->render(text=>'Ошибка соединения с управляющим сервером') unless defined $res;
+      return unless $self->request_success($res);
 
-      if ($res->is_success) {
-        # do redirect with flash
-        $self->flash(oper => 'Выполнено успешно.');
-        $self->redirect_to($self->url_for('clientedit')->query(id => $client_id));
-      } else {
-        if ($res->is_error) {
-          return $self->render(text=>'Ошибка запроса: '.substr($res->body, 0, 120));
-        }
-        return $self->render(text=>'Неподдерживаемый ответ');
-      }
+      # do redirect with flash
+      $self->flash(oper => 'Выполнено успешно.');
+      $self->redirect_to($self->url_for('clientedit')->query(id => $client_id));
     } # post closure
   );
 }
@@ -109,19 +102,10 @@ sub edit {
     sub {
       my ($ua, $tx) = @_;
       my $res = eval { $tx->result };
-      return $self->render(text=>'Ошибка соединения с управляющим сервером') unless defined $res;
+      return unless $self->request_success($res);
+      return unless my $v = $self->request_json($res);
 
-      if ($res->is_success) {
-        my $v = $res->json;
-        return $self->render(text=>'Ошибка формата данных') unless $v;
-
-        return $self->render(client_id => $client_id, device_id => $id, rec => $v);
-      } else {
-        if ($res->is_error) {
-          return $self->render(text=>'Ошибка запроса: '.substr($res->body, 0, 60));
-        }
-        return $self->render(text=>'Неподдерживаемый ответ');
-      }
+      return $self->render(client_id => $client_id, device_id => $id, rec => $v);
     } # get closure
   );
 }
@@ -194,18 +178,11 @@ sub editpost {
     sub {
       my ($ua, $tx) = @_;
       my $res = eval { $tx->result };
-      return $self->render(text=>'Ошибка соединения с управляющим сервером') unless defined $res;
+      return unless $self->request_success($res);
 
-      if ($res->is_success) {
-        # do redirect with flash
-        $self->flash(oper => 'Выполнено успешно.');
-        $self->redirect_to($self->url_for('clientedit')->query(id => $client_id));
-      } else {
-        if ($res->is_error) {
-          return $self->render(text=>'Ошибка запроса: '.substr($res->body, 0, 120));
-        }
-        return $self->render(text=>'Неподдерживаемый ответ');
-      }
+      # do redirect with flash
+      $self->flash(oper => 'Выполнено успешно.');
+      $self->redirect_to($self->url_for('clientedit')->query(id => $client_id));
     } # put closure
   );
 }
@@ -227,19 +204,10 @@ sub delete {
     sub {
       my ($ua, $tx) = @_;
       my $res = eval { $tx->result };
-      return $self->render(text=>'Ошибка соединения с управляющим сервером') unless defined $res;
+      return unless $self->request_success($res);
+      return unless my $v = $self->request_json($res);
 
-      if ($res->is_success) {
-        my $v = $res->json;
-        return $self->render(text=>'Ошибка формата данных') unless $v;
-
-        return $self->render(client_id => $client_id, device_id => $id, rec => $v);
-      } else {
-        if ($res->is_error) {
-          return $self->render(text=>'Ошибка запроса: '.substr($res->body, 0, 60));
-        }
-        return $self->render(text=>'Неподдерживаемый ответ');
-      }
+      return $self->render(client_id => $client_id, device_id => $id, rec => $v);
     } # get closure
   );
 }
@@ -261,18 +229,11 @@ sub deletepost {
     sub {
       my ($ua, $tx) = @_;
       my $res = eval { $tx->result };
-      return $self->render(text=>'Ошибка соединения с управляющим сервером') unless defined $res;
+      return unless $self->request_success($res);
 
-      if ($res->is_success) {
-        # do redirect with flash
-        $self->flash(oper => 'Выполнено успешно.');
-        $self->redirect_to($self->url_for('clientedit')->query(id => $client_id));
-      } else {
-        if ($res->is_error) {
-          return $self->render(text=>'Ошибка запроса: '.substr($res->body, 0, 120));
-        }
-        return $self->render(text=>'Неподдерживаемый ответ');
-      }
+      # do redirect with flash
+      $self->flash(oper => 'Выполнено успешно.');
+      $self->redirect_to($self->url_for('clientedit')->query(id => $client_id));
     } # delete closure
   );
 }

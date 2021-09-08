@@ -103,6 +103,8 @@ sub startup {
   $r->post('/ui/server')->to('ui_servers#serverpost');
   $r->post('/ui/client')->to('ui_clients#clientpost');
   $r->get('/ui/client/#id')->to('ui_clients#clientget');
+  $r->put('/ui/client/#id')->to('ui_clients#clientput');
+  $r->patch('/ui/client/#id')->to('ui_clients#clientpatch');
   $r->delete('/ui/client/#id')->to('ui_clients#clientdelete');
   $r->get('/ui/device/#client_id/#device_id')->to('ui_devices#deviceget');
   $r->put('/ui/device/#client_id/#device_id')->to('ui_devices#deviceput');

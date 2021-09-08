@@ -10,23 +10,16 @@ sub reloaded {
   # at least one profile parameter is required
   return $self->render(text=>'Bad parameter', status=>503) unless(@$profs);
 
-  my $fmt = $self->req->headers->content_type // '';
-  if ($fmt =~ m#^application/json$#i) {
-    my $j = $self->req->json;
-    return $self->render(text=>'Bad json format', status=>503) unless $j;
-    my $subsys = $j->{subsys};
-    return $self->render(text=>'Bad body parameter', status=>503) unless $subsys;
+  return unless my $j = $self->json_content($self->req);
+  my $subsys = $j->{subsys};
+  return $self->render(text=>'Bad body parameter', status=>503) unless $subsys;
 
-    my $info = "Agent [$subsys] has finished complete reload.";
+  my $info = "Agent [$subsys] has finished complete reload.";
 
-    $self->app->log->debug("$info") if $self->config('duplicate_rlogs');
-    $self->app->dblog->l(info => $info);
+  $self->app->log->debug("$info") if $self->config('duplicate_rlogs');
+  $self->app->dblog->l(info => $info);
 
-    return $self->rendered(200);
-
-  } else {
-    return $self->render(text=>'Unsupported content', status=>503);
-  }
+  return $self->rendered(200);
 }
 
 

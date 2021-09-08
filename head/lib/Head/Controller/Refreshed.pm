@@ -10,24 +10,17 @@ sub refreshed {
   # at least one profile parameter is required
   return $self->render(text=>'Bad parameter', status=>503) unless(@$profs);
 
-  my $fmt = $self->req->headers->content_type // '';
-  if ($fmt =~ m#^application/json$#i) {
-    my $j = $self->req->json;
-    return $self->render(text=>'Bad json format', status=>503) unless $j;
-    my $id = $j->{id};
-    my $subsys = $j->{subsys};
-    return $self->render(text=>'Bad body parameter', status=>503) unless($id and $subsys);
+  return unless my $j = $self->json_content($self->req);
+  my $id = $j->{id};
+  my $subsys = $j->{subsys};
+  return $self->render(text=>'Bad body parameter', status=>503) unless($id and $subsys);
 
-    $self->render_later;
+  $self->render_later;
 
-    my $e = eval { $self->update_db_flags($profs, $id, $subsys) };
-    unless ($e) {
-      $self->log->error("Database start update failure $@");
-      return $self->render(text=>"Database start update failure", status=>503);
-    }
-
-  } else {
-    return $self->render(text=>'Unsupported content', status=>503);
+  my $e = eval { $self->update_db_flags($profs, $id, $subsys) };
+  unless ($e) {
+    $self->log->error("Database start update failure $@");
+    return $self->render(text=>"Database start update failure", status=>503);
   }
 }
 

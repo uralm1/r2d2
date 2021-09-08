@@ -110,18 +110,11 @@ sub newpost {
       sub {
         my ($ua, $tx) = @_;
         my $res = eval { $tx->result };
-        return $self->render(text=>'Ошибка соединения с управляющим сервером') unless defined $res;
+        return unless $self->request_success($res);
 
-        if ($res->is_success) {
-          # do redirect with a toast
-          $self->flash(oper => 'Выполнено успешно.');
-          return $self->redirect_to($self->url_for('clients'));
-        } else {
-          if ($res->is_error) {
-            return $self->render(text=>'Ошибка запроса: '.substr($res->body, 0, 120));
-          }
-          return $self->render(text=>'Неподдерживаемый ответ');
-        }
+        # do redirect with a toast
+        $self->flash(oper => 'Выполнено успешно.');
+        return $self->redirect_to($self->url_for('clients'));
       } # post closure
     );
 
@@ -162,18 +155,11 @@ sub newpainpost {
     sub {
       my ($ua, $tx) = @_;
       my $res = eval { $tx->result };
-      return $self->render(text=>'Ошибка соединения с управляющим сервером') unless defined $res;
+      return unless $self->request_success($res);
 
-      if ($res->is_success) {
-        # do redirect with a toast
-        $self->flash(oper => 'Выполнено успешно.');
-        $self->redirect_to($self->url_for('clients'));
-      } else {
-        if ($res->is_error) {
-          return $self->render(text=>'Ошибка запроса: '.substr($res->body, 0, 120));
-        }
-        return $self->render(text=>'Неподдерживаемый ответ');
-      }
+      # do redirect with a toast
+      $self->flash(oper => 'Выполнено успешно.');
+      $self->redirect_to($self->url_for('clients'));
     } # post closure
   );
 }
@@ -193,20 +179,87 @@ sub edit {
     sub {
       my ($ua, $tx) = @_;
       my $res = eval { $tx->result };
-      return $self->render(text=>'Ошибка соединения с управляющим сервером') unless defined $res;
+      return unless $self->request_success($res);
+      return unless my $v = $self->request_json($res);
 
-      if ($res->is_success) {
-        my $v = $res->json;
-        return $self->render(text=>'Ошибка формата данных') unless $v;
-
-        return $self->render(client_id => $id, rec => $v);
-      } else {
-        if ($res->is_error) {
-          return $self->render(text=>'Ошибка запроса: '.substr($res->body, 0, 60));
-        }
-        return $self->render(text=>'Неподдерживаемый ответ');
-      }
+      return $self->render(client_id => $id, rec => $v);
     } # get closure
+  );
+}
+
+
+sub editpost {
+  my $self = shift;
+  return undef unless $self->authorize({ admin=>1 });
+
+  my $v = $self->validation;
+  return $self->render(text=>'Не дал показания') unless $v->has_data;
+
+  #$self->log->debug("I: ".$self->dumper($v->input));
+
+  my $id = $v->optional('id')->param;
+  return unless $self->exists_and_number($id);
+
+  my $guid = $v->required('guid')->param;
+  return $self->render(text => 'Ошибка данных') unless $v->is_valid;
+
+  my $j = { id => $id }; # resulting json
+  my $method;
+  if (defined $guid && $guid ne '') {
+    # edit desc of AD client
+    $method = 'PATCH';
+    $v->optional('desc');
+    $j->{desc} = $v->is_valid ? $v->param : '';
+
+  } else {
+    # edit multiple properties of manual client
+    $method = 'PUT';
+    $j->{guid} = '';
+    $j->{cn} = $v->required('cn', 'not_empty')->param;
+    $j->{login} = $v->required('login', 'not_empty')->param;
+    $v->optional('desc', 'not_empty');
+    $j->{desc} = $v->param if $v->is_valid;
+    $v->optional('email', 'not_empty')->like(qr/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/);
+    $j->{email} = $v->param if $v->is_valid;
+
+  }
+
+  #if ($v->has_error) { my @f=@{$v->failed}; $self->log->debug("Failed validation: @f") }
+
+  # rerender page with errors
+  if ($v->has_error) {
+    $self->render_later;
+
+    # reget $rec back
+    $self->ua->get(Mojo::URL->new("/ui/client/$id")->to_abs($self->head_url) =>
+      {Accept => 'application/json'} =>
+      sub {
+        my ($ua, $tx) = @_;
+        my $res = eval { $tx->result };
+        return unless $self->request_success($res);
+        return unless my $vv = $self->request_json($res);
+
+        return $self->render(template => 'client/edit', client_id => $id, rec => $vv);
+      } # get closure
+    );
+    return undef;
+  }
+
+  #$self->log->debug("J: ".$self->dumper($j));
+
+  # post (put or patch) to system
+  my $tx = $self->ua->build_tx($method => Mojo::URL->new("/ui/client/$id")->to_abs($self->head_url)
+    => json => $j);
+  $self->ua->start($tx =>
+    sub {
+      my ($ua, $tx) = @_;
+      my $res = eval { $tx->result };
+      return unless $self->request_success($res);
+
+      # do redirect with flash
+      $self->flash(oper => 'Выполнено успешно.');
+      $self->redirect_to($self->url_for('clients'));
+    } # put closure
   );
 }
 
@@ -225,19 +278,10 @@ sub delete {
     sub {
       my ($ua, $tx) = @_;
       my $res = eval { $tx->result };
-      return $self->render(text=>'Ошибка соединения с управляющим сервером') unless defined $res;
+      return unless $self->request_success($res);
+      return unless my $v = $self->request_json($res);
 
-      if ($res->is_success) {
-        my $v = $res->json;
-        return $self->render(text=>'Ошибка формата данных') unless $v;
-
-        return $self->render(client_id => $id, rec => $v);
-      } else {
-        if ($res->is_error) {
-          return $self->render(text=>'Ошибка запроса: '.substr($res->body, 0, 60));
-        }
-        return $self->render(text=>'Неподдерживаемый ответ');
-      }
+      return $self->render(client_id => $id, rec => $v);
     } # get closure
   );
 }
@@ -257,18 +301,11 @@ sub deletepost {
     sub {
       my ($ua, $tx) = @_;
       my $res = eval { $tx->result };
-      return $self->render(text=>'Ошибка соединения с управляющим сервером') unless defined $res;
+      return unless $self->request_success($res);
 
-      if ($res->is_success) {
-        # do redirect with flash
-        $self->flash(oper => 'Выполнено успешно.');
-        $self->redirect_to($self->url_for('clients'));
-      } else {
-        if ($res->is_error) {
-          return $self->render(text=>'Ошибка запроса: '.substr($res->body, 0, 120));
-        }
-        return $self->render(text=>'Неподдерживаемый ответ');
-      }
+      # do redirect with flash
+      $self->flash(oper => 'Выполнено успешно.');
+      $self->redirect_to($self->url_for('clients'));
     } # delete closure
   );
 }

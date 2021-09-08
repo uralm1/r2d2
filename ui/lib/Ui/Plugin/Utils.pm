@@ -65,6 +65,41 @@ sub register {
   });
 
 
+  # my $result = eval { $tx->result };
+  # $self->request_success($result)
+  # renders various errors if $result is not success
+  $app->helper(request_success => sub {
+    my ($self, $res) = @_;
+    unless (defined $res) {
+      $self->render(text => 'Ошибка соединения с управляющим сервером');
+      return undef;
+    }
+    unless ($res->is_success) {
+      if ($res->is_error) {
+        $self->render(text => 'Ошибка запроса: '.substr($res->body, 0, 120));
+        return undef;
+      }
+      $self->render(text => 'Неподдерживаемый ответ');
+      return undef;
+    }
+    return 1;
+  });
+
+
+  # my $result = eval { $tx->result };
+  # my $j = $self->request_json($result)
+  # renders error if json is undef
+  $app->helper(request_json => sub {
+    my ($self, $res) = @_;
+    my $v = $res->json;
+    unless ($v) {
+      $self->render(text => 'Ошибка формата данных');
+      return undef;
+    }
+    return $v;
+  });
+
+
   # html_or_undef = check_newversion
   $app->helper(check_newversion => sub {
     my $c = shift;

@@ -11,26 +11,19 @@ sub blocked {
   # at least one profile parameter is required
   return $self->render(text=>'Bad parameter', status=>503) unless @$profs;
 
-  my $fmt = $self->req->headers->content_type // '';
-  if ($fmt =~ m#^application/json$#i) {
-    my $j = $self->req->json;
-    return $self->render(text=>'Bad json format', status=>503) unless $j;
-    my $id = $j->{id};
-    my $qs_op = $j->{qs};
-    my $subsys = $j->{subsys};
-    return $self->render(text=>'Bad body parameter', status=>503) unless ($id and $subsys and defined $qs_op);
+  return unless my $j = $self->json_content($self->req);
+  my $id = $j->{id};
+  my $qs_op = $j->{qs};
+  my $subsys = $j->{subsys};
+  return $self->render(text=>'Bad body parameter', status=>503) unless ($id and $subsys and defined $qs_op);
 
-    $self->render_later;
+  $self->render_later;
 
-    # notify user if needed
-    $self->enqueue_notification($id, $qs_op ? 0 : 1);
+  # notify user if needed
+  $self->enqueue_notification($id, $qs_op ? 0 : 1);
 
-    $self->update_blocked_flag($profs, $id, $qs_op, $subsys);
-    # the last function renders result
-
-  } else {
-    return $self->render(text=>'Unsupported content', status=>503);
-  }
+  $self->update_blocked_flag($profs, $id, $qs_op, $subsys);
+  # the last function renders result
 }
 
 

@@ -83,6 +83,7 @@ sub startup {
   $r->post('/client/new')->to('client#newpost');
   $r->post('/client/newpain')->to('client#newpainpost');
   $r->get('/client/edit')->to('client#edit');
+  $r->post('/client/edit')->to('client#editpost');
   $r->get('/client/delete')->to('client#delete');
   $r->post('/client/delete')->to('client#deletepost');
 

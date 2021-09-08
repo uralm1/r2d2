@@ -64,37 +64,105 @@ sub _build_client_rec {
 # new client submit
 sub clientpost {
   my $self = shift;
-  my $fmt = $self->req->headers->content_type // '';
-  if ($fmt =~ m#^application/json$#i) {
-    my $j = $self->req->json;
-    return unless $self->json_validate($j, 'client_record');
+  return unless my $j = $self->json_content($self->req);
+  return unless $self->json_validate($j, 'client_record');
 
-    return $self->render(text => 'Bad id', status => 503) if exists($j->{id});
+  return $self->render(text => 'Bad id', status => 503) if exists($j->{id});
 
-    $self->log->debug($self->dumper($j));
-    $self->render_later;
+  $self->log->debug($self->dumper($j));
+  $self->render_later;
 
-    $self->mysql_inet->db->query("INSERT INTO clients \
+  $self->mysql_inet->db->query("INSERT INTO clients \
 (create_time, type, guid, login, clients.desc, cn, email, lost) \
 VALUES (NOW(), 0, ?, ?, ?, ?, ?, 0)",
-      $j->{guid},
-      $j->{login},
-      $j->{desc} // '',
-      $j->{cn},
-      $j->{email} // '' =>
-      sub {
-        my ($db, $err, $results) = @_;
-        return $self->render(text => "Database error, inserting client: $err", status => 503) if $err;
+    $j->{guid},
+    $j->{login},
+    $j->{desc} // '',
+    $j->{cn},
+    $j->{email} // '' =>
+    sub {
+      my ($db, $err, $results) = @_;
+      return $self->render(text => "Database error, inserting client: $err", status => 503) if $err;
 
-        my $last_id = $results->last_insert_id;
-        $self->dblog->info("UI: Client id $last_id added successfully");
-        $self->render(text => $last_id);
+      my $last_id = $results->last_insert_id;
+      $self->dblog->info("UI: Client id $last_id added successfully");
+      $self->render(text => $last_id);
+    }
+  );
+}
+
+
+# edit client submit
+sub clientput {
+  my $self = shift;
+  my $id = $self->stash('id');
+  return unless $self->exists_and_number404($id);
+
+  return unless my $j = $self->json_content($self->req);
+  return unless $self->json_validate($j, 'client_record');
+
+  $self->log->debug($self->dumper($j));
+  return $self->render(text => 'Bad id', status => 503) if exists($j->{id}) && $j->{id} != $id;
+
+  $self->render_later;
+
+  $self->mysql_inet->db->query("UPDATE clients \
+SET guid = ?, login = ?, clients.desc = ?, cn = ?, email = ?, lost = 0 \
+WHERE type = 0 AND id = ?",
+    $j->{guid},
+    $j->{login},
+    $j->{desc} // '',
+    $j->{cn},
+    $j->{email} // '',
+    $id =>
+    sub {
+      my ($db, $err, $results) = @_;
+      return $self->render(text => "Database error, updating client: $err", status => 503) if $err;
+
+      if ($results->affected_rows > 0) {
+        $self->dblog->info("UI: Client id $id updated successfully");
+        $self->rendered(200);
+      } else {
+        $self->dblog->info("UI: Client id $id not updated");
+        $self->render(text => "Client id $id not found", status => 404);
       }
-    );
+    }
+  );
+}
 
-  } else {
-    return $self->render(text => 'Unsupported content', status => 503);
-  }
+
+# edit client description submit
+sub clientpatch {
+  my $self = shift;
+  my $id = $self->stash('id');
+  return unless $self->exists_and_number404($id);
+
+  return unless my $j = $self->json_content($self->req);
+
+  $self->log->debug($self->dumper($j));
+  return $self->render(text => 'Bad id', status => 503) if exists($j->{id}) && $j->{id} != $id;
+  return $self->render(text => 'Bad format', status => 503) unless exists($j->{desc});
+
+  $self->render_later;
+
+  $self->mysql_inet->db->query("UPDATE clients \
+SET clients.desc = ? \
+WHERE type = 0 AND id = ?",
+    $j->{desc},
+    $id =>
+    sub {
+      my ($db, $err, $results) = @_;
+      return $self->render(text => "Database error, updating client description: $err", status => 503) if $err;
+
+      if ($results->affected_rows > 0) {
+        $self->dblog->info("UI: Client id $id description updated successfully");
+        $self->rendered(200);
+      } else {
+        $self->dblog->info("UI: Client id $id description not updated");
+        $self->render(text => "Client id $id not found", status => 404);
+      }
+    }
+  );
 }
 
 
