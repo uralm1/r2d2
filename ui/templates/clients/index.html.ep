@@ -24,7 +24,8 @@
 	  </span>
 	</td>
 	<td>
-	  %= link_to $_->{type} == 1 ? url_for('serveredit')->query(id => $_->{id}) : url_for('clientedit')->query(id => $_->{id}) => (class => 'listlink') => begin
+	  % my $cn_tooltip = ($_->{desc} ne '') ? 'table-tooltips' : '';
+	  %= link_to $_->{type} == 1 ? url_for('serveredit')->query(id => $_->{id}) : url_for('clientedit')->query(id => $_->{id}) => (class => "listlink $cn_tooltip", 'data-tooltip' => $_->{desc}, 'data-position' => 'bottom') => begin
 	    <%= $_->{cn} %>
 	  % end
 	</td>
@@ -112,6 +113,7 @@
   $(document).ready(function(){
     $('.fixed-action-btn').floatingActionButton();
     $('.btn-tooltip').tooltip();
+    $('.table-tooltips').tooltip({enterDelay:700});
     $('.tr-client').click(function(){
       var id = $(this).attr('data-clientid');
       if (id==undefined)
