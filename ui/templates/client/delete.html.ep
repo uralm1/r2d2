@@ -21,7 +21,7 @@
     </div>
     <div class="row">
       <div class="input-field col s12 m8 l5">
-	%= text_area desc => $rec->{desc}, id => 'desc', class => 'materialize-textarea', disabled => undef
+	%= text_area desc => $rec->{desc}, id => 'desc', class => 'materialize-textarea', placeholder => '', disabled => undef
 	%= label_for desc => 'Комментарий'
       </div>
     </div>

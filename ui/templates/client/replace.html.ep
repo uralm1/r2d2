@@ -1,0 +1,119 @@
+% layout 'default', back_url => url_for('clientedit')->query(id => $client_id);
+% use MIME::Base64 qw(encode_base64url);
+% my $toast_msg = flash 'oper';
+% if ($toast_msg) {
+%   content_with done_toast => begin
+<script>$(document).ready(function(){M.toast({html:'<%= $toast_msg %>',displayLength:3000})})</script>
+%   end
+% }
+<div class="scont">
+  <h4>Замена клиента</h4>
+  <div class="row">
+    <div class="input-field col s12 m8 l5">
+      %= text_field 'cn' => $rec->{cn}, id => 'cn', disabled => undef
+      %= label_for cn => 'Фамилия Имя Отчество'
+      %= t 'span', class => 'helper-text', 'Указанный клиент будет заменен'
+    </div>
+    <div class="input-field col s12 m4 l3 offset-l1">
+      %= text_field 'create-time' => $rec->{create_time} // 'Не указано', id => 'create-time', disabled => undef
+      %= label_for 'create-time' => 'Дата и время создания'
+    </div>
+  </div>
+  <div class="row">
+    <div class="input-field col s12 m8 l5">
+      %= text_area desc => $rec->{desc}, id => 'desc', class => 'materialize-textarea', placeholder => '', disabled => undef
+      %= label_for desc => 'Комментарий'
+    </div>
+  </div>
+  <p>Найдите нового пользователя в глобальном каталоге по Фамилии Имени Отчеству, разделитель - пробел, или логину. Возможно частичное указание.</p>
+  %= form_for clientreplace => (method=>'GET') => begin
+  %= hidden_field id => $client_id
+  <div class="row">
+    <div class="input-field col s6">
+      <i class="material-icons prefix">account_circle</i>
+      <input id="u-search" type="text" name="s" value="<%= $search %>">
+      <label for="u-search">Введите подстроку для поиска пользователя</label>
+    </div>
+    <div class="input-field col s4">
+      <button class="btn waves-effect waves-light" type="submit">Поиск</button>
+    </div>
+  </div>
+  % end
+  % if (defined $res_tab && scalar @$res_tab > 0) {
+  Выберите один из 5 первых найденных вариантов (вводите более подробную строку поиска если пользователя нет в списке):<br>
+  %= form_for clientreplace => (method=>'POST') => begin
+  <table class="highlight">
+    <thead>
+      <tr>
+	<th style="width:5%">Выбрать</th>
+	<th style="width:20%">Ф.И.О.</th>
+	<th style="width:20%">Должность</th>
+	<th style="width:25%">Подразделение</th>
+	<th style="width:10%">Логин</th>
+	<th style="width:20%">Email</th>
+      </tr>
+    </thead>
+    <tbody>
+      % for my $r (@$res_tab) {
+      <tr>
+	<td class="vcenter">
+	  <label>
+	    <input class="usersel" name="ug" type="radio" value="<%== encode_base64url($r->{guid}) %>"/>
+	    <span></span>
+	  </label>
+	</td>
+	<td class="cn"><%= $r->{cn} %></td>
+	<td><%= $r->{title} %></td>
+	<td><%= $r->{department} %></td>
+	<td class="login"><%= $r->{login} %></td>
+	<td class="email"><%= $r->{email} %></td>
+      </tr>
+      % }
+    </tbody>
+  </table>
+  %= hidden_field id => $client_id
+  %= hidden_field s => $search
+  %= hidden_field cn => '', id => 'u-cn'
+  %= hidden_field login => '', id => 'u-login'
+  %= hidden_field email => '', id => 'u-email'
+  <p></p>
+  <div class="row no-margin-bottom">
+    <div class="input-field col s12 m8 l5">
+      %= text_area desc => $rec->{desc}, id => 'desc', class => 'materialize-textarea'
+      %= label_for desc => 'Новый комментарий'
+      %= t 'span', class => 'helper-text', 'Дополнительная информация по новому клиенту'
+    </div>
+  </div>
+  <div class="row">
+    <div class="input-field col s12">
+      <button class="btn-large waves-effect waves-light red darken-2" type="submit">Выполнить замену клиента</button>
+    </div>
+  </div>
+  % end
+  % } elsif (defined $res_tab) {
+  <p><b>Никого не найдено, измените строку поиска.</b></p><br>
+  % }
+</div>
+
+% content_for script0 => begin
+<script>
+$(document).ready(function(){
+  let fill_form = function(s){
+    let td = s.parentsUntil('tr','td');
+    let v;
+    v = td.nextAll('.cn').text();
+    $('#u-cn').val((v)?v.trim():'');
+    v = td.nextAll('.login').text();
+    $('#u-login').val((v)?v.trim():'');
+    v = td.nextAll('.email').text();
+    $('#u-email').val((v)?v.trim():'');
+    M.updateTextFields();
+  };
+
+  $('input.usersel').change(function(){fill_form($(this))});
+
+  $('input.usersel').prop('checked',false);
+  M.updateTextFields();
+});
+</script>
+% end

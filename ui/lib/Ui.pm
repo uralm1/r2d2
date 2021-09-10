@@ -1,7 +1,7 @@
 package Ui;
 use Mojo::Base 'Mojolicious';
 
-our $VERSION = '0.3';
+our $VERSION = '0.4';
 
 # This method will run once at server start
 sub startup {
@@ -84,6 +84,8 @@ sub startup {
   $r->post('/client/newpain')->to('client#newpainpost');
   $r->get('/client/edit')->to('client#edit');
   $r->post('/client/edit')->to('client#editpost');
+  $r->get('/client/replace')->to('client#replace');
+  $r->post('/client/replace')->to('client#replacepost');
   $r->get('/client/delete')->to('client#delete');
   $r->post('/client/delete')->to('client#deletepost');
 

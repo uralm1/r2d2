@@ -264,6 +264,147 @@ sub editpost {
 }
 
 
+sub replace {
+  my $self = shift;
+  return undef unless $self->authorize({ admin=>1 });
+
+  my $id = $self->param('id');
+  return unless $self->exists_and_number($id);
+
+  my $search = $self->param('s');
+
+  $self->render_later;
+
+  $self->ua->get(Mojo::URL->new("/ui/client/$id")->to_abs($self->head_url) =>
+    {Accept => 'application/json'} =>
+    sub {
+      my ($ua, $tx) = @_;
+      my $res = eval { $tx->result };
+      return unless $self->request_success($res);
+      return unless my $v = $self->request_json($res);
+
+      my $res_tab;
+
+      if ($search) {
+        # perform search
+        my $ldap = Net::LDAP->new($self->config('ldap_servers'), port => 389, timeout => 10, version => 3);
+        unless ($ldap) {
+          warn "LDAP creation error: $@";
+          return $self->render(text => 'Ошибка подключения к глобальному каталогу.');
+        }
+
+        my $mesg = $ldap->bind($self->config('ldap_user'), password => $self->config('ldap_pass'));
+        if ($mesg->code) {
+          warn 'LDAP bind error: '.$mesg->error;
+          return $self->render(text => 'Произошла ошибка авторизации при подключении к глобальному каталогу.');
+        }
+
+        # search ldap
+        my $esc_search = escape_filter_value($search).'*'; # security filtering
+        my $filter = "(&(objectCategory=person)(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(|(cn=$esc_search)(sAMAccountName=$esc_search)))";
+        my $res = $ldap->search(base => $self->config('personnel_ldap_base'), scope => 'sub',
+          filter => $filter,
+          attrs => ['displayName', 'sAMAccountName', 'objectGUID', 'userAccountControl',
+            'title', 'department', 'mail'],
+          sizelimit => 5
+        );
+        if ($res->code && $res->code != LDAP_SIZELIMIT_EXCEEDED && $res->code != LDAP_NO_SUCH_OBJECT) {
+          warn 'LDAP search error: '.$res->error;
+          return $self->render(text => 'Произошла ошибка поиска в глобальном каталоге.');
+        }
+
+        #my $count = $res->count; say "found: $count";
+        my $i = 0;
+        $res_tab = [];
+        for my $entry ($res->entries) {
+          #$entry->dump;
+          my $uac = $entry->get_value('userAccountControl') || 0x200;
+          push @$res_tab, {
+            dn => $entry->dn, # we assume dn to be octets string
+            cn => decode_utf8($entry->get_value('displayName')),
+            disabled => ($uac & 2) == 2,
+            login => lc decode_utf8($entry->get_value('sAMAccountName')),
+            guid => $entry->get_value('objectGUID'), # binary
+            title => decode_utf8($entry->get_value('title')),
+            department => decode_utf8($entry->get_value('department')),
+            email => decode_utf8($entry->get_value('mail')),
+          };
+
+          last if ++$i >= 5;
+        }
+
+        $ldap->unbind;
+
+      } else {
+        $search = '';
+      }
+
+      $self->render(template => 'client/replace',
+        client_id => $id,
+        rec => $v,
+        res_tab => $res_tab,
+        search => $search,
+      );
+    } # get closure
+  );
+}
+
+
+sub replacepost {
+  my $self = shift;
+  return undef unless $self->authorize({ admin=>1 });
+
+  my $v = $self->validation;
+  return $self->render(text=>'Не дал показания') unless $v->has_data;
+
+  #$self->log->debug("I: ".$self->dumper($v->input));
+
+  my $id = $v->optional('id')->param;
+  return unless $self->exists_and_number($id);
+
+  my $search = $v->optional('s')->param || '';
+
+  my $sel_guid = $v->required('ug')->param;
+  if ($v->is_valid) { # check ug
+    $sel_guid = $self->guid2string(decode_base64url($sel_guid));
+    my $j = { guid => $sel_guid }; # resulting json
+    #say $sel_guid;
+    $j->{cn} = $v->required('cn', 'not_empty')->param;
+    $j->{login} = $v->required('login', 'not_empty')->param;
+    $v->optional('desc', 'not_empty');
+    $j->{desc} = $v->param if $v->is_valid;
+    $v->optional('email', 'not_empty')->like(qr/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/);
+    $j->{email} = $v->param if $v->is_valid;
+
+    if ($v->has_error) {
+      $self->flash(oper => 'Ошибка. Неверные данные. Проверьте учетную запись пользователя.');
+      return $self->redirect_to($self->url_for('clientreplace')->query(id => $id, s => $search));
+    }
+
+    #$self->log->debug('J: '.$self->dumper($j));
+
+    # post to system
+    $self->render_later;
+
+    $self->ua->put(Mojo::URL->new("/ui/client/$id")->to_abs($self->head_url) => json => $j =>
+      sub {
+        my ($ua, $tx) = @_;
+        my $res = eval { $tx->result };
+        return unless $self->request_success($res);
+
+        # do redirect with a toast
+        $self->flash(oper => 'Выполнено успешно.');
+        return $self->redirect_to($self->url_for('clientedit')->query(id => $id));
+      } # post closure
+    );
+
+  } else {
+    $self->flash(oper => 'Ошибка. Пользователь не выбран.');
+    $self->redirect_to($self->url_for('clientreplace')->query(id => $id, s => $search));
+  }
+}
+
+
 sub delete {
   my $self = shift;
   return undef unless $self->authorize({ admin=>1 });
