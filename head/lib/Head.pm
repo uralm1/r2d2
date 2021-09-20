@@ -14,7 +14,7 @@ use Head::Command::unblock;
 
 use Sys::Hostname;
 
-our $VERSION = '2.71';
+our $VERSION = '2.72';
 
 # This method will run once at server start
 sub startup {
@@ -97,6 +97,7 @@ sub startup {
 
   $r->get('/ui/oplog')->to('ui_oplog#oplog');
   $r->get('/ui/list')->to('ui_list#list');
+  $r->get('/ui/search/0')->to('ui_search#searchclient');
   $r->get('/ui/server/#id')->to('ui_servers#serverget');
   $r->put('/ui/server/#id')->to('ui_servers#serverput');
   $r->delete('/ui/server/#id')->to('ui_servers#serverdelete');
@@ -108,6 +109,7 @@ sub startup {
   $r->delete('/ui/client/#id')->to('ui_clients#clientdelete');
   $r->get('/ui/device/#client_id/#device_id')->to('ui_devices#deviceget');
   $r->put('/ui/device/#client_id/#device_id')->to('ui_devices#deviceput');
+  $r->patch('/ui/device/#client_id/#device_id')->to('ui_devices#devicepatch');
   $r->delete('/ui/device/#client_id/#device_id')->to('ui_devices#devicedelete');
   $r->post('/ui/device/#client_id')->to('ui_devices#devicepost');
 }

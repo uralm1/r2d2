@@ -1,0 +1,121 @@
+% layout 'default', back_url => (param 'back') ? url_for('deviceedit')->query(back => 1, clientid => $client_id, id => $device_id) : url_for('deviceedit')->query(clientid => $client_id, id => $device_id);
+% use MIME::Base64 qw(encode_base64url);
+% my $toast_msg = flash 'oper';
+% if ($toast_msg) {
+%   content_with done_toast => begin
+<script>$(document).ready(function(){M.toast({html:'<%= $toast_msg %>',displayLength:3000})})</script>
+%   end
+% }
+<div class="scont">
+  <h4>Перенос клиентского устройства</h4>
+  <div class="row">
+    <div class="input-field col s12 m8 l5">
+      %= text_field 'name' => $rec->{name} ne '' ? $rec->{name} : "Не указано, ID: $rec->{id}", id => 'name', disabled => undef
+      %= label_for name => 'Название устройства'
+      %= t 'span', class => 'helper-text', 'Передаваемое устройство'
+    </div>
+    <div class="input-field col s12 m4 l3 offset-l1">
+      %= text_field 'create-time' => $rec->{create_time} // 'Не указано', id => 'create-time', disabled => undef
+      %= label_for 'create-time' => 'Дата и время создания'
+    </div>
+  </div>
+  <div class="row">
+    <div class="input-field col s12 m8 l5">
+      %= text_area desc => $rec->{desc}, id => 'desc', class => 'materialize-textarea', placeholder => '', disabled => undef
+      %= label_for desc => 'Комментарий'
+    </div>
+  </div>
+
+  <h5 class="grey-text text-darken-1">Местоположение</h5>
+  <div class="row">
+    <div class="input-field col s12 m8 l5">
+      %= text_field profile => $rec->{profile}, id => 'profile', disabled => undef;
+      %#= label_for profile => 'Расположение'
+    </div>
+  </div>
+
+  <h5 class="grey-text text-darken-1">Сетевые параметры</h5>
+  <div class="row">
+    <div class="input-field col s10 m6 l4">
+      %= text_field 'ip' => $rec->{ip}, id => 'ip', disabled => undef;
+      %= label_for ip => 'IP адрес'
+      %= t 'span', class => 'helper-text', 'IPv4'
+    </div>
+    <div class="input-field col s10 m6 l4">
+      %= text_field 'mac' => $rec->{mac}, id => 'mac', disabled => undef
+      %= label_for mac => 'MAC'
+      %= t 'span', class => 'helper-text', 'Eui-48 ethernet MAC'
+    </div>
+  </div>
+
+  <p>Найдите клиента которому необходимо передать данное устройство по Фамилии Имени Отчеству, разделитель - пробел, или логину. Возможно частичное указание.</p>
+  %= form_for devicemove => (method=>'GET') => begin
+  %= hidden_field clientid => $client_id
+  %= hidden_field id => $device_id
+  % if (param 'back') {
+  %= hidden_field back => 1
+  % }
+  <div class="row">
+    <div class="input-field col s6">
+      <i class="material-icons prefix">account_box</i>
+      <input id="u-search" type="text" name="s" value="<%= $search %>">
+      <label for="u-search">Введите подстроку для поиска клиента</label>
+    </div>
+    <div class="input-field col s4">
+      <button class="btn waves-effect waves-light" type="submit">Поиск</button>
+    </div>
+  </div>
+  % end
+  % if (defined $res_tab && scalar @$res_tab > 0) {
+  Выберите один из 5 первых найденных вариантов (вводите более подробную строку поиска если клиента нет в списке):<br>
+  %= form_for devicemove => (method=>'POST') => begin
+  <table class="highlight">
+    <thead>
+      <tr>
+	<th style="width:5%">Выбрать</th>
+	<th>Ф.И.О.</th>
+	<th>Email</th>
+	<th>Логин</th>
+      </tr>
+    </thead>
+    <tbody>
+      % for my $r (@$res_tab) {
+      <tr>
+	<td class="vcenter">
+	  <label>
+	    <input class="usersel" name="ucid" type="radio" value="<%== encode_base64url($r->{id}) %>"/>
+	    <span></span>
+	  </label>
+	</td>
+	<td class="cn"><%= $r->{cn} %></td>
+	<td class="email"><%= $r->{email} %></td>
+	<td class="login"><%= $r->{login} %></td>
+      </tr>
+      % }
+    </tbody>
+  </table>
+  %= hidden_field clientid => $client_id
+  %= hidden_field id => $device_id
+  %= hidden_field s => $search
+  % if (param 'back') {
+  %= hidden_field back => 1
+  % }
+  <div class="row">
+    <div class="input-field col s12">
+      <button class="btn-large waves-effect waves-light red darken-2" type="submit">Выполнить перенос устройства</button>
+    </div>
+  </div>
+  % end
+  % } elsif ($res_tab) {
+  <p><b>Никого не найдено, измените строку поиска.</b></p><br>
+  % }
+</div>
+
+% content_for script0 => begin
+<script>
+$(document).ready(function(){
+  $('input.usersel').prop('checked',false);
+  M.updateTextFields();
+});
+</script>
+% end

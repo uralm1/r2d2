@@ -12,7 +12,7 @@
     %= hidden_field clientid => $client_id
     <div class="row">
       <div class="input-field col s12 m8 l5">
-	%= text_field 'name' => $rec->{name}, id => 'name', disabled => undef
+	%= text_field 'name' => $rec->{name} ne '' ? $rec->{name} : "Не указано, ID: $rec->{id}", id => 'name', disabled => undef
 	%= label_for name => 'Название устройства'
 	%= t 'span', class => 'helper-text'
       </div>

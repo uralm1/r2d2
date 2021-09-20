@@ -151,7 +151,7 @@
       <div class="row">
 	<div class="col s12">
 	  <button class="btn-large waves-effect waves-light" type="submit">Сохранить изменения</button>
-	  %= link_to 'Удалить сервер...' => url_for('serverdelete')->query(id => $srv_id) => (class => 'btn-large waves-effect waves-light spaceleft')
+	  %= link_to 'Удалить...' => url_for('serverdelete')->query(id => $srv_id) => (class => 'btn-large waves-effect waves-light spaceleft')
 	  <span class="spaceleft">Будет запущено изменение параметров сервера на агентах.</span>
 	</div>
       </div>

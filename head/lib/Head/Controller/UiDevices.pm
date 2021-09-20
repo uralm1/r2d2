@@ -65,45 +65,34 @@ sub deviceput {
   $self->log->debug($self->dumper($j));
   $self->render_later;
 
-  $self->mysql_inet->db->query("SELECT id FROM clients WHERE id = ? AND type = 0",
-    $client_id =>
+  $self->mysql_inet->db->query("UPDATE devices \
+SET name = ?, devices.desc = ?, ip = ?, mac = ?, no_dhcp = ?, rt = ?, defjump = ?, speed_in = ?, speed_out = ?, qs = ?, limit_in = ? \
+WHERE id = ? AND client_id = ? AND EXISTS (SELECT 1 FROM clients WHERE clients.id = ? AND type = 0)",
+    $j->{name},
+    $j->{desc} // '',
+    scalar($ipo->numeric),
+    $j->{mac},
+    $j->{no_dhcp},
+    $j->{rt},
+    $j->{defjump},
+    $j->{speed_in},
+    $j->{speed_out},
+    $j->{qs},
+    $j->{limit_in},
+    $device_id, $client_id, $client_id =>
     sub {
       my ($db, $err, $results) = @_;
-      return $self->render(text => "Database error, searching client: $err", status => 503) if $err;
-      return $self->render(text => 'Client not found', status => 404) if ($results->rows < 1);
+      return $self->render(text => "Database error, updating device: $err", status => 503) if $err;
 
-      $results->finish;
-
-      $db->query("UPDATE devices \
-SET name = ?, devices.desc = ?, ip = ?, mac = ?, no_dhcp = ?, rt = ?, defjump = ?, speed_in = ?, speed_out = ?, qs = ?, limit_in = ? \
-WHERE id = ? AND client_id = ?",
-        $j->{name},
-        $j->{desc} // '',
-        scalar($ipo->numeric),
-        $j->{mac},
-        $j->{no_dhcp},
-        $j->{rt},
-        $j->{defjump},
-        $j->{speed_in},
-        $j->{speed_out},
-        $j->{qs},
-        $j->{limit_in},
-        $device_id, $client_id =>
-        sub {
-          my ($db, $err, $results) = @_;
-          return $self->render(text => "Database error, updating device: $err", status => 503) if $err;
-
-          if ($results->affected_rows > 0) {
-            $self->dblog->info("UI: Device id $device_id updated successfully");
-            $self->rendered(200);
-          } else {
-            $self->dblog->info("UI: Device id $device_id not updated");
-            $self->render(text => "Device id $device_id not found", status => 404);
-          }
-        }
-      ); # inner query
+      if ($results->affected_rows > 0) {
+        $self->dblog->info("UI: Device id $device_id updated successfully");
+        $self->rendered(200);
+      } else {
+        $self->dblog->info("UI: Device id $device_id not updated");
+        $self->render(text => "Device id $device_id not found or client invalid", status => 404);
+      }
     }
-  ); # outer query
+  ); # inner query
 }
 
 
@@ -124,7 +113,7 @@ sub devicepost {
   $self->log->debug($self->dumper($j));
   $self->render_later;
 
-  $self->mysql_inet->db->query("SELECT id FROM clients WHERE id = ? AND type = 0",
+  $self->mysql_inet->db->query("SELECT 1 FROM clients WHERE id = ? AND type = 0",
     $client_id =>
     sub {
       my ($db, $err, $results) = @_;
@@ -161,6 +150,46 @@ VALUES (?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 1, ?)",
       ); # inner query
     }
   ); # outer query
+}
+
+
+# change device client
+sub devicepatch {
+  my $self = shift;
+  my $client_id = $self->stash('client_id');
+  return unless $self->exists_and_number404($client_id);
+  my $device_id = $self->stash('device_id');
+  return unless $self->exists_and_number404($device_id);
+
+  return unless my $j = $self->json_content($self->req);
+
+  $self->log->debug($self->dumper($j));
+  return $self->render(text => 'Bad id', status => 503) if exists($j->{id}) && $j->{id} != $client_id;
+  return $self->render(text => 'Bad format', status => 503) unless exists($j->{newid}) && $j->{newid} =~ /^\d+$/;
+  return $self->render(text => 'Same client', status => 503) if $j->{newid} == $client_id;
+
+  $self->render_later;
+
+  $self->mysql_inet->db->query("UPDATE devices \
+SET client_id = ? \
+WHERE id = ? AND client_id = ? AND EXISTS (SELECT 1 FROM clients WHERE type = 0 AND clients.id = ?)",
+    $j->{newid},
+    $device_id,
+    $client_id,
+    $j->{newid} =>
+    sub {
+      my ($db, $err, $results) = @_;
+      return $self->render(text => "Database error, moving device: $err", status => 503) if $err;
+
+      if ($results->affected_rows > 0) {
+        $self->dblog->info("UI: Device id $device_id moved successfully");
+        $self->rendered(200);
+      } else {
+        $self->dblog->info("UI: Device id $device_id not moved");
+        $self->render(text => "Device id $device_id not found or client invalid", status => 404);
+      }
+    }
+  );
 }
 
 

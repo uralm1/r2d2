@@ -55,6 +55,7 @@ templates/client/replace.html.ep
 templates/clients/index.html.ep
 templates/device/delete.html.ep
 templates/device/edit.html.ep
+templates/device/move.html.ep
 templates/device/new.html.ep
 templates/index/about.html.ep
 templates/index/index.html.ep

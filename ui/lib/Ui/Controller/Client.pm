@@ -11,10 +11,10 @@ sub newform {
   my $self = shift;
   return undef unless $self->authorize({ admin=>1 });
 
-  my $search = $self->param('s');
+  my $search = $self->param('s') // '';
   my $res_tab;
 
-  if ($search) {
+  if ($search ne '') {
     # perform search
     my $ldap = Net::LDAP->new($self->config('ldap_servers'), port => 389, timeout => 10, version => 3);
     unless ($ldap) {
@@ -63,9 +63,6 @@ sub newform {
     }
 
     $ldap->unbind;
-
-  } else {
-    $search = '';
   }
 
   $self->render(template => 'client/new',
@@ -271,7 +268,7 @@ sub replace {
   my $id = $self->param('id');
   return unless $self->exists_and_number($id);
 
-  my $search = $self->param('s');
+  my $search = $self->param('s') // '';
 
   $self->render_later;
 
@@ -285,7 +282,7 @@ sub replace {
 
       my $res_tab;
 
-      if ($search) {
+      if ($search ne '') {
         # perform search
         my $ldap = Net::LDAP->new($self->config('ldap_servers'), port => 389, timeout => 10, version => 3);
         unless ($ldap) {
@@ -334,9 +331,6 @@ sub replace {
         }
 
         $ldap->unbind;
-
-      } else {
-        $search = '';
       }
 
       $self->render(template => 'client/replace',
@@ -395,7 +389,7 @@ sub replacepost {
         # do redirect with a toast
         $self->flash(oper => 'Выполнено успешно.');
         return $self->redirect_to($self->url_for('clientedit')->query(id => $id));
-      } # post closure
+      } # put closure
     );
 
   } else {

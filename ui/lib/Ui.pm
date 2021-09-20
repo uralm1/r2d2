@@ -1,7 +1,7 @@
 package Ui;
 use Mojo::Base 'Mojolicious';
 
-our $VERSION = '0.4';
+our $VERSION = '0.5';
 
 # This method will run once at server start
 sub startup {
@@ -92,6 +92,8 @@ sub startup {
   $r->post('/device/new')->to('device#newpost');
   $r->get('/device/edit')->to('device#edit');
   $r->post('/device/edit')->to('device#editpost');
+  $r->get('/device/move')->to('device#move');
+  $r->post('/device/move')->to('device#movepost');
   $r->get('/device/delete')->to('device#delete');
   $r->post('/device/delete')->to('device#deletepost');
 

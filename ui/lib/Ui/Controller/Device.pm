@@ -3,6 +3,7 @@ use Mojo::Base 'Mojolicious::Controller';
 
 use Mojo::URL;
 use Regexp::Common qw(number net);
+use MIME::Base64 qw(decode_base64url);
 
 # new device render form and submit
 sub newpost {
@@ -185,6 +186,116 @@ sub editpost {
       $self->redirect_to($self->url_for('clientedit')->query(id => $client_id));
     } # put closure
   );
+}
+
+
+sub move {
+  my $self = shift;
+  return undef unless $self->authorize({ admin=>1 });
+
+  my $id = $self->param('id');
+  return unless $self->exists_and_number($id);
+  my $client_id = $self->param('clientid');
+  return unless $self->exists_and_number($client_id);
+
+  my $search = $self->param('s') // '';
+
+  $self->render_later;
+
+  $self->ua->get(Mojo::URL->new("/ui/device/$client_id/$id")->to_abs($self->head_url) =>
+    {Accept => 'application/json'} =>
+    sub {
+      my ($ua, $tx) = @_;
+      my $res = eval { $tx->result };
+      return unless $self->request_success($res);
+      return unless my $v = $self->request_json($res);
+
+      if ($search ne '') {
+        # perform search
+        $self->ua->get(Mojo::URL->new("/ui/search/0")->to_abs($self->head_url)->
+          query({s => $search, limit => 5}) =>
+          {Accept => 'application/json'} =>
+          sub {
+            my ($ua, $tx1) = @_;
+            my $res1 = eval { $tx1->result };
+            return unless $self->request_success($res1);
+            return unless my $res_tab = $self->request_json($res1);
+
+            $self->render(template => 'device/move',
+              client_id => $client_id,
+              device_id => $id,
+              rec => $v,
+              res_tab => $res_tab,
+              search => $search,
+            );
+          } # search closure
+        );
+      } else {
+        #$search = ''; # already done
+        $self->render(template => 'device/move',
+          client_id => $client_id,
+          device_id => $id,
+          rec => $v,
+          res_tab => undef,
+          search => '',
+        );
+      }
+
+    } # get device closure
+  );
+}
+
+
+sub movepost {
+  my $self = shift;
+  return undef unless $self->authorize({ admin=>1 });
+
+  my $v = $self->validation;
+  return $self->render(text=>'Не дал показания') unless $v->has_data;
+
+  $self->log->debug("I: ".$self->dumper($v->input));
+
+  my $device_id = $v->optional('id')->param;
+  return unless $self->exists_and_number($device_id);
+  my $old_client_id = $v->optional('clientid')->param;
+  return unless $self->exists_and_number($old_client_id);
+
+  my $search = $v->optional('s')->param || '';
+  my $back_url = defined $v->optional('back')->param ?
+    $self->url_for('devicemove')->query(id => $device_id, clientid => $old_client_id, s => $search, back => 1) :
+    $self->url_for('devicemove')->query(id => $device_id, clientid => $old_client_id, s => $search);
+
+  my $sel_id = $v->required('ucid')->param;
+  if ($v->is_valid) { # check ucid
+    $sel_id = decode_base64url($sel_id);
+    return unless $self->exists_and_number($sel_id);
+
+    if ($sel_id == $old_client_id) {
+      $self->flash(oper => 'Ошибка. Устройство уже принадлежит данному клиенту.');
+      return $self->redirect_to($back_url);
+    }
+
+    my $j = { id => $old_client_id, newid => $sel_id }; # patch request body json
+
+    # post to system
+    $self->render_later;
+
+    $self->ua->patch(Mojo::URL->new("/ui/device/$old_client_id/$device_id")->to_abs($self->head_url) => json => $j =>
+      sub {
+        my ($ua, $tx) = @_;
+        my $res = eval { $tx->result };
+        return unless $self->request_success($res);
+
+        # do redirect with a toast
+        $self->flash(oper => 'Выполнено успешно.');
+        return $self->redirect_to('/clients');
+      } # patch closure
+    );
+
+  } else {
+    $self->flash(oper => 'Ошибка. Не выбран клиент.');
+    $self->redirect_to($back_url);
+  }
 }
 
 

@@ -2,6 +2,8 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+- Функция переноса клиентского устройства другому клиенту.
+- Улучшения UI.
 
 ## [0.4 unusable] - 2021-09-10
 - Функционал замены клиентов.

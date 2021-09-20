@@ -59,7 +59,7 @@
 	  <div class="col s12">
 	    <button class="btn-large waves-effect waves-light" type="submit">Сохранить комментарий</button>
 	    %= link_to 'Заменить клиента...' => url_for('clientreplace')->query(id => $client_id) => (class => 'btn-large waves-effect waves-light spaceleft btn-tooltip', 'data-position' => 'top', 'data-tooltip' => 'Заменить указанного клиента, выбрав нового из глобального каталога')
-	    %= link_to 'Удалить клиента...' => url_for('clientdelete')->query(id => $client_id) => (class => 'btn-large waves-effect waves-light spaceleft')
+	    %= link_to 'Удалить...' => url_for('clientdelete')->query(id => $client_id) => (class => 'btn-large waves-effect waves-light spaceleft')
 	  </div>
 	</div>
 
@@ -104,7 +104,7 @@
 	  <div class="col s12">
 	    <button class="btn-large waves-effect waves-light" type="submit">Сохранить изменения</button>
 	    %= link_to 'Заменить клиента...' => url_for('clientreplace')->query(id => $client_id) => (class => 'btn-large waves-effect waves-light spaceleft btn-tooltip', 'data-position' => 'top', 'data-tooltip' => 'Заменить указанного клиента, выбрав нового из глобального каталога')
-	    %= link_to 'Удалить клиента...' => url_for('clientdelete')->query(id => $client_id) => (class => 'btn-large waves-effect waves-light spaceleft')
+	    %= link_to 'Удалить...' => url_for('clientdelete')->query(id => $client_id) => (class => 'btn-large waves-effect waves-light spaceleft')
 	  </div>
 	</div>
         % }
@@ -115,6 +115,7 @@
       <div id="devicemanagement" class="section scrollspy">
 	<div class="row">
 	  <h5>Управление клиентскими устройствами</h5>
+	  <p class="no-margin-bottom">Нажмите на клиентское устройство в таблице для его редактирования.</p>
 	  <table class="highlight">
 	    <thead>
 	      <tr>
@@ -134,10 +135,11 @@
 		<td><%== $line_num++ %></td>
 		<td>
 		  %= link_to url_for('deviceedit')->query(back => 1, clientid => $client_id, id => $_->{id}) => (class => 'listlink') => begin
-		    <span><%= $_->{name} %></span>
-	            % unless ($_->{name}) {
-	            <span>ID:&nbsp;<%= $_->{id} %></span>
-	            % }
+		  % if ($_->{name} ne '') {
+		  %= $_->{name}
+                  % } else {
+		  ID:&nbsp;<%= $_->{id} %>
+	          % }
 		  % end
 		</td>
 		<td><%= $_->{profile} %></td>
@@ -158,7 +160,7 @@
 	  <div class="col s12">
 	  %= form_for devicenew => (method=>'POST', style=>'display:inline-block;') => begin
 	    %= hidden_field client_id => $client_id
-	    <button class="btn-large waves-effect waves-light" type="submit">Добавить новое&hellip;</button>
+	    <button class="btn-large waves-effect waves-light" type="submit">Добавить новое устройство&hellip;</button>
 	  % end
 	  </div>
 	</div>

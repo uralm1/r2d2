@@ -26,6 +26,7 @@ paths:
                     type: string
                     example: '3.00'
 
+
   /log:
     post:
       summary: Записывает сообщение в op_log
@@ -53,6 +54,7 @@ paths:
               schema:
                 type: string
                 description: error message
+
 
   /log/{subsys}:
     post:
@@ -90,6 +92,7 @@ paths:
                 type: string
                 description: error message
 
+
   /clients:
     get:
       summary: Load devices data for profiles
@@ -126,6 +129,7 @@ paths:
                 type: string
                 description: error message
 
+
   /devices:
     get:
       summary: Load devices data for profiles
@@ -160,6 +164,7 @@ paths:
               schema:
                 type: string
                 description: error message
+
 
   /client/{device_id}:
     get:
@@ -196,6 +201,7 @@ paths:
                 type: string
                 description: error message
 
+
   /device/{device_id}:
     get:
       summary: Load device data
@@ -229,6 +235,7 @@ paths:
               schema:
                 type: string
                 description: error message
+
 
   /trafstat:
     post:
@@ -299,6 +306,7 @@ paths:
                 type: string
                 description: error message
 
+
   /blocked:
     post:
       summary: Извещение о выполненной операции блокирования/разблокирования
@@ -330,7 +338,8 @@ paths:
               schema:
                 type: string
                 description: error message
-    
+
+
   /reloaded:
     post:
       summary: Извещение о выполненной операции перезагрузки всех клиентов
@@ -363,6 +372,7 @@ paths:
                 type: string
                 description: error message
 
+
   /ui/list:
     get:
       summary: Получение списка клиентов и серверов
@@ -388,7 +398,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ui_list_json'
+                $ref: '#/components/schemas/ui_list'
         '400':
           description: Ошибка в параметрах, в основном неверный номер текущей страницы
           content:
@@ -403,6 +413,49 @@ paths:
               schema:
                 type: string
                 description: error message
+
+
+  /ui/search/0:
+    get:
+      summary: Поиск клиентов
+      description: Поиск среди клиентов по подстроке, пейджинг не поддерживается.
+      parameters:
+        - name: s
+          in: query
+          required: true
+          description: Подстрока поиска (регистронезависимая)
+          schema:
+            type: string
+            example: 'иванов'
+        - name: limit
+          in: query
+          description: Максимальное количество результатов выдачи (по умолчанию 5)
+          schema:
+            type: integer
+            example: 5
+
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ui_client_search_result'
+        '400':
+          description: Ошибка в параметрах
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
 
   /ui/server/{server_id}:
     get:
@@ -502,6 +555,7 @@ paths:
                 type: string
                 description: error message
 
+
   /ui/server:
     post:
       summary: 'Добавление нового сервера'
@@ -528,6 +582,7 @@ paths:
               schema:
                 type: string
                 description: error message      
+
 
   /ui/client/{client_id}:
     get:
@@ -601,7 +656,7 @@ paths:
 
     patch:
       summary: 'Редактирование описания (description) клиента'
-      description: 'Свойство id необязательное, если указывается то должно совпадать с параметром client_id.'
+      description: 'Свойство id необязательное, если указывается, то должно совпадать с параметром client_id.'
       parameters:
         - name: client_id
           in: path
@@ -681,6 +736,7 @@ paths:
                 type: string
                 description: error message
 
+
   /ui/client:
     post:
       summary: 'Добавление нового клиента'
@@ -707,6 +763,7 @@ paths:
               schema:
                 type: string
                 description: error message      
+
 
   /ui/device/{client_id}/{device_id}:
     get:
@@ -789,6 +846,58 @@ paths:
                 type: string
                 description: error message
 
+    patch:
+      summary: 'Перенос устройства от одного клиента к другому'
+      description: 'Свойство id необязательное, если указывается, то должно совпадать с параметром client_id.'
+      parameters:
+        - name: client_id
+          in: path
+          required: true
+          description: 'Client id предыдущего владельца'
+          schema:
+            type: integer
+        - name: device_id
+          in: path
+          required: true
+          description: 'Device id'
+          schema:
+            type: integer
+
+      requestBody:
+        description: 'New client id'
+        required: true
+        content:
+          'application/json':
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: 'Код старого клиента'
+                newid:
+                  type: integer
+                  description: 'Код нового клиента'
+              required:
+                - newid
+
+      responses:
+        '200':
+          description: Success
+        '404':
+          description: Not found, including bad id parameter
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
     delete:
       summary: 'Удаление клиентского устройства'
       parameters:
@@ -822,6 +931,7 @@ paths:
               schema:
                 type: string
                 description: error message
+
 
   /ui/device/{client_id}:
     post:
@@ -864,6 +974,7 @@ paths:
                 type: string
                 description: error message
 
+
   /ui/oplog:
     get:
       summary: Получение лога операций
@@ -889,7 +1000,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ui_oplog_json'
+                $ref: '#/components/schemas/ui_oplog'
         '400':
           description: Ошибка в параметрах, в основном неверный номер текущей страницы
           content:
@@ -905,11 +1016,13 @@ paths:
                 type: string
                 description: error message
 
+
 # Added by API Auto Mocking Plugin
 servers:
   # Added by API Auto Mocking Plugin
   - description: SwaggerHub API Auto Mocking
     url: https://virtserver.swaggerhub.com/uralm1/head/3.1
+
 
 components:
   schemas:
@@ -925,6 +1038,7 @@ components:
           type: string
           example: Initialization started
           description: String to put into log
+
           
     device_record:
       description: Device record
@@ -974,6 +1088,7 @@ components:
           type: string
           description: 'client profile name'
           example: 'gwtest1'
+
     
     traf_stats:
       description: Traffic statistics
@@ -995,6 +1110,7 @@ components:
         2: {in: 10, out: 20}
         10: {in: 110, out: 220}
 
+
     refresh_stats:
       description: Successful refresh information
       type: object
@@ -1007,6 +1123,7 @@ components:
           type: integer
           description: client id
           example: 11
+
           
     block_stats:
       description: Successful block/unblock information
@@ -1024,6 +1141,7 @@ components:
           type: integer
           description: Operation (0-unblocked, 2-limited, 3-blocked)
           example: 0
+
           
     reload_stats:
       description: Successful reload information
@@ -1033,8 +1151,9 @@ components:
           type: string
           description: Subsystem name. Имя агента должно совпадать с одним из прописанных в коде.
           example: agent@host
+
           
-    ui_oplog_json:
+    ui_oplog:
       description: Страница данных лога операций
       type: object
       properties:
@@ -1089,7 +1208,8 @@ components:
             subsys: 'gwsyn@gwsev'
             info: 'Finished traffic_stat'
 
-    ui_list_json:
+
+    ui_list:
       description: 'Страница данных перечня клиентов'
       type: object
       properties:
@@ -1117,22 +1237,16 @@ components:
         page: 1
         lines_on_page: 20
         d:
-          - id: 54321
-            cn: 'Сервер DC1'
-            desc: 'Описание сервера'
-            create_time: '14:04:24 30/04/21'
-            ip: '1.2.3.4'
-            mac: '11:22:33:44:55:66'
-            rt: 1
-            no_dhcp: 0
-            defjump: 'ACCEPT'
-            speed_in: 'quantum 6400 rate 1mbit prio 5'
-            speed_out: 'quantum 6400 rate 1mbit prio 5'
-            qs: 2
-            limit_in: 1073741824
-            blocked: 0
-            profile: 'gwtest1'
+          TODO: 'Массив client_device_record'
+
             
+    ui_client_search_result:
+      description: 'Результаты поиска клиентов'
+      type: array
+      items:
+        $ref: '#/components/schemas/client_record'
+
+
     server_record:
       description: 'Server record'
       type: object
@@ -1213,6 +1327,7 @@ components:
         - limit_in
         - profile
 
+
     client_record:
       description: 'Client record'
       type: object
@@ -1248,6 +1363,7 @@ components:
         - cn
         - guid
         - login
+
 
     client_full_record:
       description: 'Client list record including device list'
@@ -1299,6 +1415,7 @@ components:
         - email
         - devices
         
+
     client_device_record:
       description: 'Client device record'
       type: object

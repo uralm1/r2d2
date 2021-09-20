@@ -26,7 +26,7 @@
 	<td>
 	  % my $cn_tooltip = ($_->{desc} ne '') ? 'table-tooltips' : '';
 	  %= link_to $_->{type} == 1 ? url_for('serveredit')->query(id => $_->{id}) : url_for('clientedit')->query(id => $_->{id}) => (class => "listlink $cn_tooltip", 'data-tooltip' => $_->{desc}, 'data-position' => 'bottom') => begin
-	    <%= $_->{cn} %>
+	  <%= $_->{cn} %>
 	  % end
 	</td>
 	<td><%= $_->{email} %></td>
@@ -54,9 +54,10 @@
 	      <td style="width:25%">
 		<i class="material-icons tiny"><%== $_->{type} == 1 ? 'dns':'computer' %></i>
 		%= link_to $_->{type} == 1 ? url_for('serveredit')->query(id => $_->{id}) : url_for('deviceedit')->query(clientid => $_->{id}, id => $d->{id}) => (class => 'listlink') => begin
-		<span><%= $d->{name} %></span>
-		% unless ($d->{name}) {
-		<span>ID:&nbsp;<%= $d->{id}%></span>
+		% if ($d->{name} ne '') {
+		%= $d->{name}
+		% } else {
+		ID:&nbsp;<%= $d->{id} %>
 		% }
 		% end
 	      </td>
