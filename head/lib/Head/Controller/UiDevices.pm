@@ -92,7 +92,7 @@ WHERE id = ? AND client_id = ? AND EXISTS (SELECT 1 FROM clients WHERE clients.i
         $self->render(text => "Device id $device_id not found or client invalid", status => 404);
       }
     }
-  ); # inner query
+  );
 }
 
 

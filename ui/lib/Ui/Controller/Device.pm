@@ -253,7 +253,7 @@ sub movepost {
   my $v = $self->validation;
   return $self->render(text=>'Не дал показания') unless $v->has_data;
 
-  $self->log->debug("I: ".$self->dumper($v->input));
+  #$self->log->debug("I: ".$self->dumper($v->input));
 
   my $device_id = $v->optional('id')->param;
   return unless $self->exists_and_number($device_id);

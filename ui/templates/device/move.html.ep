@@ -49,7 +49,7 @@
   </div>
 
   <p>Найдите клиента которому необходимо передать данное устройство по Фамилии Имени Отчеству, разделитель - пробел, или логину. Возможно частичное указание.</p>
-  %= form_for devicemove => (method=>'GET') => begin
+  %= form_for url_for('devicemove')->fragment('aftersearch') => (method=>'GET') => begin
   %= hidden_field clientid => $client_id
   %= hidden_field id => $device_id
   % if (param 'back') {
@@ -100,7 +100,7 @@
   % if (param 'back') {
   %= hidden_field back => 1
   % }
-  <div class="row">
+  <div id="aftersearch" class="row">
     <div class="input-field col s12">
       <button class="btn-large waves-effect waves-light red darken-2" type="submit">Выполнить перенос устройства</button>
     </div>

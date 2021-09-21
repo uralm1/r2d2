@@ -26,7 +26,7 @@
     </div>
   </div>
   <p>Найдите нового пользователя в глобальном каталоге по Фамилии Имени Отчеству, разделитель - пробел, или логину. Возможно частичное указание.</p>
-  %= form_for clientreplace => (method=>'GET') => begin
+  %= form_for url_for('clientreplace')->fragment('aftersearch') => (method=>'GET') => begin
   %= hidden_field id => $client_id
   <div class="row">
     <div class="input-field col s6">
@@ -84,7 +84,7 @@
       %= t 'span', class => 'helper-text', 'Дополнительная информация по новому клиенту'
     </div>
   </div>
-  <div class="row">
+  <div id="aftersearch" class="row">
     <div class="input-field col s12">
       <button class="btn-large waves-effect waves-light red darken-2" type="submit">Выполнить замену клиента</button>
     </div>
