@@ -1,4 +1,4 @@
-% layout 'default', back_url => '/clients';
+% layout 'default', title => 'Новый клиент', back_url => '/clients';
 % use MIME::Base64 qw(encode_base64url);
 % my $toast_msg = flash 'oper';
 % if ($toast_msg) {
@@ -7,7 +7,6 @@
 %   end
 % }
 <div class="scont">
-  <h4>Новый клиент</h4>
   <p>Найдите пользователя в глобальном каталоге по Фамилии Имени Отчеству, разделитель - пробел, или логину. Возможно частичное указание.</p>
   %= form_for clientnew => (method=>'GET') => begin
   <div class="row">

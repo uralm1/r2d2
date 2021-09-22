@@ -1,10 +1,8 @@
-% layout 'default', back_url => url_for('clientedit')->query(id => $client_id);
+% layout 'default', title => 'Удаление клиента', back_url => url_for('clientedit')->query(id => $client_id);
 <div class="scont">
-  <h4 class="red-text text-darken-2">Удаление клиента</h5>
   % if (my $num_devs = @{$rec->{devices}}) {
     <div class="row">
       <div class="col s12">
-	%#
         <h5>Клиенту предоставлен доступ на <%== "$num_devs устройств" . ($num_devs =~ /1$/ ? 'е' : 'ах') %>.</h5>
       </div>
     </div>

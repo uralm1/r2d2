@@ -2,6 +2,7 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+- Страница статистики.
 - Функция переноса клиентского устройства другому клиенту.
 - Улучшения UI.
 

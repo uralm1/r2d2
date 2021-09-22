@@ -1,4 +1,4 @@
-% layout 'default', back_url => '/clients';
+% layout 'default', title => 'Новый сервер', back_url => '/clients';
 % if (validation->has_error) {
 %   content_with validation_toast => begin
 <script>$(document).ready(function(){M.toast({html:'Ошибка. Неверные данные.',displayLength:3000})})</script>
@@ -9,9 +9,7 @@
   <div class="row">
     <div class="col s12 m12 l10">
 
-      <h4>Новый сервер</h5>
       %= form_for servernew => (method=>'POST') => begin
-
       <div id="main" class="section scrollspy">
 	<div class="row">
 	  <div class="input-field col s12 m8 l5">

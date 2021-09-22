@@ -1,7 +1,5 @@
-% layout 'default', back_url => url_for('serveredit')->query(id => $srv_id);
+% layout 'default', title => 'Удаление сервера', back_url => url_for('serveredit')->query(id => $srv_id);
 <div class="scont">
-  <h4 class="red-text text-darken-2">Удаление сервера</h5>
-
   <div class="row">
     <div class="col s12">
       <h5>Вы действительно желаете удалить данный сервер?</h5>

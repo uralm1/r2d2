@@ -67,7 +67,8 @@ sub startup {
   $r->get('/')->to('index#index');
   $r->get('/about')->to('index#about');
 
-  $r->get('/rep/users')->to('rep#users');
+  $r->get('/rep/client')->to('rep#client');
+  $r->get('/stat')->to('stat#index');
 
   $r->get('/oplog')->to('oplog#index');
 

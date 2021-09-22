@@ -1,9 +1,8 @@
-% layout 'default', back_url => '/';
+% layout 'default', title => 'О программе', back_url => '/';
 <div class="scont">
-  <h4>О программе</h4>
   <div class="row">
     <div class col s12>
-      <h6><b>Управление комплексом &quot;R2D2&quot;. Версия: <%== $version %></b></h6>
+      <h5><b>Управление комплексом &quot;R2D2&quot;. Версия: <%== $version %></b></h5>
     </div>
     <div class col s12>
       <p>

@@ -25,10 +25,11 @@
   </ul>
   <nav class="white-text pink darken-2">
     <div class="nav-wrapper scont">
+      % my $title = stash('title') // 'Управление Интернет';
       % if (my $u = stash 'back_url') {
-      <a href="<%== $u %>" class="brand-logo"><i class="material-icons">arrow_back</i>Управление Интернет</a>
+      <a href="<%== $u %>" class="brand-logo"><i class="material-icons">arrow_back</i><%= $title %></a>
       % } else {
-      <a href="/" class="brand-logo">Управление Интернет</a>
+      <a href="/" class="brand-logo"><%= $title %></a>
       % }
       <ul class="right hide-on-med-and-down">
 	<li><a class="dropdown-trigger" href="#!" data-target="servers-dropdown">Серверы<i class="material-icons right">arrow_drop_down</i></a></li>

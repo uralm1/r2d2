@@ -1,4 +1,4 @@
-% layout 'default', back_url => '/clients';
+% layout 'default', title => 'Данные клиента', back_url => '/clients';
 % if (my $toast_msg = flash 'oper') {
 %   content_with done_toast => begin
 <script>$(document).ready(function(){M.toast({html:'<%= $toast_msg %>',displayLength:3000})})</script>
@@ -14,7 +14,7 @@
   <div class="row">
     <div class="col s12 m12 l10">
 
-      <h4>Редактирование клиента</h5>
+      <h4>Редактирование клиента</h4>
       %= form_for clientedit => (method=>'POST') => begin
 
       <div id="client" class="section scrollspy">

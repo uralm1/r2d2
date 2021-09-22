@@ -1,4 +1,4 @@
-% layout 'default', back_url => (param 'back') ? url_for('deviceedit')->query(back => 1, clientid => $client_id, id => $device_id) : url_for('deviceedit')->query(clientid => $client_id, id => $device_id);
+% layout 'default', title => 'Перенос устройства', back_url => (param 'back') ? url_for('deviceedit')->query(back => 1, clientid => $client_id, id => $device_id) : url_for('deviceedit')->query(clientid => $client_id, id => $device_id);
 % use MIME::Base64 qw(encode_base64url);
 % my $toast_msg = flash 'oper';
 % if ($toast_msg) {
@@ -7,8 +7,7 @@
 %   end
 % }
 <div class="scont">
-  <h4>Перенос клиентского устройства</h4>
-  <div class="row">
+  <div class="row margin-top">
     <div class="input-field col s12 m8 l5">
       %= text_field 'name' => $rec->{name} ne '' ? $rec->{name} : "Не указано, ID: $rec->{id}", id => 'name', disabled => undef
       %= label_for name => 'Название устройства'

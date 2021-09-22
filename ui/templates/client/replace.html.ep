@@ -1,4 +1,4 @@
-% layout 'default', back_url => url_for('clientedit')->query(id => $client_id);
+% layout 'default', title => 'Замена клиента', back_url => url_for('clientedit')->query(id => $client_id);
 % use MIME::Base64 qw(encode_base64url);
 % my $toast_msg = flash 'oper';
 % if ($toast_msg) {
@@ -7,8 +7,7 @@
 %   end
 % }
 <div class="scont">
-  <h4>Замена клиента</h4>
-  <div class="row">
+  <div class="row margin-top">
     <div class="input-field col s12 m8 l5">
       %= text_field 'cn' => $rec->{cn}, id => 'cn', disabled => undef
       %= label_for cn => 'Фамилия Имя Отчество'

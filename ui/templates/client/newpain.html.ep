@@ -1,14 +1,12 @@
-% layout 'default', back_url => '/clients';
+% layout 'default', title => 'Новый клиент (вручную)', back_url => '/clients';
 % if (validation->has_error) {
 %   content_with validation_toast => begin
 <script>$(document).ready(function(){M.toast({html:'Ошибка. Неверные данные.',displayLength:3000})})</script>
 %   end
 % }
 <div class="scont">
-  <h4>Новый клиент (вручную)</h5>
-
   %= form_for clientnewpain => (method=>'POST') => begin
-    <div class="row">
+    <div class="row margin-top">
       <div class="input-field col s12 m8 l5">
 	%= text_field 'cn', id => 'cn'
 	%= label_for cn => 'Фамилия Имя Отчество'
