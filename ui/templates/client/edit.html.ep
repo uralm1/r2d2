@@ -1,4 +1,11 @@
 % layout 'default', title => 'Данные клиента', back_url => '/clients';
+% content tabs => begin
+<ul class="tabs tabs-transparent">
+  <li class="tab"><a href="#tabedit">Редактирование</a></li>
+  <li class="tab"><a href="#tabstatday">Трафик по дням</a></li>
+  <li class="tab"><a href="#tabstatmonth">За 12 мес.</a></li>
+</ul>
+% end
 % if (my $toast_msg = flash 'oper') {
 %   content_with done_toast => begin
 <script>$(document).ready(function(){M.toast({html:'<%= $toast_msg %>',displayLength:3000})})</script>
@@ -11,10 +18,9 @@
 % }
 <div class="scont">
 
-  <div class="row">
+  <div class="row" id="tabedit">
     <div class="col s12 m12 l10">
 
-      <h4>Редактирование клиента</h4>
       %= form_for clientedit => (method=>'POST') => begin
 
       <div id="client" class="section scrollspy">
@@ -178,6 +184,15 @@
     </div>
 
   </div>
+
+  <div id="tabstatday">
+    <h4>TABSTATDAY</h4>
+  </div>
+
+  <div id="tabstatmonth">
+    <h4>TABSTATMONTH</h4>
+  </div>
+
 </div>
 % content_for script0 => begin
 <script>

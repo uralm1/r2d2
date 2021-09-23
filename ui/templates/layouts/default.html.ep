@@ -23,7 +23,7 @@
     <li><%= link_to 'clientnew' => begin %><i class="material-icons">add_box</i>Добавить нового клиента&hellip;<% end %></li>
     <li><%= link_to 'servernew' => begin %><i class="material-icons">dns</i>Добавить новый сервер&hellip;<% end %></li>
   </ul>
-  <nav class="white-text pink darken-2">
+  <nav class="nav-extended white-text pink darken-2">
     <div class="nav-wrapper scont">
       % my $title = stash('title') // 'Управление Интернет';
       % if (my $u = stash 'back_url') {
@@ -38,12 +38,15 @@
         <li><a href="<%== config 'help_url' %>" target="_blank"><i class="material-icons">help</i></a></li>
       </ul>
     </div>
+    <div class="nav-content scont">
+%= content 'tabs'
+    </div>
   </nav>
-  <!--[if lte IE 9]>
-    <div class="section"><div class="container"><div class="card-panel red">
-      <b class="white-text">ВНИМАНИЕ! Вы используете устаревшую версию браузера Интернет. Многие элементы страницы будут отображены некорректно. Обновите версию Вашего браузера!</b>
-    </div></div></div>
-  <![endif]-->
+<!--[if lte IE 9]>
+  <div class="section"><div class="container"><div class="card-panel red">
+  <b class="white-text">ВНИМАНИЕ! Вы используете устаревшую версию браузера Интернет. Многие элементы страницы будут отображены некорректно. Обновите версию Вашего браузера!</b>
+  </div></div></div>
+<![endif]-->
 %= content
   <footer class="page-footer pink darken-2">
     <div class="footer-copyright">
@@ -60,6 +63,7 @@
 <script src="/js/materialize.min.js?v=101"></script>
 <script>
   $(document).ready(function(){
+    $('.tabs').tabs();
     $('.dropdown-trigger').dropdown({coverTrigger:false,constrainWidth:false});
 % if ($newversion) {
     $('#newversion-modal').modal();$('#newversion-modal').modal('open');
