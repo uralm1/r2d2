@@ -1,4 +1,4 @@
-% layout 'default', title => 'Удаление сервера', back_url => url_for('serveredit')->query(id => $srv_id);
+% layout 'default', title => 'Удаление сервера', back_url => url_with('serveredit');
 <div class="scont">
   <div class="row">
     <div class="col s12">

@@ -1,11 +1,4 @@
-% layout 'default', title => 'Клиентское устройство', back_url => (param 'back') ? url_for('clientedit')->query(id => $client_id)->fragment('devicemanagement') : '/clients';
-% content tabs => begin
-<ul class="tabs tabs-transparent">
-  <li class="tab"><a href="#tabedit">Редактирование</a></li>
-  <li class="tab"><a href="#tabstatday">Трафик по дням</a></li>
-  <li class="tab"><a href="#tabstatmonth">За 12 мес.</a></li>
-</ul>
-% end
+% layout 'deviceedit';
 % if (validation->has_error) {
 %   content_with validation_toast => begin
 <script>$(document).ready(function(){M.toast({html:'Ошибка. Неверные данные.',displayLength:3000})})</script>
@@ -13,12 +6,12 @@
 % }
 <div class="scont">
 
-  <div class="row" id="tabedit">
+  <div class="row" id="tabactive">
     <div class="col s12 m12 l10">
 
       %= form_for deviceedit => (method=>'POST') => begin
 
-      <div id="main" class="section scrollspy">
+      <div id="main" class="section scrollspy margin-top">
 	%= hidden_field id => $device_id
 	%= hidden_field clientid => $client_id
 	<div class="row">
@@ -154,8 +147,8 @@
       <div class="row">
 	<div class="col s12">
 	  <button class="btn-large waves-effect waves-light" type="submit">Сохранить изменения</button>
-	  %= link_to 'Перенести...' => (param 'back') ? url_for('devicemove')->query(back => 1, clientid => $client_id, id => $device_id) : url_for('devicemove')->query(clientid => $client_id, id => $device_id) => (class => 'btn-large waves-effect waves-light spaceleft btn-tooltip', 'data-position' => 'top', 'data-tooltip' => 'Передать данное устройство от одного клиента другому')
-	  %= link_to 'Удалить...' => (param 'back') ? url_for('devicedelete')->query(back => 1, clientid => $client_id, id => $device_id) : url_for('devicedelete')->query(clientid => $client_id, id => $device_id) => (class => 'btn-large waves-effect waves-light spaceleft')
+	  %= link_to 'Перенести...' => url_with('devicemove') => (class => 'btn-large waves-effect waves-light spaceleft btn-tooltip', 'data-position' => 'top', 'data-tooltip' => 'Передать данное устройство от одного клиента другому')
+	  %= link_to 'Удалить...' => url_with('devicedelete') => (class => 'btn-large waves-effect waves-light spaceleft')
 	  <p class="no-margin-bottom">Будет запущено изменение параметров устройства на агентах.</p>
 	</div>
       </div>
@@ -175,15 +168,6 @@
     </div>
 
   </div>
-
-  <div id="tabstatday">
-    <h4>TABSTATDAY</h4>
-  </div>
-
-  <div id="tabstatmonth">
-    <h4>TABSTATMONTH</h4>
-  </div>
-
 </div>
 % content_for script0 => begin
 <script>

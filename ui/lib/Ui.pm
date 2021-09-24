@@ -78,6 +78,7 @@ sub startup {
   $r->post('/server/edit')->to('server#editpost');
   $r->get('/server/delete')->to('server#delete');
   $r->post('/server/delete')->to('server#deletepost');
+  $r->get('/server/stat')->to('server#stat');
 
   $r->get('/clients')->to('clients#index');
   $r->get('/client/new')->to('client#newform');
@@ -89,6 +90,7 @@ sub startup {
   $r->post('/client/replace')->to('client#replacepost');
   $r->get('/client/delete')->to('client#delete');
   $r->post('/client/delete')->to('client#deletepost');
+  $r->get('/client/stat')->to('client#stat');
 
   $r->post('/device/new')->to('device#newpost');
   $r->get('/device/edit')->to('device#edit');
@@ -97,6 +99,7 @@ sub startup {
   $r->post('/device/move')->to('device#movepost');
   $r->get('/device/delete')->to('device#delete');
   $r->post('/device/delete')->to('device#deletepost');
+  $r->get('/device/stat')->to('device#stat');
 
 }
 

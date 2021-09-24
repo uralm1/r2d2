@@ -1,4 +1,4 @@
-% layout 'default', title => 'Замена клиента', back_url => url_for('clientedit')->query(id => $client_id);
+% layout 'default', title => 'Замена клиента', back_url => url_with('clientedit')->query({s => undef});
 % use MIME::Base64 qw(encode_base64url);
 % my $toast_msg = flash 'oper';
 % if ($toast_msg) {

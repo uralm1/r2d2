@@ -1,11 +1,4 @@
-% layout 'default', title => 'Данные сервера', back_url => '/clients';
-% content tabs => begin
-<ul class="tabs tabs-transparent">
-  <li class="tab"><a href="#tabedit">Редактирование</a></li>
-  <li class="tab"><a href="#tabstatday">Трафик по дням</a></li>
-  <li class="tab"><a href="#tabstatmonth">За 12 мес.</a></li>
-</ul>
-% end
+% layout 'serveredit';
 % if (validation->has_error) {
 %   content_with validation_toast => begin
 <script>$(document).ready(function(){M.toast({html:'Ошибка. Неверные данные.',displayLength:3000})})</script>
@@ -13,12 +6,12 @@
 % }
 <div class="scont">
 
-  <div class="row" id="tabedit">
+  <div class="row" id="tabactive">
     <div class="col s12 m12 l10">
 
       %= form_for serveredit => (method=>'POST') => begin
 
-      <div id="main" class="section scrollspy">
+      <div id="main" class="section scrollspy margin-top">
 	%= hidden_field id => $srv_id
 	<div class="row">
 	  <div class="input-field col s12 m8 l5">
@@ -157,7 +150,7 @@
       <div class="row">
 	<div class="col s12">
 	  <button class="btn-large waves-effect waves-light" type="submit">Сохранить изменения</button>
-	  %= link_to 'Удалить...' => url_for('serverdelete')->query(id => $srv_id) => (class => 'btn-large waves-effect waves-light spaceleft')
+	  %= link_to 'Удалить...' => url_with('serverdelete') => (class => 'btn-large waves-effect waves-light spaceleft')
 	  <span class="spaceleft">Будет запущено изменение параметров сервера на агентах.</span>
 	</div>
       </div>
@@ -177,15 +170,6 @@
     </div>
 
   </div>
-
-  <div id="tabstatday">
-    <h4>TABSTATDAY</h4>
-  </div>
-
-  <div id="tabstatmonth">
-    <h4>TABSTATMONTH</h4>
-  </div>
-
 </div>
 % content_for script0 => begin
 <script>

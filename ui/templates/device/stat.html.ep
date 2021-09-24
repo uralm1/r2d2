@@ -1,0 +1,7 @@
+% layout 'deviceedit'; #activetab => $activetab
+<div class="scont" id="tabactive">
+
+  <h5>STAT DEVICE!</h5>
+  <p>device_id: <%= $device_id %>, client_id: <%= $client_id %>, rep: <%= $rep %></p>
+
+</div>

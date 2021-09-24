@@ -1,4 +1,4 @@
-% layout 'default', title => 'Удаление клиента', back_url => url_for('clientedit')->query(id => $client_id);
+% layout 'default', title => 'Удаление клиента', back_url => url_with('clientedit');
 <div class="scont">
   % if (my $num_devs = @{$rec->{devices}}) {
     <div class="row">
@@ -25,14 +25,14 @@
     </div>
     <div class="row">
       <div class="col s12">
-      Удаление клиента невозможно.<br>
-      Удалите ВСЕ клиентские устройства перед удалением клиента.
+	<b>Удаление клиента невозможно.</b><br>
+Удалите ВСЕ клиентские устройства перед удалением клиента.
       </div>
     </div>
 
     <div class="row">
       <div class="col s12">
-	%= link_to 'Вернуться к списку' => url_for('clientedit')->query(id => $client_id) => (class => 'btn-large waves-effect waves-light')
+	%= link_to 'Вернуться к списку' => url_with('clientedit') => (class => 'btn-large waves-effect waves-light')
       </div>
     </div>
   % } else {

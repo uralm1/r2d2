@@ -1,4 +1,4 @@
-% layout 'default', title => 'Перенос устройства', back_url => (param 'back') ? url_for('deviceedit')->query(back => 1, clientid => $client_id, id => $device_id) : url_for('deviceedit')->query(clientid => $client_id, id => $device_id);
+% layout 'default', title => 'Перенос устройства', back_url => url_with('deviceedit')->query({s => undef});
 % use MIME::Base64 qw(encode_base64url);
 % my $toast_msg = flash 'oper';
 % if ($toast_msg) {

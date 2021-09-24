@@ -1,0 +1,23 @@
+% layout 'default', title => 'Данные клиента', back_url => '/clients';
+% content tabs => begin
+<% my $tabber = begin %>
+% my ($act_tab, $this_tab, $text) = @_;
+% if ($act_tab == $this_tab) {
+<li class="tab"><a class="active" href="#tabactive"><%== $text %></a></li>
+% } else {
+%   if ($this_tab == 1) {
+<li class="tab"><a target="_self" href="<%== url_with('clientedit')->query({rep => undef}) %>"><%== $text %></a></li>
+%   } elsif ($this_tab == 2) {
+<li class="tab"><a target="_self" href="<%== url_with('clientstat')->query({rep => undef}) %>"><%== $text %></a></li>
+%   } elsif ($this_tab == 3) {
+<li class="tab"><a target="_self" href="<%== url_with('clientstat')->query({rep => 'month'}) %>"><%== $text %></a></li>
+%   }
+% }
+<% end %>
+<ul class="tabs tabs-transparent">
+% my $at = stash('activetab') // 1;
+%= $tabber->($at, 1, 'Редактирование')
+%= $tabber->($at, 2, 'Трафик по дням')
+%= $tabber->($at, 3, 'За 12 мес.')
+</ul>
+% end

@@ -446,4 +446,20 @@ sub deletepost {
 }
 
 
+sub stat {
+  my $self = shift;
+  return undef unless $self->authorize({ admin=>1 });
+
+  my $client_id = $self->param('id');
+  return unless $self->exists_and_number($client_id);
+  my $reptype = $self->param('rep');
+
+  return $self->render(
+    client_id => $client_id,
+    rep => $reptype,
+    activetab => $reptype && $reptype eq 'month' ? 3 : 2
+  );
+}
+
+
 1;

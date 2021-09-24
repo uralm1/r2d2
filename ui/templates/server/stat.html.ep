@@ -1,0 +1,7 @@
+% layout 'serveredit'; #activetab => $activetab
+<div class="scont" id="tabactive">
+
+  <h5>STAT SERVER!</h5>
+  <p>server_id: <%= $server_id %>, rep: <%= $rep %></p>
+
+</div>

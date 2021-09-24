@@ -1,0 +1,7 @@
+% layout 'clientedit'; #activetab => $activetab
+<div class="scont" id="tabactive">
+
+  <h5>STAT CLIENT!</h5>
+  <p>client_id: <%= $client_id %>, rep: <%= $rep %></p>
+
+</div>

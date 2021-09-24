@@ -106,7 +106,11 @@ sub edit {
       return unless $self->request_success($res);
       return unless my $v = $self->request_json($res);
 
-      return $self->render(client_id => $client_id, device_id => $id, rec => $v);
+      return $self->render(
+        client_id => $client_id,
+        device_id => $id,
+        rec => $v
+      );
     } # get closure
   );
 }
@@ -346,6 +350,25 @@ sub deletepost {
       $self->flash(oper => 'Выполнено успешно.');
       $self->redirect_to($self->url_for('clientedit')->query(id => $client_id));
     } # delete closure
+  );
+}
+
+
+sub stat {
+  my $self = shift;
+  return undef unless $self->authorize({ admin=>1 });
+
+  my $device_id = $self->param('id');
+  return unless $self->exists_and_number($device_id);
+  my $client_id = $self->param('clientid');
+  return unless $self->exists_and_number($client_id);
+  my $reptype = $self->param('rep');
+
+  return $self->render(
+    device_id => $device_id,
+    client_id => $client_id,
+    rep => $reptype,
+    activetab => $reptype && $reptype eq 'month' ? 3 : 2
   );
 }
 
