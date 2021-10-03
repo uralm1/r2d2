@@ -1,7 +1,183 @@
 % layout 'deviceedit'; #activetab => $activetab
 <div class="scont" id="tabactive">
 
-  <h5>STAT DEVICE!</h5>
-  <p>device_id: <%= $device_id %>, client_id: <%= $client_id %>, rep: <%= $rep %></p>
+  <!-- Stat device_id: <%= $device_id %>, client_id: <%= $client_id %>, rep: <%= $rep %><br> -->
+
+  <div class="row info-device-stat">
+    <div class="col icon-col">
+      <i class="material-icons medium green-text" title="Работа без ограничений.">check_circle</i>
+      <!--i class="material-icons medium amber-text" title="Лимит исчерпан. Предупреждение! Ваше потребление трафика превысило установленную норму.">warning</i>
+      <i class="material-icons medium red-text" title="Лимит исчерпан. Доступ в Интернет ограничен по скорости. Полные возможности будут доступны с начала нового месяца.">cancel</i>
+      <i class="material-icons medium red-text" title="Лимит исчерпан. Доступ в Интернет заблокирован. Работа в сети будет возможна с начала нового месяца.">cancel</i-->
+    </div>
+    <div class="col s8">
+      <b>Устройство:</b>&nbsp;имя_устройства<br>
+      <b>Местоположение:</b>&nbsp;plk<br>
+      <b>Текущий лимит:</b>&nbsp;1024 Мб, <b>Осталось:</b>&nbsp;700 Мб.<br>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col s12 m11 l9 xl7">
+      <table class="highlight tbl-device-stat">
+	<thead>
+	  <tr>
+	    <th>Дата: 01-20-2021</th>
+	    <th>Получено</th>
+	    <th>Отправлено</th>
+	  </tr>
+	</thead>
+	<tbody>
+	  <tr>
+	    <td>За сегодня</td>
+	    <td>0.0 Мб (0 байт)</td>
+	    <td>0.0 Мб (0 байт)</td>
+	  </tr>
+	  <tr>
+	    <td>В текущем месяце</td>
+	    <td>0.0 Мб (0 байт)</td>
+	    <td>0.0 Мб (0 байт)</td>
+	  </tr>
+	<tbody>
+      </table>
+    </div>
+  </div>
+  <p>Ежедневные данные за последние 31(+1) дней.</p>
+  <div class="row">
+    <div class="col l12 xl11">
+      <canvas id="chart1"></canvas>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col s12 m11 l9 xl7">
+      <table class="highlight tbl-device-stat">
+	<thead>
+	  <tr>
+	    <th>Дата</th>
+	    <th>Получено (за сутки)</th>
+	    <th>Отправлено (за сутки)</th>
+	  </tr>
+	</thead>
+	<tbody>
+	  <tr>
+	    <td>30-09-2021 Сб</td>
+	    <td>0.0 Мб (0 байт)</td>
+	    <td>0.0 Мб (6426 байт)</td>
+	  </tr>
+	  <tr>
+	    <td>30-09-2021 Сб</td>
+	    <td>0.0 Мб (0 байт)</td>
+	    <td>0.0 Мб (6426 байт)</td>
+	  </tr>
+	  <tr>
+	    <td>30-09-2021 Сб</td>
+	    <td>0.0 Мб (0 байт)</td>
+	    <td>0.0 Мб (6426 байт)</td>
+	  </tr>
+	  <tr>
+	    <td>30-08-2021 Пн</td>
+	    <td>н/д</td>
+	    <td>н/д</td>
+	  </tr>
+	  <tr>
+	    <td>30-08-2021 Пн</td>
+	    <td>н/д</td>
+	    <td>н/д</td>
+	  </tr>
+	<tbody>
+      </table>
+    </div>
+  </div>
 
 </div>
+
+% content_for script0 => begin
+<script src="/js/luxon.min.js"></script>
+<script src="/js/chart.min.js"></script>
+<script src="/js/chartjs-adapter-luxon.js"></script>
+<script>
+var chart1 = new Chart($('#chart1'), {
+  type: 'bar',
+  data: {
+    datasets: [
+      {
+	label: 'Получено',
+	borderColor: '#facd8a',
+	borderWidth: 1,
+	hoverBorderWidth: 2,
+	backgroundColor: '#facd8ad5',
+        data: [
+	  {x:new Date(2021, 9, 1),y:100},
+	  {x:new Date(2021, 9, 2),y:50},
+	  {x:new Date(2021, 9, 3),y:30},
+	  {x:new Date(2021, 9, 4),y:120},
+	  {x:new Date(2021, 9, 20),y:10},
+	]
+      },
+      {
+	label: 'Отправлено',
+	borderColor: '#af88b8',
+	borderWidth: 1,
+	hoverBorderWidth: 2,
+	backgroundColor: '#af88b8d5',
+        data: [
+	  {x:new Date(2021, 9, 1),y:80},
+	  {x:new Date(2021, 9, 2),y:20},
+	  {x:new Date(2021, 9, 3),y:90},
+	  {x:new Date(2021, 9, 4),y:110},
+	  {x:new Date(2021, 9, 20),y:10},
+	]
+      },
+    ]
+  },
+  options: {
+    responsive: true,
+    aspectRatio: 5,
+    scales: {
+      x: {
+	type: 'time',
+	display: true,
+	time: {
+	  displayFormats: {
+	    minute: 'H:mm d.MM',
+	    hour: 'H:mm d.MM',
+	    day: 'd.MM',
+	    week: 'd.MM.yy',
+	    month: 'MM.yyyy',
+	    year: 'yyyy'
+	  },
+	  tooltipFormat: 'd.MM.yyyy',
+	  isoWeekday: true
+	},
+	ticks: {
+	  maxRotation: 0,
+	  autoSkip: true
+	}
+      },
+      y: {
+	type: 'linear',
+	display: true,
+	position: 'left',
+	beginAtZero: true,
+	title: {
+	  display: true,
+	  text: 'Мегабайты'
+	},
+      }
+    },
+    plugins: {
+      tooltip: {
+        position: 'nearest',
+        mode: 'index',
+        intersect: true
+      },
+      legend: {
+	position: 'right',
+        labels: {
+	  usePointStyle: false
+        }
+      }
+    }
+  }
+});
+</script>
+% end

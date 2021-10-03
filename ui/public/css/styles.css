@@ -119,3 +119,15 @@ tr.tr-device>td {
   color:#000;
 }
 
+.tbl-device-stat td, .tbl-device-stat th {
+  padding:2px 5px;
+}
+
+.info-device-stat {
+  margin-top:20px;
+}
+
+.icon-col {
+  width:4rem;
+  margin-right:12px;
+}
