@@ -362,13 +362,35 @@ sub stat {
   return unless $self->exists_and_number($device_id);
   my $client_id = $self->param('clientid');
   return unless $self->exists_and_number($client_id);
-  my $reptype = $self->param('rep');
+  my $reptype = $self->param('rep') // '';
+  my $activetab;
+  my $q = '';
+  if ($reptype eq 'month') {
+    $activetab = 3;
+    $q = '?rep=month';
+  } else {
+    $activetab = 2;
+  }
 
-  return $self->render(
-    device_id => $device_id,
-    client_id => $client_id,
-    rep => $reptype,
-    activetab => $reptype && $reptype eq 'month' ? 3 : 2
+  $self->render_later;
+
+  $self->ua->get(Mojo::URL->new("/ui/stat/device/$client_id/$device_id$q")
+    ->to_abs($self->head_url) =>
+    {Accept => 'application/json'} =>
+    sub {
+      my ($ua, $tx) = @_;
+      my $res = eval { $tx->result };
+      return unless $self->request_success($res);
+      return unless my $v = $self->request_json($res);
+
+      return $self->render(
+        client_id => $client_id,
+        device_id => $device_id,
+        rec => $v,
+        rep => $reptype,
+        activetab => $activetab
+      );
+    } # get closure
   );
 }
 

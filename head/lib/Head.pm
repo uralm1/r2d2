@@ -112,6 +112,7 @@ sub startup {
   $r->patch('/ui/device/#client_id/#device_id')->to('ui_devices#devicepatch');
   $r->delete('/ui/device/#client_id/#device_id')->to('ui_devices#devicedelete');
   $r->post('/ui/device/#client_id')->to('ui_devices#devicepost');
+  $r->get('/ui/stat/device/#client_id/#device_id')->to('ui_stat#deviceget');
 }
 
 

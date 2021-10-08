@@ -975,6 +975,52 @@ paths:
                 description: error message
 
 
+  /ui/stat/device/{client_id}/{device_id}:
+    get:
+      summary: 'Получение данных по трафику для клиентского устройства'
+      parameters:
+        - name: client_id
+          in: path
+          required: true
+          description: 'Client id'
+          schema:
+            type: integer
+        - name: device_id
+          in: path
+          required: true
+          description: 'Device id'
+          schema:
+            type: integer
+        - name: rep
+          in: query
+          description: 'Report type, can be day,month or not set'
+          schema:
+            type: string
+            enum: [day, month]
+      
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/stat_device_record'
+        '404':
+          description: Not found, including bad client_id or device_id parameters
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+
   /ui/oplog:
     get:
       summary: Получение лога операций
@@ -1491,3 +1537,94 @@ components:
         - qs
         - limit_in
         - profile
+        
+        
+    stat_device_record:
+      description: 'Traffic statistics device record'
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Код устройства'
+        date:
+          type: string
+          description: 'Текущая дата (дд-мм-гггг)'
+          example: '06-10-2021'
+        name:
+          type: string
+          description: Наименование устройства
+          example: 'Рабочий ноутбук'
+        qs:
+          type: integer
+          description: 'quote mode (0-disabled, 1-notify, 2-limit, 3-block)'
+          example: 2
+        limit_in:
+          type: integer
+          description: 'quota limit in bytes'
+          example: 1073741824
+        sum_limit_in:
+          type: integer
+          description: 'remaining limit in bytes'
+          example: 1073741824
+        blocked:
+          type: integer
+          description: 'blocked flag (0-unblocked, 1-blocked)'
+          example: 0
+        profile:
+          type: string
+          description: 'device profile name'
+          example: 'gwtest1'
+        today_traf:
+          #description: 'трафик за сегодня'
+          $ref: '#/components/schemas/stat_traffic_object'
+        curmonth_traf:
+          #description: 'трафик за текущий месяц'
+          $ref: '#/components/schemas/stat_traffic_object'
+        traf:
+          type: array
+          description: 'массив данных по трафику'
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                description: 'Дата (дд-мм-гггг или мм-гггг)'
+                example: '06-10-2021'
+              t:
+                $ref: '#/components/schemas/stat_traffic_object'
+
+      required:
+        - id
+        - name
+        - date
+        - qs
+        - limit_in
+        - sum_limit_in
+        - blocked
+        - profile
+        - today_traf
+        - curmonth_traf
+        - traf
+
+        
+    stat_traffic_object:
+      description: 'Traffic object (in/out)'
+      type: object
+      properties:
+        in:
+          type: integer
+          description: 'input traffic (in bytes, -1 means no-data)'
+          example: 100
+        out:
+          type: integer
+          description: 'output traffic (in bytes, -1 means no-data)'
+          example: 200
+        fuzzy_in:
+          type: integer
+          description: 'not required, 1-input traffic value is roughly estimated'
+        fuzzy_out:
+          type: integer
+          description: 'not required, 1-output traffic value is roughly estimated'
+      required:
+        - in
+        - out
