@@ -1,0 +1,98 @@
+<script>
+var chart<%== $chart_id %> = new Chart($('#chart<%== $chart_id %>'), {
+  type: 'bar',
+  data: {
+    datasets: [
+      {
+	label: 'Получено',
+	borderColor: '#facd8a',
+	borderWidth: 1,
+	hoverBorderWidth: 2,
+	backgroundColor: '#facd8ad5',
+        data: [
+% for (@{$rec->{traf}}) {
+%   my $jsdate = get_js_date($_->{date});
+%   my $v = $_->{in};
+%   if ($jsdate && $v >= 0) {
+{x:<%= $jsdate %>,y:<%= btomb($v) %>},
+%   }
+% }
+	]
+      },
+      {
+	label: 'Отправлено',
+	borderColor: '#af88b8',
+	borderWidth: 1,
+	hoverBorderWidth: 2,
+	backgroundColor: '#af88b8d5',
+        data: [
+% for (@{$rec->{traf}}) {
+%   my $jsdate = get_js_date($_->{date});
+%   my $v = $_->{out};
+%   if ($jsdate && $v >= 0) {
+{x:<%= $jsdate %>,y:<%= btomb($v) %>},
+%   }
+% }
+	]
+      },
+    ]
+  },
+  options: {
+    responsive: true,
+    aspectRatio: 5,
+    //locale: 'ru-RU',
+    scales: {
+      x: {
+	type: 'time',
+	display: true,
+	time: {
+	  displayFormats: {
+	    minute: 'H:mm d.MM',
+	    hour: 'H:mm d.MM',
+	    day: 'd.MM',
+	    week: 'd.MM.yy',
+	    month: 'MM.yyyy',
+	    year: 'yyyy'
+	  },
+          % if ($rep eq 'month') {
+	    unit: 'month',
+	    tooltipFormat: 'MM.yyyy',
+          % } else {
+	    unit: 'day',
+	    tooltipFormat: 'd.MM.yyyy',
+          % }
+	  isoWeekday: true
+	},
+	ticks: {
+	  maxRotation: 0,
+	  autoSkip: true
+	},
+	//adapters: {date: { locale: 'ru'}}
+      },
+      y: {
+	type: 'linear',
+	display: true,
+	position: 'left',
+	beginAtZero: true,
+	title: {
+	  display: true,
+	  text: 'Мегабайты'
+	},
+      }
+    },
+    plugins: {
+      tooltip: {
+        position: 'nearest',
+        mode: 'index',
+        intersect: true
+      },
+      legend: {
+	position: 'right',
+        labels: {
+	  usePointStyle: false
+        }
+      }
+    }
+  }
+});
+</script>

@@ -1,7 +1,31 @@
 % layout 'serveredit'; #activetab => $activetab
 <div class="scont" id="tabactive">
-
-  <h5>STAT SERVER!</h5>
-  <p>server_id: <%= $server_id %>, rep: <%= $rep %></p>
-
+  <div class="row row-top-margin">
+    <div class="col s8">
+      <b>Название сервера:</b>&nbsp;<%= $rec->{cn} %><br>
+      % if ($rec->{email}) {
+      <b>Email для уведомлений:</b>&nbsp;<%= $rec->{email} %>
+      % }
+    </div>
+  </div>
+  <ul class="collapsible expandable">
+    <li class="active">
+      <div class="collapsible-header grey lighten-3">
+%= include 'stat/_device_head'
+      </div>
+      <div class="collapsible-body body-small-padding">
+%= include 'stat/_device', chart_id => 1
+      </div>
+    </li>
+  </ul>
 </div>
+
+% content_for script0 => begin
+%= include 'stat/_chartjs_deps'
+%= include 'stat/_device_js', chart_id => 1
+<script>
+$(document).ready(function(){
+  $('.collapsible').collapsible({accordion:false});
+});
+</script>
+% end

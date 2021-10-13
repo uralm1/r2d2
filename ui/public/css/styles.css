@@ -123,11 +123,24 @@ tr.tr-device>td {
   padding:2px 5px;
 }
 
-.info-device-stat {
+.row-top-margin {
   margin-top:20px;
+}
+
+.row-leftbottom-no-margin {
+  margin-left:0px;
+  margin-bottom:0px;
 }
 
 .icon-col {
   width:4rem;
   margin-right:12px;
+}
+
+.icon-col i.medium {
+  font-size: 4rem;
+}
+
+.body-small-padding {
+  padding: 1rem;
 }

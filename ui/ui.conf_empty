@@ -66,4 +66,5 @@
   personnel_ldap_base => 'DC=contoso,DC=local',
 
   help_url => 'https://faq.contoso.com',
+  client_help_url => 'https://faq.contoso.com/user',
 }

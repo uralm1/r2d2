@@ -5,6 +5,14 @@ use Ui::Ural::Changelog;
 
 sub index {
   my $self = shift;
+  return undef unless $self->authorize($self->allow_all_roles);
+
+  # IMPORTANT!
+  # redirect to stat if not admin
+  if ($self->stash('remote_user_role') ne 'admin') {
+    $self->redirect_to('stat');
+  }
+
   return undef unless $self->authorize({ admin=>1 });
 
   # TODO
@@ -14,6 +22,14 @@ sub index {
 
 
 sub about {
+  my $self = shift;
+  return undef unless $self->authorize({ admin=>1 });
+
+  $self->aboutstat();
+}
+
+
+sub aboutstat {
   my $self = shift;
   return undef unless $self->authorize($self->allow_all_roles);
 

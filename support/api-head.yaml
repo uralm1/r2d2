@@ -1021,6 +1021,86 @@ paths:
                 description: error message
 
 
+  /ui/stat/server/{server_id}:
+    get:
+      summary: 'Получение данных по трафику для сервера'
+      parameters:
+        - name: server_id
+          in: path
+          required: true
+          description: 'Server id'
+          schema:
+            type: integer
+        - name: rep
+          in: query
+          description: 'Report type, can be day,month or not set'
+          schema:
+            type: string
+            enum: [day, month]
+      
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/stat_server_record'
+        '404':
+          description: Not found, including bad server_id parameter
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+
+  /ui/stat/client/{client_id}:
+    get:
+      summary: 'Получение данных по трафику для клиента'
+      parameters:
+        - name: client_id
+          in: path
+          required: true
+          description: 'Client id'
+          schema:
+            type: integer
+        - name: rep
+          in: query
+          description: 'Report type, can be day,month or not set'
+          schema:
+            type: string
+            enum: [day, month]
+      
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/stat_client_record'
+        '404':
+          description: Not found, including bad client_id parameter
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+
   /ui/oplog:
     get:
       summary: Получение лога операций
@@ -1460,7 +1540,7 @@ components:
         - login
         - email
         - devices
-        
+
 
     client_device_record:
       description: 'Client device record'
@@ -1537,8 +1617,35 @@ components:
         - qs
         - limit_in
         - profile
-        
-        
+
+
+    stat_traffic_object:
+      description: 'Traffic object (in/out)'
+      type: object
+      properties:
+        date:
+          type: string
+          description: 'Дата (дд-мм-гггг, обязательна в массивах данных по трафику, в записях по месяцам день игнорируется)'
+          example: '06-10-2021'
+        in:
+          type: integer
+          description: 'input traffic (in bytes, -1 means no-data)'
+          example: 100
+        out:
+          type: integer
+          description: 'output traffic (in bytes, -1 means no-data)'
+          example: 200
+        fuzzy_in:
+          type: integer
+          description: 'not required, 1-input traffic value is roughly estimated'
+        fuzzy_out:
+          type: integer
+          description: 'not required, 1-output traffic value is roughly estimated'
+      required:
+        - in
+        - out
+
+
     stat_device_record:
       description: 'Traffic statistics device record'
       type: object
@@ -1584,15 +1691,7 @@ components:
           type: array
           description: 'массив данных по трафику'
           items:
-            type: object
-            properties:
-              date:
-                type: string
-                description: 'Дата (дд-мм-гггг или мм-гггг)'
-                example: '06-10-2021'
-              t:
-                $ref: '#/components/schemas/stat_traffic_object'
-
+            $ref: '#/components/schemas/stat_traffic_object'
       required:
         - id
         - name
@@ -1607,24 +1706,106 @@ components:
         - traf
 
         
-    stat_traffic_object:
-      description: 'Traffic object (in/out)'
+    stat_server_record:
+      description: 'Traffic statistics server record'
       type: object
       properties:
-        in:
+        id:
           type: integer
-          description: 'input traffic (in bytes, -1 means no-data)'
-          example: 100
-        out:
+          description: 'Код сервера'
+        date:
+          type: string
+          description: 'Текущая дата (дд-мм-гггг)'
+          example: '06-10-2021'
+        cn:
+          type: string
+          description: Наименование сервера
+          example: 'Сервер DC1'
+        email:
+          type: string
+          description: 'Email для уведомлений'
+          example: 'user@domain.tld'
+        qs:
           type: integer
-          description: 'output traffic (in bytes, -1 means no-data)'
-          example: 200
-        fuzzy_in:
+          description: 'quote mode (0-disabled, 1-notify, 2-limit, 3-block)'
+          example: 2
+        limit_in:
           type: integer
-          description: 'not required, 1-input traffic value is roughly estimated'
-        fuzzy_out:
+          description: 'quota limit in bytes'
+          example: 1073741824
+        sum_limit_in:
           type: integer
-          description: 'not required, 1-output traffic value is roughly estimated'
+          description: 'remaining limit in bytes'
+          example: 1073741824
+        blocked:
+          type: integer
+          description: 'blocked flag (0-unblocked, 1-blocked)'
+          example: 0
+        profile:
+          type: string
+          description: 'server profile name'
+          example: 'gwtest1'
+        today_traf:
+          #description: 'трафик за сегодня'
+          $ref: '#/components/schemas/stat_traffic_object'
+        curmonth_traf:
+          #description: 'трафик за текущий месяц'
+          $ref: '#/components/schemas/stat_traffic_object'
+        traf:
+          type: array
+          description: 'массив данных по трафику'
+          items:
+            $ref: '#/components/schemas/stat_traffic_object'
       required:
-        - in
-        - out
+        - id
+        - cn
+        - date
+        - qs
+        - limit_in
+        - sum_limit_in
+        - blocked
+        - profile
+        - today_traf
+        - curmonth_traf
+        - traf
+
+
+    stat_client_record:
+      description: 'Traffic statistics client record'
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Код клиента'
+        date:
+          type: string
+          description: 'Текущая дата (дд-мм-гггг)'
+          example: '06-10-2021'
+        cn:
+          type: string
+          description: 'Фамилия Иия Отчество'
+          example: 'Иванов Иван Иванович'
+        guid:
+          type: string
+          description: 'ObjectGUID клиента, возможно пустое для клиентов добавленных вручную'
+          example: 'b95108ab-236a-4534-9ef0-6b8fa1cd59fd'
+        login:
+          type: string
+          description: 'Логин клиента'
+          example: 'user'
+        email:
+          type: string
+          description: 'Email клиента'
+          example: 'user@domain.tld'
+        devices:
+          type: array
+          description: 'массив данных трафика по устройствам клиента'
+          items:
+            $ref: '#/components/schemas/stat_device_record'
+      required:
+        - id
+        - cn
+        - login
+        - guid
+        - date
+        - devices

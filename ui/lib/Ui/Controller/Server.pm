@@ -235,12 +235,33 @@ sub stat {
 
   my $server_id = $self->param('id');
   return unless $self->exists_and_number($server_id);
-  my $reptype = $self->param('rep');
+  my $reptype = $self->param('rep') // '';
+  my $activetab;
+  my $q = '';
+  if ($reptype eq 'month') {
+    $activetab = 3;
+    $q = '?rep=month';
+  } else {
+    $activetab = 2;
+  }
 
-  return $self->render(
-    server_id => $server_id,
-    rep => $reptype,
-    activetab => $reptype && $reptype eq 'month' ? 3 : 2
+  $self->render_later;
+
+  $self->ua->get(Mojo::URL->new("/ui/stat/server/$server_id$q")->to_abs($self->head_url) =>
+    {Accept => 'application/json'} =>
+    sub {
+      my ($ua, $tx) = @_;
+      my $res = eval { $tx->result };
+      return unless $self->request_success($res);
+      return unless my $v = $self->request_json($res);
+
+      return $self->render(
+        server_id => $server_id,
+        rec => $v,
+        rep => $reptype,
+        activetab => $activetab
+      );
+    } # get closure
   );
 }
 

@@ -1,200 +1,23 @@
 % layout 'deviceedit'; #activetab => $activetab
 <div class="scont" id="tabactive">
-
-  <!-- Stat device_id: <%= $device_id %>, client_id: <%= $client_id %>, rep: <%= $rep %><br> -->
-
-  <div class="row info-device-stat">
-    <div class="col icon-col">
-      % if ($rec->{blocked}) {
-      %   if ($rec->{qs} == 1) { # warn
-      <i class="material-icons medium amber-text" title="Лимит исчерпан. Предупреждение! Ваше потребление трафика превысило установленную норму.">warning</i>
-      %   } elsif ($rec->{qs} == 2) { # speed
-      <i class="material-icons medium red-text" title="Лимит исчерпан. Доступ в Интернет ограничен по скорости. Полные возможности будут доступны с начала нового месяца.">cancel</i>
-      %   } elsif ($rec->{qs} == 3) { # drop
-      <i class="material-icons medium red-text" title="Лимит исчерпан. Доступ в Интернет заблокирован. Работа в сети будет возможна с начала нового месяца.">cancel</i>
-      %   } else { # strange...
-      <i class="material-icons medium blue-text" title="Заблокировано.">help</i>
-      %   }
-      % } else {
-      <i class="material-icons medium green-text" title="Работа без ограничений.">check_circle</i>
-      % }
-    </div>
-    <div class="col s8">
-      <b>Устройство:</b>&nbsp;<%= $rec->{name} ne '' ? $rec->{name} : "ID: $rec->{id}" %><br>
-      <b>Местоположение:</b>&nbsp;<%= $rec->{profile} %><br>
-      %# print limit info only if quota enabled
-      % if ($rec->{qs} != 0) {
-      %   my $check_text_style = $rec->{sum_limit_in} <= 0 ? 'style="color:#ff0000"' : '';
-      <b>Текущий лимит:</b>&nbsp;<%= traftomb($rec->{limit_in}) %>, <span <%== $check_text_style %>><b>Осталось:</b>&nbsp;<%= traftomb($rec->{sum_limit_in}) %></span>.<br>
-      % }
-    </div>
-  </div>
-  <div class="row">
-    <div class="col s12 m11 l9 xl7">
-      <table class="highlight tbl-device-stat">
-	<thead>
-	  <tr>
-	    <th>Дата: <%= $rec->{date} %></th>
-	    <th>Получено</th>
-	    <th>Отправлено</th>
-	  </tr>
-	</thead>
-	<tbody>
-	  <tr>
-	    <td>За сегодня</td>
-%== traftotd $rec->{today_traf}
-	  </tr>
-	  <tr>
-	    <td>В текущем месяце</td>
-%== traftotd $rec->{curmonth_traf}
-	  </tr>
-	<tbody>
-      </table>
-    </div>
-  </div>
-  <p>
-  % if ($rep eq 'month') {
-Ежемесячные данные за последние 12 месяцев.
-  % } else {
-  % my @t = localtime;
-Ежедневные данные за последние <%= days_in($t[5]+1900, $t[4]) %>(+1) дней.
-  % }
-  </p>
-  <div class="row">
-    <div class="col l12 xl11">
-      <canvas id="chart1"></canvas>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col s12 m11 l9 xl7">
-      <table class="highlight tbl-device-stat">
-	<thead>
-	  <tr>
-          % if ($rep eq 'month') {
-	    <th>Месяц</th>
-	    <th>Получено (за месяц)</th>
-	    <th>Отправлено (за месяц)</th>
-          % } else {
-	    <th>Дата</th>
-	    <th>Получено (за сутки)</th>
-	    <th>Отправлено (за сутки)</th>
-          % }
-	  </tr>
-	</thead>
-	<tbody>
-	  % for (@{$rec->{traf}}) {
-	  <tr>
-	    <td><%= $_->{date} %></td>
-%== traftotd $_->{t}
-	  </tr>
-	  % }
-	<tbody>
-      </table>
-    </div>
-  </div>
-
+  <ul class="collapsible expandable row-top-margin">
+    <li class="active">
+      <div class="collapsible-header grey lighten-3">
+%= include 'stat/_device_head'
+      </div>
+      <div class="collapsible-body body-small-padding">
+%= include 'stat/_device', chart_id => 1
+      </div>
+    </li>
+  </ul>
 </div>
 
 % content_for script0 => begin
-<script src="/js/luxon.min.js"></script>
-<script src="/js/chart.min.js"></script>
-<script src="/js/chartjs-adapter-luxon.js"></script>
+%= include 'stat/_chartjs_deps'
+%= include 'stat/_device_js', chart_id => 1
 <script>
-var chart1 = new Chart($('#chart1'), {
-  type: 'bar',
-  data: {
-    datasets: [
-      {
-	label: 'Получено',
-	borderColor: '#facd8a',
-	borderWidth: 1,
-	hoverBorderWidth: 2,
-	backgroundColor: '#facd8ad5',
-        data: [
-% for (@{$rec->{traf}}) {
-%   my $date_param = get_js_date($_->{date});
-%   my $v = $_->{t}{in};
-%   if ($date_param && $v >= 0) {
-{x:new Date(<%= $date_param %>),y:<%= btomb($v) %>},
-%   }
-% }
-	]
-      },
-      {
-	label: 'Отправлено',
-	borderColor: '#af88b8',
-	borderWidth: 1,
-	hoverBorderWidth: 2,
-	backgroundColor: '#af88b8d5',
-        data: [
-% for (@{$rec->{traf}}) {
-%   my $date_param = get_js_date($_->{date});
-%   my $v = $_->{t}{out};
-%   if ($date_param && $v >= 0) {
-{x:new Date(<%= $date_param %>),y:<%= btomb($v) %>},
-%   }
-% }
-	]
-      },
-    ]
-  },
-  options: {
-    responsive: true,
-    aspectRatio: 5,
-    //locale: 'ru-RU',
-    scales: {
-      x: {
-	type: 'time',
-	display: true,
-	time: {
-	  displayFormats: {
-	    minute: 'H:mm d.MM',
-	    hour: 'H:mm d.MM',
-	    day: 'd.MM',
-	    week: 'd.MM.yy',
-	    month: 'MM.yyyy',
-	    year: 'yyyy'
-	  },
-          % if ($rep eq 'month') {
-	    unit: 'month',
-	    tooltipFormat: 'MM.yyyy',
-          % } else {
-	    unit: 'day',
-	    tooltipFormat: 'd.MM.yyyy',
-          % }
-	  isoWeekday: true
-	},
-	ticks: {
-	  maxRotation: 0,
-	  autoSkip: true
-	},
-	//adapters: {date: { locale: 'ru'}}
-      },
-      y: {
-	type: 'linear',
-	display: true,
-	position: 'left',
-	beginAtZero: true,
-	title: {
-	  display: true,
-	  text: 'Мегабайты'
-	},
-      }
-    },
-    plugins: {
-      tooltip: {
-        position: 'nearest',
-        mode: 'index',
-        intersect: true
-      },
-      legend: {
-	position: 'right',
-        labels: {
-	  usePointStyle: false
-        }
-      }
-    }
-  }
+$(document).ready(function(){
+  $('.collapsible').collapsible({accordion:false});
 });
 </script>
 % end

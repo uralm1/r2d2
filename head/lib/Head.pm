@@ -113,6 +113,8 @@ sub startup {
   $r->delete('/ui/device/#client_id/#device_id')->to('ui_devices#devicedelete');
   $r->post('/ui/device/#client_id')->to('ui_devices#devicepost');
   $r->get('/ui/stat/device/#client_id/#device_id')->to('ui_stat#deviceget');
+  $r->get('/ui/stat/server/#server_id')->to('ui_stat#serverget');
+  $r->get('/ui/stat/client/#client_id')->to('ui_stat#clientget');
 }
 
 

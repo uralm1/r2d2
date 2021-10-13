@@ -1,4 +1,4 @@
-% layout 'clientedit'; #activetab => $activetab
+% layout 'userstat', use_tabs => 1; # activetab => $activetab
 <div class="scont" id="tabactive">
   <div class="row row-top-margin">
     <div class="col s8">
@@ -9,7 +9,7 @@
       % }
     </div>
   </div>
-  <p>Клиентские устройства, подключенные к сети Интернет:</p>
+  <p>Ваши устройства, подключенные к сети Интернет:</p>
   <ul class="collapsible expandable">
     % my $chart_id_counter = 1;
     % for my $rec (@{$fullrec->{devices}}) {
@@ -38,3 +38,4 @@ $(document).ready(function(){
 });
 </script>
 % end
+

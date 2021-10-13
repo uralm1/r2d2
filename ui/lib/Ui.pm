@@ -24,6 +24,7 @@ sub startup {
 
   $self->plugin('Ui::Plugin::MPagenav');
   $self->plugin('Ui::Plugin::Utils');
+  $self->plugin('Ui::Plugin::StatUtils');
 
   #push @{$self->commands->namespaces}, 'Ui::Command';
 
@@ -66,6 +67,7 @@ sub startup {
 
   $r->get('/')->to('index#index');
   $r->get('/about')->to('index#about');
+  $r->get('/aboutstat')->to('index#aboutstat');
 
   $r->get('/rep/client')->to('rep#client');
   $r->get('/stat')->to('stat#index');

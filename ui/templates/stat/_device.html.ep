@@ -1,0 +1,63 @@
+<div class="row">
+  <div class="col s12 m11 l9 xl7">
+    <table class="highlight tbl-device-stat">
+      <thead>
+	<tr>
+	  <th>Дата: <%= $rec->{date} %></th>
+	  <th>Получено</th>
+	  <th>Отправлено</th>
+	</tr>
+      </thead>
+      <tbody>
+	<tr>
+	  <td>За сегодня</td>
+%= traftotd $rec->{today_traf}
+	</tr>
+	<tr>
+	  <td>В текущем месяце</td>
+%= traftotd $rec->{curmonth_traf}
+	</tr>
+      <tbody>
+    </table>
+  </div>
+</div>
+<p>
+% if ($rep eq 'month') {
+Ежемесячные данные за последние 12 месяцев.
+% } else {
+% my @t = localtime;
+Ежедневные данные за последние <%= days_in($t[5]+1900, $t[4]) %>(+1) дней.
+% }
+</p>
+<div class="row">
+  <div class="col l12 xl11">
+    <canvas id="chart<%== $chart_id %>"></canvas>
+  </div>
+</div>
+<div class="row">
+  <div class="col s12 m11 l9 xl7">
+    <table class="highlight tbl-device-stat">
+      <thead>
+	<tr>
+	% if ($rep eq 'month') {
+	  <th>Месяц</th>
+	  <th>Получено (за месяц)</th>
+	  <th>Отправлено (за месяц)</th>
+	% } else {
+	  <th>Дата</th>
+	  <th>Получено (за сутки)</th>
+	  <th>Отправлено (за сутки)</th>
+	% }
+	</tr>
+      </thead>
+      <tbody>
+	% for (@{$rec->{traf}}) {
+	<tr>
+%= datetotd $_->{date}, $rep eq 'month'
+%= traftotd $_
+	</tr>
+	% }
+      <tbody>
+    </table>
+  </div>
+</div>
