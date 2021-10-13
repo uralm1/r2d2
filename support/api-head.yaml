@@ -457,6 +457,49 @@ paths:
                 description: error message
 
 
+  /ui/search/1:
+    get:
+      summary: Поиск клиента по логину
+      description: Поиск клиента по логину, пейджинг не поддерживается.
+      parameters:
+        - name: login
+          in: query
+          required: true
+          description: Логин для поиска
+          schema:
+            type: string
+            example: 'sidorov'
+
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/client_record'
+        '400':
+          description: Ошибка в параметрах
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '404':
+          description: Не найдено
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+
   /ui/server/{server_id}:
     get:
       summary: 'Запрос данных по серверу'

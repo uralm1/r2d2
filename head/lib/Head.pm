@@ -98,6 +98,7 @@ sub startup {
   $r->get('/ui/oplog')->to('ui_oplog#oplog');
   $r->get('/ui/list')->to('ui_list#list');
   $r->get('/ui/search/0')->to('ui_search#searchclient');
+  $r->get('/ui/search/1')->to('ui_search#searchclientbylogin');
   $r->get('/ui/server/#id')->to('ui_servers#serverget');
   $r->put('/ui/server/#id')->to('ui_servers#serverput');
   $r->delete('/ui/server/#id')->to('ui_servers#serverdelete');

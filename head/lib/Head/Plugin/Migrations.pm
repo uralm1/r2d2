@@ -174,7 +174,8 @@ CREATE TABLE IF NOT EXISTS `clients` (
   `cn` varchar(255) NOT NULL,
   `email` varchar(255) NOT NULL,
   `lost` tinyint(1) NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `typelogin` (`type`, `login`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 ALTER TABLE `devices` DROP INDEX `login`, ADD INDEX `login` (`login`) USING BTREE;

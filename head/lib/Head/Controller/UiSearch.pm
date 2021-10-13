@@ -47,4 +47,36 @@ ORDER BY id ASC LIMIT ?",
 }
 
 
+sub searchclientbylogin {
+  my $self = shift;
+
+  my $login = $self->param('login');
+  return $self->render(text => 'Bad parameter format', status => 400)
+    unless defined $login;
+
+  $self->render_later;
+
+  my $db = $self->mysql_inet->db;
+  $db->query("SELECT id, type, guid, login, c.desc, DATE_FORMAT(create_time, '%k:%i:%s %e/%m/%y') AS create_time, cn, email \
+FROM clients c \
+WHERE type = 0 AND login = ? LIMIT 1",
+    $login =>
+    sub {
+      my ($db, $err, $results) = @_;
+      $self->render(text => "Database error, searching clients: $err", status => 503) if $err;
+
+      if (my $rh = $results->hash) {
+        my $cl = eval { Head::Controller::UiClients::_build_client_rec($rh) };
+        return $self->render(text => 'Client attribute error', status => 503) unless $cl;
+
+        $self->render(json => $cl);
+
+      } else {
+        return $self->render(text => 'Not found', status => 404);
+      }
+    }
+  );
+}
+
+
 1;
