@@ -11,7 +11,7 @@ sub serverget {
   return unless $self->exists_and_number404($id);
 
   $self->render_later;
-  $self->mysql_inet->db->query("SELECT c.id, cn, c.desc, DATE_FORMAT(c.create_time, '%k:%i:%s %e/%m/%y') AS create_time, email, \
+  $self->mysql_inet->db->query("SELECT c.id, cn, c.desc, DATE_FORMAT(c.create_time, '%k:%i:%s %e/%m/%y') AS create_time, email, email_notify \
 ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, profile \
 FROM clients c INNER JOIN devices d ON d.client_id = c.id \
 WHERE type = 1 AND c.id = ?", $id =>
@@ -36,7 +36,7 @@ sub _build_server_rec {
   my $h = shift;
   my $ipo = NetAddr::IP::Lite->new($h->{ip}) || die 'IP address failure';
   my $sr = { ip => $ipo->addr };
-  for (qw/id cn desc create_time email mac rt defjump speed_in speed_out no_dhcp qs limit_in blocked profile/) {
+  for (qw/id cn desc create_time email email_notify mac rt defjump speed_in speed_out no_dhcp qs limit_in blocked profile/) {
     die 'Undefined server record attribute' unless exists $h->{$_};
     $sr->{$_} = $h->{$_};
   }
@@ -62,11 +62,12 @@ sub serverput {
   $self->render_later;
 
   $self->mysql_inet->db->query("UPDATE clients c INNER JOIN devices d ON d.client_id = c.id \
-SET cn = ?, c.desc = ?, name = 'Подключение сервера', d.desc = '', email = ?, ip = ?, mac = ?, no_dhcp = ?, rt = ?, defjump = ?, speed_in = ?, speed_out = ?, qs = ?, limit_in = ?, email_notify = 0 \
+SET cn = ?, c.desc = ?, name = 'Подключение сервера', d.desc = '', email = ?, c.email_notify = ?, ip = ?, mac = ?, no_dhcp = ?, rt = ?, defjump = ?, speed_in = ?, speed_out = ?, qs = ?, limit_in = ?, d.email_notify = 0 \
 WHERE c.type = 1 AND c.id = ?",
     $j->{cn},
     $j->{desc} // '',
     $j->{email} // '',
+    $j->{email_notify} // 1,
     scalar($ipo->numeric),
     $j->{mac},
     $j->{no_dhcp},
@@ -112,11 +113,12 @@ sub serverpost {
   return $self->render(text => "Database error, transaction failure: $@", status => 503) unless $tx;
 
   my $results = eval { $db->query("INSERT INTO clients \
-(create_time, type, guid, login, clients.desc, cn, email, lost) \
-VALUES (NOW(), 1, '', '', ?, ?, ?, 0)",
+(create_time, type, guid, login, clients.desc, cn, email, email_notify, lost) \
+VALUES (NOW(), 1, '', '', ?, ?, ?, ?, 0)",
     $j->{desc} // '',
     $j->{cn},
-    $j->{email} // ''
+    $j->{email} // '',
+    $j->{email_notify} // 1
   ) };
   return $self->render(text => "Database error, inserting servers: $@", status => 503) unless $results;
 

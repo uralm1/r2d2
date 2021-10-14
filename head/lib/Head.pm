@@ -106,12 +106,13 @@ sub startup {
   $r->post('/ui/client')->to('ui_clients#clientpost');
   $r->get('/ui/client/#id')->to('ui_clients#clientget');
   $r->put('/ui/client/#id')->to('ui_clients#clientput');
-  $r->patch('/ui/client/#id')->to('ui_clients#clientpatch');
   $r->delete('/ui/client/#id')->to('ui_clients#clientdelete');
+  $r->patch('/ui/client/0/#id')->to('ui_clients#clientpatch_desc');
+  $r->patch('/ui/client/1/#id')->to('ui_clients#clientpatch_emailnotify');
   $r->get('/ui/device/#client_id/#device_id')->to('ui_devices#deviceget');
   $r->put('/ui/device/#client_id/#device_id')->to('ui_devices#deviceput');
-  $r->patch('/ui/device/#client_id/#device_id')->to('ui_devices#devicepatch');
   $r->delete('/ui/device/#client_id/#device_id')->to('ui_devices#devicedelete');
+  $r->patch('/ui/device/0/#client_id/#device_id')->to('ui_devices#devicepatch');
   $r->post('/ui/device/#client_id')->to('ui_devices#devicepost');
   $r->get('/ui/stat/device/#client_id/#device_id')->to('ui_stat#deviceget');
   $r->get('/ui/stat/server/#server_id')->to('ui_stat#serverget');

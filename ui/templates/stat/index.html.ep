@@ -1,11 +1,31 @@
 % layout 'userstat', use_tabs => 1; # activetab => $activetab
+% if (my $toast_msg = flash 'oper') {
+%   content_with done_toast => begin
+<script>$(document).ready(function(){M.toast({html:'<%= $toast_msg %>',displayLength:3000})})</script>
+%   end
+% }
 <div class="scont" id="tabactive">
   <div class="row row-top-margin">
-    <div class="col s8">
+    <div class="col xl6 l7 s8 head-text">
       <b>Фамилия Имя Отчество:</b>&nbsp;<%= $fullrec->{cn} %><br>
       <b>Логин:</b>&nbsp;<%= $fullrec->{login} %><br>
       % if ($fullrec->{email}) {
-      <b>Email:</b>&nbsp;<%= $fullrec->{email} %>
+      <b>E-mail:</b>&nbsp;<%= $fullrec->{email} %>
+      % }
+    </div>
+
+    <div class="col xl6 l5 s4">
+      % if ($fullrec->{email}) {
+      <br><br>
+      %= form_for statemail => (method=>'POST', id=>'enotifyform') => begin
+      %= hidden_field id => $client_id
+      %= hidden_field rep => $rep
+      <label>
+	% param email_notify => $fullrec->{email_notify} || 0;
+	%= check_box email_notify => 1, id => 'enotify', class => 'filled-in'
+	%= t 'span', 'Уведомление по e-mail об окончании лимитов.'
+      </label>
+      % end
       % }
     </div>
   </div>
@@ -35,6 +55,7 @@
 <script>
 $(document).ready(function(){
   $('.collapsible').collapsible({accordion:false});
+  $('#enotify').on('change',function(){$('#enotifyform').submit()});
 });
 </script>
 % end

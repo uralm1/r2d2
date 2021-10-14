@@ -1,4 +1,4 @@
-<div class="row row-leftbottom-no-margin">
+<div class="row row-leftbottom-no-margin" style="width:100%">
   <div class="col icon-col">
     % if ($rec->{blocked}) {
     %   if ($rec->{qs} == 1) { # warn

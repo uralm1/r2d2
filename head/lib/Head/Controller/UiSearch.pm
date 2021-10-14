@@ -24,7 +24,7 @@ sub searchclient {
   $apnd = (defined $apnd && $apnd ne '') ? " AND ($apnd)" : '';
   #say $apnd;
 
-  $db->query("SELECT id, type, guid, login, c.desc, DATE_FORMAT(create_time, '%k:%i:%s %e/%m/%y') AS create_time, cn, email \
+  $db->query("SELECT id, type, guid, login, c.desc, DATE_FORMAT(create_time, '%k:%i:%s %e/%m/%y') AS create_time, cn, email, email_notify \
 FROM clients c \
 WHERE type = 0 $apnd \
 ORDER BY id ASC LIMIT ?",
@@ -57,7 +57,7 @@ sub searchclientbylogin {
   $self->render_later;
 
   my $db = $self->mysql_inet->db;
-  $db->query("SELECT id, type, guid, login, c.desc, DATE_FORMAT(create_time, '%k:%i:%s %e/%m/%y') AS create_time, cn, email \
+  $db->query("SELECT id, type, guid, login, c.desc, DATE_FORMAT(create_time, '%k:%i:%s %e/%m/%y') AS create_time, cn, email, email_notify \
 FROM clients c \
 WHERE type = 0 AND login = ? LIMIT 1",
     $login =>

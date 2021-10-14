@@ -39,6 +39,7 @@ __DATA__
       "description":"Email regexp",
       "pattern":"^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$"
     },
+    "email_notify": { "type":"integer", "enum":[0,1] },
     "ip": {
       "type":"string",
       "description":"Regexp::Common ^$RE{net}{IPv4}$",
@@ -80,7 +81,8 @@ __DATA__
       "type":"string",
       "description":"Email regexp",
       "pattern":"^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$"
-    }
+    },
+    "email_notify": { "type":"integer", "enum":[0,1] }
   }
 }
 

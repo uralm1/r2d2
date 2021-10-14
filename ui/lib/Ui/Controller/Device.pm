@@ -284,7 +284,7 @@ sub movepost {
     # post to system
     $self->render_later;
 
-    $self->ua->patch(Mojo::URL->new("/ui/device/$old_client_id/$device_id")->to_abs($self->head_url) => json => $j =>
+    $self->ua->patch(Mojo::URL->new("/ui/device/0/$old_client_id/$device_id")->to_abs($self->head_url) => json => $j =>
       sub {
         my ($ua, $tx) = @_;
         my $res = eval { $tx->result };

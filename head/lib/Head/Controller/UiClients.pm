@@ -11,7 +11,7 @@ sub clientget {
 
   $self->render_later;
 
-  $self->mysql_inet->db->query("SELECT id, type, guid, login, c.desc, DATE_FORMAT(create_time, '%k:%i:%s %e/%m/%y') AS create_time, cn, email \
+  $self->mysql_inet->db->query("SELECT id, type, guid, login, c.desc, DATE_FORMAT(create_time, '%k:%i:%s %e/%m/%y') AS create_time, cn, email, email_notify \
 FROM clients c WHERE id = ?", $id =>
     sub {
       my ($db, $err, $results) = @_;
@@ -53,7 +53,7 @@ ORDER BY id ASC LIMIT 20", $cl->{id} =>
 sub _build_client_rec {
   my $h = shift;
   my $r = {};
-  for (qw/id type guid login desc create_time cn email/) {
+  for (qw/id type guid login desc create_time cn email email_notify/) {
     die 'Undefined client record attribute' unless exists $h->{$_};
     $r->{$_} = $h->{$_};
   }
@@ -73,13 +73,14 @@ sub clientpost {
   $self->render_later;
 
   $self->mysql_inet->db->query("INSERT INTO clients \
-(create_time, type, guid, login, clients.desc, cn, email, lost) \
-VALUES (NOW(), 0, ?, ?, ?, ?, ?, 0)",
+(create_time, type, guid, login, clients.desc, cn, email, email_notify, lost) \
+VALUES (NOW(), 0, ?, ?, ?, ?, ?, ?, 0)",
     $j->{guid},
     $j->{login},
     $j->{desc} // '',
     $j->{cn},
-    $j->{email} // '' =>
+    $j->{email} // '',
+    $j->{email_notify} // 1 =>
     sub {
       my ($db, $err, $results) = @_;
       return $self->render(text => "Database error, inserting client: $err", status => 503) if $err;
@@ -107,13 +108,14 @@ sub clientput {
   $self->render_later;
 
   $self->mysql_inet->db->query("UPDATE clients \
-SET guid = ?, login = ?, clients.desc = ?, cn = ?, email = ?, lost = 0 \
+SET guid = ?, login = ?, clients.desc = ?, cn = ?, email = ?, email_notify = ?, lost = 0 \
 WHERE type = 0 AND id = ?",
     $j->{guid},
     $j->{login},
     $j->{desc} // '',
     $j->{cn},
     $j->{email} // '',
+    $j->{email_notify} // 1,
     $id =>
     sub {
       my ($db, $err, $results) = @_;
@@ -124,41 +126,6 @@ WHERE type = 0 AND id = ?",
         $self->rendered(200);
       } else {
         $self->dblog->info("UI: Client id $id not updated");
-        $self->render(text => "Client id $id not found", status => 404);
-      }
-    }
-  );
-}
-
-
-# edit client description submit
-sub clientpatch {
-  my $self = shift;
-  my $id = $self->stash('id');
-  return unless $self->exists_and_number404($id);
-
-  return unless my $j = $self->json_content($self->req);
-
-  $self->log->debug($self->dumper($j));
-  return $self->render(text => 'Bad id', status => 503) if exists($j->{id}) && $j->{id} != $id;
-  return $self->render(text => 'Bad format', status => 503) unless exists($j->{desc});
-
-  $self->render_later;
-
-  $self->mysql_inet->db->query("UPDATE clients \
-SET clients.desc = ? \
-WHERE type = 0 AND id = ?",
-    $j->{desc},
-    $id =>
-    sub {
-      my ($db, $err, $results) = @_;
-      return $self->render(text => "Database error, updating client description: $err", status => 503) if $err;
-
-      if ($results->affected_rows > 0) {
-        $self->dblog->info("UI: Client id $id description updated successfully");
-        $self->rendered(200);
-      } else {
-        $self->dblog->info("UI: Client id $id description not updated");
         $self->render(text => "Client id $id not found", status => 404);
       }
     }
@@ -202,6 +169,77 @@ sub clientdelete {
       ); # inner query
     }
   ); # outer query
+}
+
+
+# edit client description submit
+sub clientpatch_desc {
+  my $self = shift;
+  my $id = $self->stash('id');
+  return unless $self->exists_and_number404($id);
+
+  return unless my $j = $self->json_content($self->req);
+
+  #$self->log->debug($self->dumper($j));
+  return $self->render(text => 'Bad id', status => 503) if exists($j->{id}) && $j->{id} != $id;
+  return $self->render(text => 'Bad format', status => 503) unless defined($j->{desc});
+
+  $self->render_later;
+
+  $self->mysql_inet->db->query("UPDATE clients \
+SET clients.desc = ? \
+WHERE type = 0 AND id = ?",
+    $j->{desc},
+    $id =>
+    sub {
+      my ($db, $err, $results) = @_;
+      return $self->render(text => "Database error, updating client description: $err", status => 503) if $err;
+
+      if ($results->affected_rows > 0) {
+        $self->dblog->info("UI: Client id $id description updated successfully");
+        $self->rendered(200);
+      } else {
+        $self->dblog->info("UI: Client id $id description not updated");
+        $self->render(text => "Client id $id not found", status => 404);
+      }
+    }
+  );
+}
+
+
+# edit client email_notify submit
+sub clientpatch_emailnotify {
+  my $self = shift;
+  my $id = $self->stash('id');
+  return unless $self->exists_and_number404($id);
+
+  return unless my $j = $self->json_content($self->req);
+
+  #$self->log->debug($self->dumper($j));
+  return $self->render(text => 'Bad id', status => 503) if exists($j->{id}) && $j->{id} != $id;
+  return $self->render(text => 'Bad format', status => 503)
+    unless defined($j->{email_notify}) && $j->{email_notify} =~ /^[01]$/;
+
+  $self->render_later;
+
+  $self->mysql_inet->db->query("UPDATE clients \
+SET clients.email_notify = ? \
+WHERE type = 0 AND id = ?",
+    $j->{email_notify},
+    $id =>
+    sub {
+      my ($db, $err, $results) = @_;
+      return $self->render(text => "Database error, updating client email_notify: $err", status => 503) if $err;
+
+      if ($results->affected_rows > 0) {
+        $self->dblog->info("UI: Client id $id email_notify updated successfully");
+        $self->rendered(200);
+      } else {
+        $self->dblog->info("UI: Client id $id email_notify not updated");
+        $self->render(text => "Client id $id not found", status => 404);
+      }
+    }
+  );
 }
 
 

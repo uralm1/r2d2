@@ -26,7 +26,7 @@
     <div class="modal-content">
       <h4>Внимание</h4>
       <p>Создание клиентских записей вручную не рекомендуется.</p>
-      <p>Делая это Вы вступаете на дорогу боли и страданий.</p>
+      <p>Радужный единорог Вам не поможет. Вы вступаете на дорогу боли и страданий.</p>
     </div>
     <div class="modal-footer">
       <a href="#!" class="modal-close waves-effect waves-green btn-flat">Вернуться</a>
@@ -45,7 +45,7 @@
 	<th style="width:20%">Должность</th>
 	<th style="width:25%">Подразделение</th>
 	<th style="width:10%">Логин</th>
-	<th style="width:20%">Email</th>
+	<th style="width:20%">E-mail</th>
       </tr>
     </thead>
     <tbody>

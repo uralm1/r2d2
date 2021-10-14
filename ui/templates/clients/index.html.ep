@@ -10,7 +10,7 @@
       <tr class="tr-client-head">
 	<th style="width:5%">Тип</th>
 	<th>Наименование клиента</th>
-	<th>Email</th>
+	<th>E-mail</th>
 	<th>Логин</th>
       </tr>
     </thead>

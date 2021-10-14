@@ -36,7 +36,7 @@
 	  </div>
 	  <div class="input-field col s12 m8 l4">
 	    %= text_field email => $srv_rec->{email}, id => 'email'
-	    %= label_for email => 'Email (необязательный)'
+	    %= label_for email => 'E-mail (необязательный)'
 	    %= t 'span', class => 'helper-text', 'data-error' => 'Ошибка. Формат mailbox@domain.tld', 'Адрес электронной почты для уведомлений'
 	  </div>
 	</div>

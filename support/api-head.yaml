@@ -697,6 +697,44 @@ paths:
                 type: string
                 description: error message
 
+
+    delete:
+      summary: 'Удаление клиента'
+      parameters:
+        - name: client_id
+          in: path
+          required: true
+          description: 'Client id'
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: Success
+        '400':
+          description: Deletion refused, client devices exist
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '404':
+          description: Not found, including bad id parameter
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+
+  /ui/client/0/{client_id}:
     patch:
       summary: 'Редактирование описания (description) клиента'
       description: 'Свойство id необязательное, если указывается, то должно совпадать с параметром client_id.'
@@ -744,8 +782,11 @@ paths:
                 type: string
                 description: error message
 
-    delete:
-      summary: 'Удаление клиента'
+
+  /ui/client/1/{client_id}:
+    patch:
+      summary: 'Редактирование флага извещения по email (email_notify) клиента'
+      description: 'Свойство id необязательное, если указывается, то должно совпадать с параметром client_id.'
       parameters:
         - name: client_id
           in: path
@@ -753,17 +794,28 @@ paths:
           description: 'Client id'
           schema:
             type: integer
+            
+      requestBody:
+        description: 'Client email_notify'
+        required: true
+        content:
+          'application/json':
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: 'Код клиента'
+                email_notify:
+                  type: integer
+                  description: 'Флаг извещения по email клиента, 0 или 1'
+                  example: 1
+              required:
+                - email_notify
 
       responses:
         '200':
           description: Success
-        '400':
-          description: Deletion refused, client devices exist
-          content:
-            text/plain:
-              schema:
-                type: string
-                description: error message
         '404':
           description: Not found, including bad id parameter
           content:
@@ -889,6 +941,43 @@ paths:
                 type: string
                 description: error message
 
+
+    delete:
+      summary: 'Удаление клиентского устройства'
+      parameters:
+        - name: client_id
+          in: path
+          required: true
+          description: 'Client id'
+          schema:
+            type: integer
+        - name: device_id
+          in: path
+          required: true
+          description: 'Device id'
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: Success
+        '404':
+          description: Not found, including bad client_id or device_id parameters
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+
+  /ui/device/0/{client_id}/{device_id}:
     patch:
       summary: 'Перенос устройства от одного клиента к другому'
       description: 'Свойство id необязательное, если указывается, то должно совпадать с параметром client_id.'
@@ -928,40 +1017,6 @@ paths:
           description: Success
         '404':
           description: Not found, including bad id parameter
-          content:
-            text/plain:
-              schema:
-                type: string
-                description: error message
-        '503':
-          description: Operation error
-          content:
-            text/plain:
-              schema:
-                type: string
-                description: error message
-
-    delete:
-      summary: 'Удаление клиентского устройства'
-      parameters:
-        - name: client_id
-          in: path
-          required: true
-          description: 'Client id'
-          schema:
-            type: integer
-        - name: device_id
-          in: path
-          required: true
-          description: 'Device id'
-          schema:
-            type: integer
-
-      responses:
-        '200':
-          description: Success
-        '404':
-          description: Not found, including bad client_id or device_id parameters
           content:
             text/plain:
               schema:
@@ -1439,6 +1494,10 @@ components:
           type: string
           description: 'Email для уведомлений'
           example: 'user@domain.tld'
+        email_notify:
+          type: integer
+          description: 'Уведомлять по эл.почте (0 или 1)'
+          example: 1
         ip:
           type: string
           description: client ip4
@@ -1528,6 +1587,10 @@ components:
           type: string
           description: 'Email клиента'
           example: 'user@domain.tld'
+        email_notify:
+          type: integer
+          description: 'Уведомлять по эл.почте (0 или 1)'
+          example: 1
       required:
         - cn
         - guid
@@ -1568,6 +1631,10 @@ components:
           type: string
           description: 'Email клиента'
           example: 'user@domain.tld'
+        email_notify:
+          type: integer
+          description: 'Уведомлять по эл.почте (0 или 1)'
+          example: 1
         devices:
           type: array
           description: 'Массив устройств'
@@ -1582,6 +1649,7 @@ components:
         - create_time
         - login
         - email
+        - email_notify
         - devices
 
 
@@ -1768,6 +1836,10 @@ components:
           type: string
           description: 'Email для уведомлений'
           example: 'user@domain.tld'
+        email_notify:
+          type: integer
+          description: 'Флаг извещения по email, 0 или 1'
+          example: 1
         qs:
           type: integer
           description: 'quote mode (0-disabled, 1-notify, 2-limit, 3-block)'
@@ -1840,6 +1912,10 @@ components:
           type: string
           description: 'Email клиента'
           example: 'user@domain.tld'
+        email_notify:
+          type: integer
+          description: 'Флаг извещения по email клиента, 0 или 1'
+          example: 1
         devices:
           type: array
           description: 'массив данных трафика по устройствам клиента'

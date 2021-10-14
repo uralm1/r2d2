@@ -80,6 +80,7 @@ sub serverget {
       date => '06-10-2021',
       cn => 'имя_сервера',
       email => 'mailbox@server.tld',
+      email_notify => 1,
       qs => 2,
       limit_in => 123456789,
       sum_limit_in => 123456,
@@ -102,6 +103,7 @@ sub serverget {
       date => '07-10-2021',
       cn => 'имя_сервера',
       email => 'mailbox@server.tld',
+      email_notify => 1,
       qs => 1,
       limit_in => 123456789,
       sum_limit_in => 0,
@@ -142,6 +144,7 @@ sub clientget {
       guid => '',
       login => 'ivanov',
       email => 'ivanov@server.tld',
+      email_notify => 1,
       devices => [
         {
           id => 111, #device_id,
@@ -193,6 +196,7 @@ sub clientget {
       guid => '',
       login => 'ivanov',
       email => 'ivanov@server.tld',
+      email_notify => 1,
       devices => [
         {
           id => 111, #device_id,

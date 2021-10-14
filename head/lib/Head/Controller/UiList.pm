@@ -19,7 +19,7 @@ sub list {
 
   my $db = $self->mysql_inet->db; # we'll use same connection
   my $q_count = $db->query_p('SELECT COUNT(*) FROM clients');
-  my $q_clients = $db->query_p("SELECT id, type, guid, login, c.desc, DATE_FORMAT(create_time, '%k:%i:%s %e/%m/%y') AS create_time, cn, email \
+  my $q_clients = $db->query_p("SELECT id, type, guid, login, c.desc, DATE_FORMAT(create_time, '%k:%i:%s %e/%m/%y') AS create_time, cn, email, email_notify \
 FROM clients c \
 ORDER BY id ASC LIMIT ? OFFSET ?", $lines_on_page, ($page - 1) * $lines_on_page);
   Mojo::Promise->all($q_count, $q_clients)->then(sub {

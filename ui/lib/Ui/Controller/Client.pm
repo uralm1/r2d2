@@ -202,15 +202,18 @@ sub editpost {
 
   my $j = { id => $id }; # resulting json
   my $method;
+  my $url;
   if (defined $guid && $guid ne '') {
     # edit desc of AD client
     $method = 'PATCH';
+    $url = "/ui/client/0/$id";
     $v->optional('desc');
     $j->{desc} = $v->is_valid ? $v->param : '';
 
   } else {
     # edit multiple properties of manual client
     $method = 'PUT';
+    $url = "/ui/client/$id";
     $j->{guid} = '';
     $j->{cn} = $v->required('cn', 'not_empty')->param;
     $j->{login} = $v->required('login', 'not_empty')->param;
@@ -245,7 +248,7 @@ sub editpost {
   #$self->log->debug("J: ".$self->dumper($j));
 
   # post (put or patch) to system
-  my $tx = $self->ua->build_tx($method => Mojo::URL->new("/ui/client/$id")->to_abs($self->head_url)
+  my $tx = $self->ua->build_tx($method => Mojo::URL->new($url)->to_abs($self->head_url)
     => json => $j);
   $self->ua->start($tx =>
     sub {
