@@ -11,7 +11,7 @@ sub serverget {
   return unless $self->exists_and_number404($id);
 
   $self->render_later;
-  $self->mysql_inet->db->query("SELECT c.id, cn, c.desc, DATE_FORMAT(c.create_time, '%k:%i:%s %e/%m/%y') AS create_time, email, email_notify \
+  $self->mysql_inet->db->query("SELECT c.id, cn, c.desc, DATE_FORMAT(c.create_time, '%k:%i:%s %e/%m/%y') AS create_time, email, c.email_notify, \
 ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, profile \
 FROM clients c INNER JOIN devices d ON d.client_id = c.id \
 WHERE type = 1 AND c.id = ?", $id =>
@@ -21,7 +21,7 @@ WHERE type = 1 AND c.id = ?", $id =>
 
       if (my $rh = $results->hash) {
         my $sr = eval { _build_server_rec($rh) };
-        return $self->render(text => 'Invalid IP', status => 503) unless $sr;
+        return $self->render(text => 'Invalid IP or attribute', status => 503) unless $sr;
         $self->render(json => $sr);
       } else {
         return $self->render(text => 'Not found', status => 404);
