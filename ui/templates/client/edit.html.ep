@@ -48,15 +48,23 @@
 	  </div>
 	</div>
 	<div class="row">
-	  <div class="input-field col s12 m8 l5">
+	  <div class="input-field col s12 m8 l4">
 	    %= text_field email => $rec->{email}, id => 'email', disabled => undef
 	    %= label_for email => 'E-mail (необязательный)'
 	    %= t 'span', class => 'helper-text', 'Адрес электронной почты для уведомлений'
 	  </div>
+	  <div class="col s12 m8 l5 offset-l1">
+	    <br><br>
+	    <label>
+	      % param email_notify => $rec->{email_notify} unless defined param 'email_notify';
+	      %= check_box email_notify => 1, id => 'enotify', class => 'filled-in'
+	      %= t 'span', 'Уведомление по e-mail об окончании лимитов'
+	    </label>
+	  </div>
 	</div>
 	<div class="row">
 	  <div class="col s12">
-	    <button class="btn-large waves-effect waves-light" type="submit">Сохранить комментарий</button>
+	    <button class="btn-large waves-effect waves-light" type="submit">Сохранить изменения</button>
 	    %= link_to 'Заменить клиента...' => url_with('clientreplace') => (class => 'btn-large waves-effect waves-light spaceleft btn-tooltip', 'data-position' => 'top', 'data-tooltip' => 'Заменить указанного клиента, выбрав нового из глобального каталога')
 	    %= link_to 'Удалить...' => url_with('clientdelete') => (class => 'btn-large waves-effect waves-light spaceleft')
 	  </div>
@@ -93,10 +101,18 @@
 	  </div>
 	</div>
 	<div class="row">
-	  <div class="input-field col s12 m8 l5">
+	  <div class="input-field col s12 m8 l4">
 	    %= text_field email => $rec->{email}, id => 'email'
 	    %= label_for email => 'Email (необязательный)'
 	    %= t 'span', class => 'helper-text', 'data-error' => 'Ошибка. Формат mailbox@domain.tld', 'Адрес электронной почты для уведомлений'
+	  </div>
+	  <div class="col s12 m8 l5 offset-l1">
+	    <br><br>
+	    <label>
+	      % param email_notify => $rec->{email_notify} unless defined param 'email_notify';
+	      %= check_box email_notify => 1, id => 'enotify', class => 'filled-in'
+	      %= t 'span', 'Уведомление по e-mail об окончании лимита'
+	    </label>
 	  </div>
 	</div>
 	<div class="row">

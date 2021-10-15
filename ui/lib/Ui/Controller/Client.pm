@@ -79,6 +79,8 @@ sub newpost {
   my $v = $self->validation;
   return $self->render(text=>'Не дал показания') unless $v->has_data;
 
+  $self->render_later;
+
   my $search = $v->optional('s')->param || '';
 
   my $sel_guid = $v->required('ug')->param;
@@ -92,6 +94,7 @@ sub newpost {
     $j->{desc} = $v->param if $v->is_valid;
     $v->optional('email', 'not_empty')->like(qr/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/);
     $j->{email} = $v->param if $v->is_valid;
+    $j->{email_notify} = $j->{email} ? 1 : 0;
 
     if ($v->has_error) {
       $self->flash(oper => 'Ошибка. Неверные данные. Проверьте учетную запись пользователя.');
@@ -101,8 +104,6 @@ sub newpost {
     #$self->log->debug($self->dumper($j));
 
     # post to system
-    $self->render_later;
-
     $self->ua->post(Mojo::URL->new("/ui/client")->to_abs($self->head_url) => json => $j =>
       sub {
         my ($ua, $tx) = @_;
@@ -139,6 +140,7 @@ sub newpainpost {
   $j->{desc} = $v->param if $v->is_valid;
   $v->optional('email', 'not_empty')->like(qr/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/);
   $j->{email} = $v->param if $v->is_valid;
+  $j->{email_notify} = $j->{email} ? 1 : 0;
 
   # rerender page with errors
   return $self->render(template => 'client/newpain') if $v->has_error;
@@ -209,6 +211,7 @@ sub editpost {
     $url = "/ui/client/0/$id";
     $v->optional('desc');
     $j->{desc} = $v->is_valid ? $v->param : '';
+    $j->{email_notify} = $v->optional('email_notify')->like(qr/^[01]$/)->param // 0;
 
   } else {
     # edit multiple properties of manual client
@@ -221,15 +224,16 @@ sub editpost {
     $j->{desc} = $v->param if $v->is_valid;
     $v->optional('email', 'not_empty')->like(qr/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/);
     $j->{email} = $v->param if $v->is_valid;
+    $j->{email_notify} = $v->optional('email_notify')->like(qr/^[01]$/)->param // 0;
 
   }
 
   #if ($v->has_error) { my @f=@{$v->failed}; $self->log->debug("Failed validation: @f") }
 
+  $self->render_later;
+
   # rerender page with errors
   if ($v->has_error) {
-    $self->render_later;
-
     # reget $rec back
     $self->ua->get(Mojo::URL->new("/ui/client/$id")->to_abs($self->head_url) =>
       {Accept => 'application/json'} =>
@@ -359,6 +363,8 @@ sub replacepost {
   my $id = $v->optional('id')->param;
   return unless $self->exists_and_number($id);
 
+  $self->render_later;
+
   my $search = $v->optional('s')->param || '';
 
   my $sel_guid = $v->required('ug')->param;
@@ -381,8 +387,6 @@ sub replacepost {
     #$self->log->debug('J: '.$self->dumper($j));
 
     # post to system
-    $self->render_later;
-
     $self->ua->put(Mojo::URL->new("/ui/client/$id")->to_abs($self->head_url) => json => $j =>
       sub {
         my ($ua, $tx) = @_;

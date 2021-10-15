@@ -259,6 +259,8 @@ sub movepost {
 
   #$self->log->debug("I: ".$self->dumper($v->input));
 
+  $self->render_later;
+    
   my $device_id = $v->optional('id')->param;
   return unless $self->exists_and_number($device_id);
   my $old_client_id = $v->optional('clientid')->param;
@@ -282,8 +284,6 @@ sub movepost {
     my $j = { id => $old_client_id, newid => $sel_id }; # patch request body json
 
     # post to system
-    $self->render_later;
-
     $self->ua->patch(Mojo::URL->new("/ui/device/0/$old_client_id/$device_id")->to_abs($self->head_url) => json => $j =>
       sub {
         my ($ua, $tx) = @_;

@@ -21,7 +21,7 @@ sub edit {
       return unless $self->request_success($res);
       return unless my $v = $self->request_json($res);
 
-      return $self->render(srv_id => $id, srv_rec => $v);
+      return $self->render(srv_id => $id, rec => $v);
     } # get closure
   );
 }
@@ -43,6 +43,7 @@ sub editpost {
   $j->{desc} = $v->param if $v->is_valid;
   $v->optional('email', 'not_empty')->like(qr/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/);
   $j->{email} = $v->param if $v->is_valid;
+  $j->{email_notify} = $v->optional('email_notify')->like(qr/^[01]$/)->param // 0;
   $j->{ip} = $v->required('ip', 'not_empty')->like(qr/^$RE{net}{IPv4}$/)->param;
   $j->{mac} = $v->required('mac', 'not_empty')->like(qr/^$RE{net}{MAC}$/)->param;
   $j->{no_dhcp} = $v->optional('no_dhcp')->like(qr/^[01]$/)->param // 0;
@@ -124,6 +125,7 @@ sub newpost {
   $j->{desc} = $v->param if $v->is_valid;
   $v->optional('email', 'not_empty')->like(qr/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/);
   $j->{email} = $v->param if $v->is_valid;
+  $j->{email_notify} = $j->{email} ? 1 : 0;
   $j->{ip} = $v->required('ip', 'not_empty')->like(qr/^$RE{net}{IPv4}$/)->param;
   $j->{mac} = $v->required('mac', 'not_empty')->like(qr/^$RE{net}{MAC}$/)->param;
   $j->{no_dhcp} = $v->optional('no_dhcp')->like(qr/^[01]$/)->param // 0;

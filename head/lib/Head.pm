@@ -107,8 +107,8 @@ sub startup {
   $r->get('/ui/client/#id')->to('ui_clients#clientget');
   $r->put('/ui/client/#id')->to('ui_clients#clientput');
   $r->delete('/ui/client/#id')->to('ui_clients#clientdelete');
-  $r->patch('/ui/client/0/#id')->to('ui_clients#clientpatch_desc');
-  $r->patch('/ui/client/1/#id')->to('ui_clients#clientpatch_emailnotify');
+  $r->patch('/ui/client/0/#id')->to('ui_clients#clientpatch0');
+  $r->patch('/ui/client/1/bylogin')->to('ui_clients#clientpatch1bylogin');
   $r->get('/ui/device/#client_id/#device_id')->to('ui_devices#deviceget');
   $r->put('/ui/device/#client_id/#device_id')->to('ui_devices#deviceput');
   $r->delete('/ui/device/#client_id/#device_id')->to('ui_devices#devicedelete');

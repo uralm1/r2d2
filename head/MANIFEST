@@ -32,6 +32,7 @@ lib/Head/Controller/UiList.pm
 lib/Head/Controller/UiOplog.pm
 lib/Head/Controller/UiSearch.pm
 lib/Head/Controller/UiServers.pm
+lib/Head/Controller/UiStat.pm
 lib/Head/Controller/Utils.pm
 lib/Head/Plugin/Json_schemas.pm
 lib/Head/Plugin/Migrations.pm

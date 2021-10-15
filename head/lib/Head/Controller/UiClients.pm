@@ -172,43 +172,8 @@ sub clientdelete {
 }
 
 
-# edit client description submit
-sub clientpatch_desc {
-  my $self = shift;
-  my $id = $self->stash('id');
-  return unless $self->exists_and_number404($id);
-
-  return unless my $j = $self->json_content($self->req);
-
-  #$self->log->debug($self->dumper($j));
-  return $self->render(text => 'Bad id', status => 503) if exists($j->{id}) && $j->{id} != $id;
-  return $self->render(text => 'Bad format', status => 503) unless defined($j->{desc});
-
-  $self->render_later;
-
-  $self->mysql_inet->db->query("UPDATE clients \
-SET clients.desc = ? \
-WHERE type = 0 AND id = ?",
-    $j->{desc},
-    $id =>
-    sub {
-      my ($db, $err, $results) = @_;
-      return $self->render(text => "Database error, updating client description: $err", status => 503) if $err;
-
-      if ($results->affected_rows > 0) {
-        $self->dblog->info("UI: Client id $id description updated successfully");
-        $self->rendered(200);
-      } else {
-        $self->dblog->info("UI: Client id $id description not updated");
-        $self->render(text => "Client id $id not found", status => 404);
-      }
-    }
-  );
-}
-
-
-# edit client email_notify submit
-sub clientpatch_emailnotify {
+# edit client description and email_notify submit
+sub clientpatch0 {
   my $self = shift;
   my $id = $self->stash('id');
   return unless $self->exists_and_number404($id);
@@ -218,25 +183,62 @@ sub clientpatch_emailnotify {
   #$self->log->debug($self->dumper($j));
   return $self->render(text => 'Bad id', status => 503) if exists($j->{id}) && $j->{id} != $id;
   return $self->render(text => 'Bad format', status => 503)
-    unless defined($j->{email_notify}) && $j->{email_notify} =~ /^[01]$/;
+    unless defined $j->{desc} and defined $j->{email_notify} and $j->{email_notify} =~ /^[01]$/;
 
   $self->render_later;
 
   $self->mysql_inet->db->query("UPDATE clients \
-SET clients.email_notify = ? \
+SET clients.desc = ?, email_notify = ? \
 WHERE type = 0 AND id = ?",
+    $j->{desc},
     $j->{email_notify},
     $id =>
+    sub {
+      my ($db, $err, $results) = @_;
+      return $self->render(text => "Database error, updating client description/notify: $err", status => 503) if $err;
+
+      if ($results->affected_rows > 0) {
+        $self->dblog->info("UI: Client id $id description/notify updated successfully");
+        $self->rendered(200);
+      } else {
+        $self->dblog->info("UI: Client id $id description/notify not updated");
+        $self->render(text => "Client id $id not found", status => 404);
+      }
+    }
+  );
+}
+
+
+# edit client email_notify by login submit
+sub clientpatch1bylogin {
+  my $self = shift;
+
+  return unless my $j = $self->json_content($self->req);
+
+  $self->log->debug($self->dumper($j));
+
+  my $login = $j->{login};
+  return $self->render(text => 'Bad format', status => 503)
+    unless defined $login and $login ne ''
+      and defined $j->{email_notify} and $j->{email_notify} =~ /^[01]$/;
+
+  $self->render_later;
+
+  $self->mysql_inet->db->query("UPDATE clients \
+SET email_notify = ? \
+WHERE type = 0 AND login = ?",
+    $j->{email_notify},
+    $login =>
     sub {
       my ($db, $err, $results) = @_;
       return $self->render(text => "Database error, updating client email_notify: $err", status => 503) if $err;
 
       if ($results->affected_rows > 0) {
-        $self->dblog->info("UI: Client id $id email_notify updated successfully");
+        $self->dblog->info("UI: Client $login email_notify updated successfully");
         $self->rendered(200);
       } else {
-        $self->dblog->info("UI: Client id $id email_notify not updated");
-        $self->render(text => "Client id $id not found", status => 404);
+        $self->dblog->info("UI: Client $login email_notify not updated");
+        $self->render(text => "Client not found", status => 404);
       }
     }
   );

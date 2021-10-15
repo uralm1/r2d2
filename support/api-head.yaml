@@ -736,7 +736,7 @@ paths:
 
   /ui/client/0/{client_id}:
     patch:
-      summary: 'Редактирование описания (description) клиента'
+      summary: 'Редактирование описания (description) и флага извещения (email_notify) клиента'
       description: 'Свойство id необязательное, если указывается, то должно совпадать с параметром client_id.'
       parameters:
         - name: client_id
@@ -761,8 +761,13 @@ paths:
                   type: string
                   description: 'Описание клиента, возможно пустое'
                   example: 'Краткое описание'
+                email_notify:
+                  type: integer
+                  description: 'Флаг извещения клиента, 0 или 1'
+                  example: 1
               required:
                 - desc
+                - email_notify
 
       responses:
         '200':
@@ -783,41 +788,35 @@ paths:
                 description: error message
 
 
-  /ui/client/1/{client_id}:
+  /ui/client/1/bylogin:
     patch:
-      summary: 'Редактирование флага извещения по email (email_notify) клиента'
-      description: 'Свойство id необязательное, если указывается, то должно совпадать с параметром client_id.'
-      parameters:
-        - name: client_id
-          in: path
-          required: true
-          description: 'Client id'
-          schema:
-            type: integer
-            
+      summary: 'Редактирование флага извещения (email_notify) клиента'
+      description: 'По логину клиента.'
+
       requestBody:
-        description: 'Client email_notify'
+        description: 'Client login and email_notify flag'
         required: true
         content:
           'application/json':
             schema:
               type: object
               properties:
-                id:
-                  type: integer
-                  description: 'Код клиента'
+                login:
+                  type: string
+                  description: 'Логин клиента'
                 email_notify:
                   type: integer
-                  description: 'Флаг извещения по email клиента, 0 или 1'
+                  description: 'Устанавливаемый флаг извещения клиента, 0 или 1'
                   example: 1
               required:
+                - login
                 - email_notify
 
       responses:
         '200':
           description: Success
         '404':
-          description: Not found, including bad id parameter
+          description: Not found, including bad login parameter
           content:
             text/plain:
               schema:

@@ -15,12 +15,12 @@
 	%= hidden_field id => $srv_id
 	<div class="row">
 	  <div class="input-field col s12 m8 l5">
-	    %= text_field 'cn' => $srv_rec->{cn}, id => 'cn'
+	    %= text_field 'cn' => $rec->{cn}, id => 'cn'
 	    %= label_for cn => 'Название сервера'
 	    %= t 'span', class => 'helper-text', 'data-error' => 'Ошибка, не должно быть пустым'
 	  </div>
 	  <div class="input-field col s12 m4 l3 offset-l1">
-	    % param 'create-time' => $srv_rec->{create_time} // 'Не указано' unless param 'create-time';
+	    % param 'create-time' => $rec->{create_time} // 'Не указано' unless param 'create-time';
 	    %= input_tag 'create-time', type => 'hidden'
 	    % param 'create-time1' => param 'create-time';
 	    %= text_field 'create-time1', id => 'create-time', disabled => undef
@@ -30,14 +30,24 @@
 	</div>
 	<div class="row">
 	  <div class="input-field col s12 m8 l5">
-	    %= text_area desc => $srv_rec->{desc}, id => 'desc', class => 'materialize-textarea', placeholder => ''
+	    %= text_area desc => $rec->{desc}, id => 'desc', class => 'materialize-textarea', placeholder => ''
 	    %= label_for desc => 'Комментарий'
 	    %= t 'span', class => 'helper-text', 'Дополнительная информация (пользователям не видно)'
 	  </div>
+	</div>
+	<div class="row">
 	  <div class="input-field col s12 m8 l4">
-	    %= text_field email => $srv_rec->{email}, id => 'email'
+	    %= text_field email => $rec->{email}, id => 'email'
 	    %= label_for email => 'E-mail (необязательный)'
 	    %= t 'span', class => 'helper-text', 'data-error' => 'Ошибка. Формат mailbox@domain.tld', 'Адрес электронной почты для уведомлений'
+	  </div>
+	  <div class="col s12 m8 l5 offset-l1">
+	    <br><br>
+	    <label>
+	      % param email_notify => $rec->{email_notify} unless defined param 'email_notify';
+	      %= check_box email_notify => 1, id => 'enotify', class => 'filled-in'
+	      %= t 'span', 'Уведомление по e-mail об окончании лимита'
+	    </label>
 	  </div>
 	</div>
       </div>
@@ -46,7 +56,7 @@
 	<h5>Местоположение</h5>
 	<div class="row">
 	  <div class="input-field col s12 m8 l5">
-	    % param profile => $srv_rec->{profile} unless defined param 'profile';
+	    % param profile => $rec->{profile} unless defined param 'profile';
 	    %= input_tag 'profile', type => 'hidden'
 	    % param profile1 => param 'profile';
 	    %= select_field profile1 => ['plk', 'gwtest1', 'atcsev', 'kns3'], id => 'profile', disabled => undef
@@ -60,12 +70,12 @@
 	<h5>Сетевые параметры</h5>
 	<div class="row">
 	  <div class="input-field col s10 m6 l4">
-	    %= text_field 'ip' => $srv_rec->{ip}, id => 'ip'
+	    %= text_field 'ip' => $rec->{ip}, id => 'ip'
 	    %= label_for ip => 'IP адрес'
 	    %= t 'span', class => 'helper-text', 'data-error' => 'Ошибка, формат xxx.xxx.xxx.xxx', 'IPv4 (Формат: xxx.xxx.xxx.xxx)'
 	  </div>
 	  <div class="input-field col s10 m6 l4">
-	    %= text_field 'mac' => $srv_rec->{mac}, id => 'mac'
+	    %= text_field 'mac' => $rec->{mac}, id => 'mac'
 	    %= label_for mac => 'MAC'
 	    %= t 'span', class => 'helper-text', 'data-error' => 'Ошибка, формат xx:xx:xx:xx:xx:xx', 'Eui-48 ethernet MAC (Формат: xx:xx:xx:xx:xx:xx)'
 	  </div>
@@ -73,7 +83,7 @@
 	<div class="row">
 	  <div class="col s12">
 	    <label>
-	      % param no_dhcp => $srv_rec->{no_dhcp} unless defined param 'no_dhcp';
+	      % param no_dhcp => $rec->{no_dhcp} unless defined param 'no_dhcp';
 	      %= check_box no_dhcp => 1, id => 'no-dhcp', class => 'filled-in'
 	      %= t 'span', 'Сервер не использует DHCP'
 	    </label>
@@ -82,12 +92,12 @@
 
 	<div class="row">
 	  <div class="input-field col s10 m6 l4">
-	    % param rt => $srv_rec->{rt} unless defined param 'rt';
+	    % param rt => $rec->{rt} unless defined param 'rt';
 	    %= select_field rt => config('rt_names'), id => 'rt';
 	    %= label_for rt => 'Провайдер'
 	  </div>
 	  <div class="input-field col s10 m6 l4">
-	    % param defjump => $srv_rec->{defjump} unless param 'defjump';
+	    % param defjump => $rec->{defjump} unless param 'defjump';
 	    %= select_field defjump => config('defjump_names'), id => 'defjump';
 	    %= label_for defjump => 'Правило'
 	  </div>
@@ -100,13 +110,13 @@
 	    % unless (param 'speed_key') {
 	    %   my ($speed_key, $speed_userdef_in, $speed_userdef_out) = ('userdef', '', '');
 	    %   for (@{config 'speed_plans'}) {
-	    %     if ($srv_rec->{speed_in} eq $_->{in} && $srv_rec->{speed_out} eq $_->{out}) {
+	    %     if ($rec->{speed_in} eq $_->{in} && $rec->{speed_out} eq $_->{out}) {
 	    %       $speed_key = $_->{key}; # don't exit loop here
 	    %     }
 	    %   }
 	    %   if ($speed_key eq 'userdef') {
-	    %     $speed_userdef_in = $srv_rec->{speed_in} // '';
-	    %     $speed_userdef_out = $srv_rec->{speed_out} // '';
+	    %     $speed_userdef_in = $rec->{speed_in} // '';
+	    %     $speed_userdef_out = $rec->{speed_out} // '';
 	    %   }
 	    %   param 'speed_key' => $speed_key;
 	    %   param 'speed_userdef_in' => $speed_userdef_in;
@@ -134,12 +144,12 @@
 	<h5>Лимиты</h5>
 	<div class="row">
 	  <div class="input-field col s10 m6 l4">
-	    % param qs => $srv_rec->{qs} unless defined param 'qs';
+	    % param qs => $rec->{qs} unless defined param 'qs';
 	    %= select_field qs => config('qs_names'), id => 'qs';
 	    %= label_for qs => 'Режим квоты'
 	  </div>
 	  <div class="input-field col s10 m6 l4">
-	    % param limit_in => btomb $srv_rec->{limit_in} unless defined param 'limit_in';
+	    % param limit_in => btomb $rec->{limit_in} unless defined param 'limit_in';
 	    %= text_field 'limit_in', id => 'limit-in'
 	    %= label_for 'limit-in' => 'Лимит (Мегабайт в месяц)'
 	    %= t 'span', class => 'helper-text', 'data-error' => 'Ошибка', 'Формат: число без добавления "Мб".'

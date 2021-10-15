@@ -18,7 +18,7 @@
       % if ($fullrec->{email}) {
       <br><br>
       %= form_for statemail => (method=>'POST', id=>'enotifyform') => begin
-      %= hidden_field id => $client_id
+      %= hidden_field login => $fullrec->{login}
       %= hidden_field rep => $rep
       <label>
 	% param email_notify => $fullrec->{email_notify} || 0;

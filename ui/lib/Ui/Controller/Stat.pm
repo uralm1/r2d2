@@ -6,7 +6,6 @@ sub index {
   return undef unless $self->authorize($self->allow_all_roles);
 
   my $login = $self->stash('remote_user') // '';
-  $login = 'sorokinasv'; #FIXME
   my $reptype = $self->param('rep') // '';
 
   my $activetab;
@@ -31,7 +30,7 @@ sub index {
           if ($res->code == 404) {
             return $self->render(template => 'stat/nouser');
           } else {
-            return $self->render(text => 'Ошибка запроса: '.$res->body);
+            return $self->render(text => 'Ошибка запроса: '.substr($res->body, 0, 120));
           }
         }
         return $self->render(text => 'Неподдерживаемый ответ');
@@ -67,22 +66,25 @@ sub emailpost {
   my $self = shift;
   return undef unless $self->authorize($self->allow_all_roles);
 
-  my $login = $self->stash('remote_user') // '';
-
-  my $id = $self->param('id');
-  return unless $self->exists_and_number($id);
-
   my $reptype = $self->param('rep') // '';
   my $returl = $self->url_for('stat');
   $returl->query(rep => $reptype) if $reptype eq 'month';
 
-  my $email_notify = $self->param('email_notify') ? 1 : 0;
-
   $self->render_later;
 
-  # verify user
-  $self->ua->get(Mojo::URL->new("/ui/search/1")->query(login => $login)->to_abs($self->head_url) =>
-    {Accept => 'application/json'} =>
+  # validate user login
+  my $current_login = $self->stash('remote_user') // '';
+  my $login = $self->param('login');
+
+  if (!defined $login or $login ne $current_login) {
+    $self->flash(oper => 'Сервис недоступен. Неверный пользователь.');
+    return $self->redirect_to($returl);
+  }
+
+  my $email_notify = $self->param('email_notify') ? 1 : 0;
+
+  $self->ua->patch(Mojo::URL->new("/ui/client/1/bylogin")->to_abs($self->head_url)
+    => json => { login => $login, email_notify => $email_notify } =>
     sub {
       my ($ua, $tx) = @_;
       my $res = eval { $tx->result };
@@ -92,34 +94,17 @@ sub emailpost {
             $self->flash(oper => 'Сервис недоступен. Пользователь не найден.');
             return $self->redirect_to($returl);
           } else {
-            return $self->render(text => 'Ошибка запроса: '.$res->body);
+            return $self->render(text => 'Ошибка запроса: '.substr($res->body, 0, 120));
           }
         }
         return $self->render(text => 'Неподдерживаемый ответ');
       }
 
-      return unless my $v = $self->request_json($res);
-      if (defined $v->{id} && $v->{id} eq $id) {
-        $self->ua->patch(Mojo::URL->new("/ui/client/1/$id")->to_abs($self->head_url)
-          => json => { id => $id, email_notify => $email_notify} =>
-          sub {
-            my ($ua, $tx1) = @_;
-            my $res1 = eval { $tx1->result };
-            return unless $self->request_success($res1);
-
-            # do redirect with flash
-            $self->flash(oper => 'Уведомление по e-mail '.($email_notify ? 'включено.' : 'отключено.'));
-            return $self->redirect_to($returl);
-          } # inner patch closure
-        );
-
-      } else {
-        $self->flash(oper => 'Сервис недоступен. Неверный пользователь.');
-        return $self->redirect_to($returl);
-      }
-    } # outer get closure
+      # do redirect with flash
+      $self->flash(oper => 'Уведомление по e-mail '.($email_notify ? 'включено.' : 'отключено.'));
+      return $self->redirect_to($returl);
+    } # patch closure
   );
-
 }
 
 
