@@ -51,23 +51,6 @@ sub register {
     return undef;
   });
 
-
-  $app->helper(days_in => sub {
-    my ($self, $year, $month) = @_;
-    # $month is 0..11
-    #               1  2  3  4  5  6  7  8  9 10 11 12
-    my @mltable = (31, 0,31,30,31,60,31,31,30,31,30,31);
-    return $mltable[$month] unless $month == 2;
-    return 28 unless $self->is_leap($year);
-    return 29;
-  });
-
-
-  $app->helper(is_leap => sub {
-    my $y = $_[1];
-    return ( ($y % 4 == 0) and ($y % 400 == 0 or $y % 100 != 0) ) || 0;
-  });
-
 }
 
 1;

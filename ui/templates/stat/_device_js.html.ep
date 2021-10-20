@@ -13,8 +13,8 @@ var chart<%== $chart_id %> = new Chart($('#chart<%== $chart_id %>'), {
 % for (@{$rec->{traf}}) {
 %   my $jsdate = get_js_date($_->{date});
 %   my $v = $_->{in};
-%   if ($jsdate && $v >= 0) {
-{x:<%= $jsdate %>,y:<%= btomb($v) %>},
+%   if ($jsdate) {
+{x:<%= $jsdate %>,y:<%= ($v >= 0) ? btomb($v) : 'null' %>},
 %   }
 % }
 	]
@@ -29,8 +29,8 @@ var chart<%== $chart_id %> = new Chart($('#chart<%== $chart_id %>'), {
 % for (@{$rec->{traf}}) {
 %   my $jsdate = get_js_date($_->{date});
 %   my $v = $_->{out};
-%   if ($jsdate && $v >= 0) {
-{x:<%= $jsdate %>,y:<%= btomb($v) %>},
+%   if ($jsdate) {
+{x:<%= $jsdate %>,y:<%= ($v > 0) ? btomb($v) : 'null' %>},
 %   }
 % }
 	]
@@ -45,6 +45,7 @@ var chart<%== $chart_id %> = new Chart($('#chart<%== $chart_id %>'), {
       x: {
 	type: 'time',
 	display: true,
+	reverse: true,
 	time: {
 	  displayFormats: {
 	    minute: 'H:mm d.MM',
@@ -84,7 +85,17 @@ var chart<%== $chart_id %> = new Chart($('#chart<%== $chart_id %>'), {
       tooltip: {
         position: 'nearest',
         mode: 'index',
-        intersect: true
+        intersect: false,
+	callbacks: {
+	  label: function(context) {
+	    var label = context.dataset.label || '';
+	    if (label) { label += ': ' }
+	    if (context.parsed.y !== null) {
+              label += context.parsed.y + ' Мб';
+	    }
+	    return label;
+	  }
+	}
       },
       legend: {
 	position: 'right',

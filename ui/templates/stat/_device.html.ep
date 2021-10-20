@@ -25,8 +25,9 @@
 % if ($rep eq 'month') {
 Ежемесячные данные за последние 12 месяцев.
 % } else {
-% my @t = localtime;
-Ежедневные данные за последние <%= days_in($t[5]+1900, $t[4]) %>(+1) дней.
+% use Time::Piece;
+% my $t = localtime;
+Ежедневные данные за последние <%= $t->month_last_day %>(+1) дней.
 % }
 </p>
 <div class="row">
