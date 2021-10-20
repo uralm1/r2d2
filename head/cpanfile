@@ -12,6 +12,7 @@ requires 'Net::LDAP';
 requires 'JSON::Validator';
 requires 'Regexp::Common';
 requires 'Time::Piece';
+requires 'Time::Seconds';
 requires 'ExtUtils::MakeMaker::CPANfile';
 
 on 'configure' => sub {

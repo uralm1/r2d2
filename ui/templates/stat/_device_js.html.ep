@@ -30,7 +30,7 @@ var chart<%== $chart_id %> = new Chart($('#chart<%== $chart_id %>'), {
 %   my $jsdate = get_js_date($_->{date});
 %   my $v = $_->{out};
 %   if ($jsdate) {
-{x:<%= $jsdate %>,y:<%= ($v > 0) ? btomb($v) : 'null' %>},
+{x:<%= $jsdate %>,y:<%= ($v >= 0) ? btomb($v) : 'null' %>},
 %   }
 % }
 	]

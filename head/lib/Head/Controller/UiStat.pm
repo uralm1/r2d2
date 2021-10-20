@@ -63,241 +63,193 @@ ORDER BY date ASC",
     ->catch(sub {
       my $err = shift;
       return $self->render(text => 'Database error, retrieving device statistics', status => 503);
-      
+
     })->then(sub {
       my ($dev_p, $today_traf_p, $curmonth_traf_p, $traf_p) = @_;
-      # TODO
-      #
-      return $self->render(text => "Not implemented", status => 404);
-    });
 
+      my $t = localtime;
+      my $j = { date => $t->dmy('-') };
 
+      my ($sum_in, $sum_out);
+      if (my $rh = $dev_p->[0]->hash) {
+        $j->{id} = $rh->{id};
+        $j->{name} = $rh->{name};
+        $j->{profile} = $rh->{profile};
+        $j->{limit_in} = $rh->{limit_in};
+        $j->{sum_limit_in} = $rh->{sum_limit_in};
+        $j->{qs} = $rh->{qs};
+        $j->{blocked} = $rh->{blocked};
+        $sum_in = $rh->{sum_in};
+        $sum_out = $rh->{sum_out};
+      } else {
+        return $self->render(text => 'Not found', status => 404);
+      }
 
+      if (my $rh = $today_traf_p->[0]->hash) {
+        my $h = {};
+        _push_r($h, 'in', $sum_in, $rh->{d_in});
+        _push_r($h, 'out', $sum_out, $rh->{d_out});
+        $j->{today_traf} = $h;
+      } else {
+        $j->{today_traf} = {in => -1, out => -1};
+      }
 
-  ###################################
-=for comment
-  my $t = localtime;
-  my $j = { date => $t->dmy('-') };
+      if (my $rh = $curmonth_traf_p->[0]->hash) {
+        my $h = {};
+        _push_r($h, 'in', $sum_in, $rh->{m_in});
+        _push_r($h, 'out', $sum_out, $rh->{m_out});
+        if ($rh->{day} != 1) {
+          $h->{fuzzy_in} = 1;
+          $h->{fuzzy_out} = 1;
+        }
+        $j->{curmonth_traf} = $h;
+      } else {
+        $j->{curmonth_traf} = {in => -1, out => -1};
+      }
 
-  my $results = $db->query("SELECT id, name, sum_in, sum_out, qs, limit_in, sum_limit_in, blocked, profile \
-FROM devices \
-WHERE id = ?",
-#WHERE id = ? AND client_id = ?",
-    $device_id,
-    #$client_id
-  );
-  my ($sum_in, $sum_out);
+      my $traf_arr = [];
 
-  if (my $rh = $results->hash) {
-    $j->{id} = $rh->{id};
-    $j->{name} = $rh->{name};
-    $j->{profile} = $rh->{profile};
-    $j->{limit_in} = $rh->{limit_in};
-    $j->{sum_limit_in} = $rh->{sum_limit_in};
-    $j->{qs} = $rh->{qs};
-    $j->{blocked} = $rh->{blocked};
-    $sum_in = $rh->{sum_in};
-    $sum_out = $rh->{sum_out};
+      if (!defined $rep || $rep eq 'day') {
+        # get_daily_data
+        #$t = localtime;
+        my $daycount = $t->truncate(to => 'day');
+        $daycount->date_separator('-');
+        my $dayend = $daycount - ONE_DAY * ($t->month_last_day + 1);
+        my ($lastin, $lastout);
+        $lastin = undef;
+        my $recdate = undef;
+        my $startflag = 1;
+        my $endflag = 0;
+        my $next;
 
-  } else {
-    return $self->render(text => 'Not found', status => 404);
-  }
-  $results->finish;
+        while ($daycount >= $dayend) {
+          if (!$endflag && !$recdate) {
+            if ($next = $traf_p->[0]->hash) {
+              # use $t to correctly inherit timezone so we can compare objects
+              $recdate = $t->strptime($next->{date}, '%Y-%m-%d');
+              return $self->render(text => 'Date conversion error', status => 503) unless $recdate;
+              $recdate = $recdate->truncate(to => 'day');
+            } else {
+              $endflag = 1;
+            }
+          }
 
-  $results = $db->query("SELECT d_in, d_out FROM adaily \
-WHERE device_id = ? AND date = CURDATE()",
-    $device_id
-  );
-  if (my $rh = $results->hash) {
-    my $h = {};
-    _push_r($h, 'in', $sum_in, $rh->{d_in});
-    _push_r($h, 'out', $sum_out, $rh->{d_out});
-    $j->{today_traf} = $h;
-  } else {
-    $j->{today_traf} = {in => -1, out => -1};
-  }
-  $results->finish;
+          #say "loop daycount: $daycount, recdate: $recdate";
+          if (!$endflag && $daycount == $recdate) {
+            if (defined $lastin) {
+              my $h = { date => $daycount->dmy };
+              _push_r($h, 'in', $lastin, $next->{d_in} // 0);
+              _push_r($h, 'out', $lastout, $next->{d_out} // 0);
+              push @$traf_arr, $h;
+            } else {
+              if (!$startflag) {
+                push @$traf_arr, { date => $daycount->dmy, in => -1, out => -1 };
+              } else {
+                $startflag = 0;
+              }
+            }
+            $lastin = $next->{d_in};
+            $lastout = $next->{d_out};
+            $recdate = undef;
 
-  $results = $db->query("SELECT DAYOFMONTH(date) AS day, m_in, m_out FROM amonthly \
-WHERE device_id = ? AND date <= CURDATE() AND date >= DATE_SUB(CURDATE(), INTERVAL DAYOFMONTH(CURDATE())-1 DAY) \
-ORDER BY date ASC LIMIT 1",
-    $device_id
-  );
-  if (my $rh = $results->hash) {
-    my $h = {};
-    _push_r($h, 'in', $sum_in, $rh->{m_in});
-    _push_r($h, 'out', $sum_out, $rh->{m_out});
-    if ($rh->{day} != 1) {
-      $h->{fuzzy_in} = 1;
-      $h->{fuzzy_out} = 1;
-    }
-    $j->{curmonth_traf} = $h;
-  } else {
-    $j->{curmonth_traf} = {in => -1, out => -1};
-  }
+          } else {
+            if (!$startflag) {
+              push @$traf_arr, { date => $daycount->dmy, in => -1, out => -1 };
+            } else {
+              $startflag = 0;
+            }
+            $lastin = undef;
+          }
+          $daycount -= ONE_DAY;
+        }
 
-  if (!defined $rep || $rep eq 'day') {
-
-    # get_daily_data
-
-    $results = $db->query("SELECT date, d_in, d_out FROM adaily \
-WHERE device_id = ? AND date <= CURDATE() AND date >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH) \
-ORDER BY date DESC",
-      $device_id
-    );
-
-    my $t = localtime;
-    my $daycount = $t->truncate(to => 'day');
-    $daycount->date_separator('-');
-    my $dayend = $daycount - ONE_DAY * ($t->month_last_day + 1);
-    my ($lastin, $lastout);
-    $lastin = undef;
-    my $recdate = undef;
-    my $startflag = 1;
-    my $endflag = 0;
-    my $traf_arr = [];
-    my $next;
-
-    while ($daycount >= $dayend) {
-      if (!$endflag && !$recdate) {
-        if ($next = $results->hash) {
-          # use $t to correctly inherit timezone so we can compare objects
-          $recdate = $t->strptime($next->{date}, '%Y-%m-%d');
-          die 'Date conversion error' unless $recdate;
+      } else {
+        # get_monthly_data
+        my $temp_arr = [];
+        my $lastdate = undef;
+        while (my $next = $traf_p->[0]->hash) {
+          my $recdate = Time::Piece->strptime($next->{date}, '%Y-%m-%d');
+          return $self->render(text => 'Date conversion error', status => 503) unless $recdate;
           $recdate = $recdate->truncate(to => 'day');
-        } else {
-          $endflag = 1;
-        }
-      }
+          my $recdate_monthtruncated = $recdate->truncate(to => 'month');
 
-      #say "loop daycount: $daycount, recdate: $recdate";
-      if (!$endflag && $daycount == $recdate) {
-        if (defined $lastin) {
-          my $h = { date => $daycount->dmy };
-          _push_r($h, 'in', $lastin, $next->{d_in} // 0);
-          _push_r($h, 'out', $lastout, $next->{d_out} // 0);
-          push @$traf_arr, $h;
-        } else {
-          if (!$startflag) {
-            push @$traf_arr, { date => $daycount->dmy, in => -1, out => -1 };
-          } else {
-            $startflag = 0;
-          }
-        }
-        $lastin = $next->{d_in};
-        $lastout = $next->{d_out};
-        $recdate = undef;
+          # skip the same month but different dates
+          next if defined $lastdate and $recdate_monthtruncated == $lastdate;
 
-      } else {
-        if (!$startflag) {
-          push @$traf_arr, { date => $daycount->dmy, in => -1, out => -1 };
-        } else {
-          $startflag = 0;
+          $lastdate = $recdate_monthtruncated;
+          push @$temp_arr, { date => $recdate, in => $next->{m_in}, out => $next->{m_out} };
         }
+        #say "date: $_->{date}, in: $_->{in}, out: $_->{out}" for (@$temp_arr);
+
+        #$t = localtime;
+        my $daycount = $t->truncate(to => 'month'); # YYYY-MM-01
+        $daycount->date_separator('-');
+        my $dayend = $daycount->add_years(-1);
+        my ($lastin, $lastout);
         $lastin = undef;
-      }
-      $daycount -= ONE_DAY;
-    }
-    $results->finish;
+        my $recdate = undef;
+        my ($recdate_year, $recdate_month, $recdate_day, $in, $out);
+        my $startflag = 1;
+        my $endflag = 0;
+        my $lastroundflag = 0;
 
-    $j->{traf} = $traf_arr;
-
-  } else {
-
-    # get_monthly_data
-
-    $results = $db->query("SELECT date, m_in, m_out FROM amonthly \
-WHERE device_id = ? AND date <= CURDATE() AND date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH) \
-ORDER BY date ASC",
-      $device_id
-    );
-    my $temp_arr = [];
-    my $lastdate = undef;
-    while (my $next = $results->hash) {
-      my $recdate = Time::Piece->strptime($next->{date}, '%Y-%m-%d');
-      die 'Date conversion error' unless $recdate;
-      $recdate = $recdate->truncate(to => 'day');
-      my $recdate_monthtruncated = $recdate->truncate(to => 'month');
-
-      # skip the same month but different dates
-      next if defined $lastdate and $recdate_monthtruncated == $lastdate;
-
-      $lastdate = $recdate_monthtruncated;
-      push @$temp_arr, { date => $recdate, in => $next->{m_in}, out => $next->{m_out} };
-    }
-    $results->finish;
-    #say "date: $_->{date}, in: $_->{in}, out: $_->{out}" for (@$temp_arr);
-
-    my $t = localtime;
-    my $daycount = $t->truncate(to => 'month'); # YYYY-MM-01
-    $daycount->date_separator('-');
-    my $dayend = $daycount->add_years(-1);
-    my ($lastin, $lastout);
-    $lastin = undef;
-    my $recdate = undef;
-    my ($recdate_year, $recdate_month, $recdate_day, $in, $out);
-    my $startflag = 1;
-    my $endflag = 0;
-    my $lastroundflag = 0;
-    my $traf_arr = [];
-
-    my $i = $#$temp_arr; # array index from last to first
-    while ($daycount >= $dayend) {
-      if (!$endflag && !$recdate) {
-        if ($i >= 0) {
-          my $th = $temp_arr->[$i];
-          $recdate = $th->{date};
-          $recdate_year = $recdate->year;
-          $recdate_month = $recdate->mon;
-          $recdate_day = $recdate->mday;
-          $in = $th->{in};
-          $out = $th->{out};
-          $i--;
-        } else {
-          $endflag = 1;
-        }
-      }
-
-      if (!$endflag && $recdate_month == $daycount->mon && $recdate_year == $daycount->year) {
-        if (defined $lastin) {
-          my $h = { date => $daycount->dmy };
-          _push_r($h, 'in', $lastin, $in // 0);
-          _push_r($h, 'out', $lastout, $out // 0);
-          if ($lastroundflag || $recdate_day != 1) {
-            $h->{fuzzy_in} = 1;
-            $h->{fuzzy_out} = 1;
+        my $i = $#$temp_arr; # array index from last to first
+        while ($daycount >= $dayend) {
+          if (!$endflag && !$recdate) {
+            if ($i >= 0) {
+              my $th = $temp_arr->[$i];
+              $recdate = $th->{date};
+              $recdate_year = $recdate->year;
+              $recdate_month = $recdate->mon;
+              $recdate_day = $recdate->mday;
+              $in = $th->{in};
+              $out = $th->{out};
+              $i--;
+            } else {
+              $endflag = 1;
+            }
           }
-          push @$traf_arr, $h;
-        } else {
-          if (!$startflag) {
-            push @$traf_arr, { date => $daycount->dmy, in => -1, out => -1 };
+
+          if (!$endflag && $recdate_month == $daycount->mon && $recdate_year == $daycount->year) {
+            if (defined $lastin) {
+              my $h = { date => $daycount->dmy };
+              _push_r($h, 'in', $lastin, $in // 0);
+              _push_r($h, 'out', $lastout, $out // 0);
+              if ($lastroundflag || $recdate_day != 1) {
+                $h->{fuzzy_in} = 1;
+                $h->{fuzzy_out} = 1;
+              }
+              push @$traf_arr, $h;
+            } else {
+              if (!$startflag) {
+                push @$traf_arr, { date => $daycount->dmy, in => -1, out => -1 };
+              } else {
+                $startflag = 0;
+              }
+            }
+            $lastin = $in;
+            $lastout = $out;
+            $lastroundflag = $recdate_day != 1;
+            $recdate = undef;
+
           } else {
-            $startflag = 0;
+            if (!$startflag) {
+              push @$traf_arr, { date => $daycount->dmy, in => -1, out => -1 };
+            } else {
+              $startflag = 0;
+            }
+            $lastin = undef;
+            $lastroundflag = 0;
           }
+          $daycount = $daycount->add_months(-1); # $daycount is always month rounded
         }
-        $lastin = $in;
-        $lastout = $out;
-        $lastroundflag = $recdate_day != 1;
-        $recdate = undef;
-
-      } else {
-        if (!$startflag) {
-          push @$traf_arr, { date => $daycount->dmy, in => -1, out => -1 };
-        } else {
-          $startflag = 0;
-        }
-        $lastin = undef;
-        $lastroundflag = 0;
       }
-      $daycount = $daycount->add_months(-1); # $daycount is always month rounded
-    }
 
-    $j->{traf} = $traf_arr;
-  }
+      $j->{traf} = $traf_arr;
 
-  #say $self->dumper($j);
-  $self->render(json => $j);
-=cut
+      #say $self->dumper($j);
+      $self->render(json => $j);
+    });
 }
 
 
