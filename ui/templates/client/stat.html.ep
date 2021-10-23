@@ -6,7 +6,7 @@
       <b>Логин:</b>&nbsp;<%= $fullrec->{login} %><br>
       % if ($fullrec->{email}) {
       <b>E-mail:</b>&nbsp;<%= $fullrec->{email} %>
-      (*уведомление <%== $fullrec->{email_notify} ? 'включено' : 'отключено'%>)
+      <i>(*&nbsp;уведомление <%== $fullrec->{email_notify} ? 'включено' : 'отключено'%>)</i>
       % }
     </div>
   </div>
