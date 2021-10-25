@@ -414,12 +414,17 @@ sub handle_server_attrs {
   $j->{date} = $t->dmy('-');
 
   if (my $rh = $result->hash) {
-    for (qw/id cn email email_notify profile limit_in sum_limit_in qs blocked/) {
+    for (qw/id cn profile limit_in sum_limit_in qs blocked/) {
       die 'Undefined server attribute' unless exists $rh->{$_};
       $j->{$_} = $rh->{$_};
     }
-    for (qw/sum_in sum_out deviceid/) {
+    for (qw/email email_notify sum_in sum_out deviceid/) {
       die 'Undefined server stat attribute' unless exists $rh->{$_};
+    }
+    my $email = $rh->{email};
+    if (defined $email && $email ne '') {
+      $j->{email} = $email;
+      $j->{email_notify} = $rh->{email_notify};
     }
     $self->stash(
       sum_in => $rh->{sum_in} // 0,
@@ -510,9 +515,17 @@ sub handle_client_attrs {
   $j->{date} = $t->dmy('-');
 
   if (my $rh = $result->hash) {
-    for (qw/id cn guid login email email_notify/) {
+    for (qw/id cn guid login/) {
       die 'Undefined client attribute' unless exists $rh->{$_};
       $j->{$_} = $rh->{$_};
+    }
+    for (qw/email email_notify/) {
+      die 'Undefined client stat attribute' unless exists $rh->{$_};
+    }
+    my $email = $rh->{email};
+    if (defined $email && $email ne '') {
+      $j->{email} = $email;
+      $j->{email_notify} = $rh->{email_notify};
     }
     # success
     return '';
