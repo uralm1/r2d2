@@ -30,7 +30,6 @@ paths:
   /log:
     post:
       summary: Записывает сообщение в op_log
-
       requestBody:
         description: log data
         required: true
@@ -376,7 +375,7 @@ paths:
   /ui/list:
     get:
       summary: Получение списка клиентов и серверов
-      description: Запрос списка для интерфейса пользователя.
+      description: Запрос списка клиентов и серверов.
       parameters:
         - name: page
           in: query
@@ -1198,6 +1197,48 @@ paths:
                 description: error message
 
 
+  /ui/systemstatus:
+    get:
+      summary: Получение состояния системы R2D2
+      description: Запрос текущего состояния инфраструктуры R2D2.
+      parameters:
+        - name: page
+          in: query
+          description: Текущая страница (начиная с 1)
+          schema:
+            type: integer
+            example: 2
+        - name: lop
+          in: query
+          required: true
+          description: Число строк на странице (lines_on_page)
+          schema:
+            type: integer
+            example: 20
+
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ui_systemstatus'
+        '400':
+          description: Ошибка в параметрах, в основном неверный номер текущей страницы
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+
   /ui/oplog:
     get:
       summary: Получение лога операций
@@ -1453,7 +1494,6 @@ components:
           description: Массив строк
           items:
             $ref: '#/components/schemas/client_full_record'
-
       example:
         lines_total: 1000
         pages: 50
@@ -1462,7 +1502,30 @@ components:
         d:
           TODO: 'Массив client_device_record'
 
-            
+
+    ui_systemstatus:
+      description: 'Страница данных списка профилей системы'
+      type: object
+      properties:
+        lines_total:
+          type: integer
+          description: Всего строк данных
+        pages:
+          type: integer
+          description: Всего страниц данных
+        page:
+          type: integer
+          description: Текущая страница, возвращенная в данном объекте. Равна параметру запроса.
+        lines_on_page:
+          type: integer
+          description: Строк на одной странице. Равно параметру запроса.
+        d:
+          type: array
+          description: Массив строк
+          items:
+            $ref: '#/components/schemas/system_profile_record'
+
+
     ui_client_search_result:
       description: 'Результаты поиска клиентов'
       type: array
@@ -1927,3 +1990,57 @@ components:
         - guid
         - date
         - devices
+
+
+    system_profile_record:
+      description: 'Профиль системы R2D2'
+      type: object
+      properties:
+        key:
+          type: string
+          description: 'Ключ профиля'
+        name:
+          type: string
+          description: 'Наименование профиля'
+        lastcheck:
+          type: string
+          description: 'Дата и время последней проверки, дд-мм-гггг чч:мм:сс'
+        agents:
+          type: array
+          description: 'Массив записей об агентах'
+          items:
+            description: Агент системы
+            type: object
+            properties:
+              name:
+                type: string
+                description: Имя агента
+              type:
+                type: string
+                description: Тип агента
+                enum: [fwsyn, dhcpsyn, rtsyn, gwsyn]
+              url:
+                type: string
+                description: Url агента
+              state:
+                type: integer
+                description: 'Состояние агента: 0-нормальное, 1 - ошибка.'
+              status:
+                type: string
+                description: 'Статус агента или описание ошибки'
+                example: 'rtsyn@wispa (3.00)'
+              lastcheck:
+                type: string
+                description: 'Дата и время последней проверки, дд-мм-гггг чч:мм:сс'
+            required:
+              - name
+              - type
+              - url
+              - state
+              - status
+              - lastcheck
+      required:
+        - key
+        - name
+        - lastcheck
+        - agents

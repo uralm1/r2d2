@@ -29,9 +29,14 @@
       % }
     </div>
   </div>
-  <p>Ваши устройства, подключенные к сети Интернет:</p>
+  % my $num_devs = scalar @{$fullrec->{devices}};
+  % my $chart_id_counter = 1;
+  % if ($num_devs > 0) {
+  %   my ($suf1, $suf2) = qw/о ое/;
+  %   if ($num_devs =~ /[567890]|[1][1234]$/) { ($suf1, $suf2) = ('', 'ых') }
+  %   elsif ($num_devs =~ /[234]$/) { ($suf1, $suf2) = qw/а ых/ }
+  <p class="head-text"><b>У Вас <%= $num_devs %> устройств<%== $suf1 %></b>, подключенн<%== $suf2 %> к сети Интернет. Статистика отображена ниже:</p>
   <ul class="collapsible expandable">
-    % my $chart_id_counter = 1;
     % for my $rec (@{$fullrec->{devices}}) {
     <li class="active">
       <div class="collapsible-header grey lighten-3">
@@ -44,6 +49,9 @@
     %   $chart_id_counter++;
     % }
   </ul>
+  % } else {
+  <p class="head-text"><b>У Вас ОТСУТСТВУЮТ устройства</b>, подключенные к сети Интернет</p>
+  % }
 </div>
 % content_for script0 => begin
 %= include 'stat/_chartjs_deps'

@@ -32,18 +32,39 @@
 
   profiles => {
     'plk' => {
+      name => 'Производственно-лабораторный комплекс',
       agents => [
-        { type => 'rtsyn', url => 'https://localhost:2275' },
-        #{ type => 'dhcpsyn', url => 'https://localhost:2275' },
-        #{ type => 'fwsyn', url => 'https://localhost:2275', block => 1 },
+        {
+          name => 'Агент роутера',
+          type => 'rtsyn',
+          url => 'https://localhost:2275'
+        },
+        #{
+        #  name => 'Агент DHCP',
+        #  type => 'dhcpsyn',
+        #  url => 'https://localhost:2275'
+        #},
+        #{
+        #  name => 'Агент Firewall',
+        #  type => 'fwsyn',
+        #  url => 'https://localhost:2275',
+        #  block => 1
+        #},
       ],
     },
     'gwtest1' => {
+      name => 'Тестовое подразделение',
       agents => [
-        { type => 'gwsyn', url => 'https://1.2.3.4:2275', block => 1 },
+        {
+          name => 'Универсальный агент',
+          type => 'gwsyn',
+          url => 'https://1.2.3.4:2275',
+          block => 1
+        },
       ],
     },
     'atcsev' => {
+      name => 'АТЦ Севастопольская',
       agents => [
       ],
     },

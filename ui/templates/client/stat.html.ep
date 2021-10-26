@@ -6,13 +6,15 @@
       <b>Логин:</b>&nbsp;<%= $fullrec->{login} %><br>
       % if ($fullrec->{email}) {
       <b>E-mail:</b>&nbsp;<%= $fullrec->{email} %>
-      <i>(*&nbsp;уведомление <%== $fullrec->{email_notify} ? 'включено' : 'отключено'%>)</i>
+      <b>(уведомление <%== $fullrec->{email_notify} ? 'включено' : 'отключено'%>)</b>
       % }
     </div>
   </div>
-  <p>Клиентские устройства, подключенные к сети Интернет:</p>
+  % my $num_devs = scalar @{$fullrec->{devices}};
+  % my $chart_id_counter = 1;
+  % if ($num_devs > 0) {
+  <p class="head-text"><b>Клиентские устройства (<%= $num_devs %>)</b>, подключенные к сети Интернет:</p>
   <ul class="collapsible expandable">
-    % my $chart_id_counter = 1;
     % for my $rec (@{$fullrec->{devices}}) {
     <li class="active">
       <div class="collapsible-header grey lighten-3">
@@ -25,6 +27,9 @@
     %   $chart_id_counter++;
     % }
   </ul>
+  % } else {
+  <p class="head-text"><b>ОТСУТСТВУЮТ клиентские устройства</b>, подключенные к сети Интернет</p>
+  % }
 </div>
 % content_for script0 => begin
 %= include 'stat/_chartjs_deps'

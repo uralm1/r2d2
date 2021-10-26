@@ -95,6 +95,7 @@ sub startup {
 
   $r->post('/log/#rsubsys' => {rsubsys => 'none'})->to('log#log');
 
+  $r->get('/ui/systemstatus')->to('ui_system#systemstatus');
   $r->get('/ui/oplog')->to('ui_oplog#oplog');
   $r->get('/ui/list')->to('ui_list#list');
   $r->get('/ui/search/0')->to('ui_search#searchclient');
