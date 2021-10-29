@@ -1,0 +1,124 @@
+% layout 'default', title => 'R2D2 2021';
+<div class="scont">
+  <h6><b>Центр управления</b></h6>
+  <table>
+    <thead>
+      <tr class="tr-status-head">
+	<th style="width:5%"></th>
+	<th style="width:21%">Наименование</th>
+	<th style="width:5%">Тип</th>
+	<th style="width:25%">Адрес</th>
+	<th style="width:44%">Состояние</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="tr-head-status">
+	<td style="width:5%"><span class="listservertype">Центр</span></td>
+	<td style="width:21%">Головной сервер</td>
+	<td style="width:5%"><span class="listagenttype">head</span></td>
+	<td style="width:25%"><%= head_url %></td>
+	<td style="width:44%">
+	  <span class="listagenttype green accent-2"><%= $head_status %></span>
+	</td>
+      </tr>
+    </tbody>
+  </table>
+  <h6><b>Состояние системы</b></h6>
+  <table>
+    <thead>
+      <tr class="tr-status-head">
+	<th style="width:5%"></th>
+	<th style="width:75%">Наименование объекта</th>
+	<th style="width:20%">Последняя проверка</th>
+      </tr>
+    </thead>
+    <tbody>
+    % my $th;
+    % my ($agents_total, $agents_good, $agents_bad) = (0, 0, 0);
+    % for (@{$rec->{d}}) {
+      <tr class="tr-status">
+	<td style="width:5%"><span class="listprofiletype">Объект</span></td>
+	<td style="width:75%"><%= $_->{name} ne '' ? $_->{name} : 'Key: '.$_->{key} %></td>
+	<td style="width:20%"><%= $_->{lastcheck} ne '' ? $_->{lastcheck} : 'н/д' %></td>
+      </tr>
+      <tr class="tr-agents">
+	<td class="listagentrow" colspan="3">
+	  <table>
+	    % unless ($th) {
+	    <thead>
+	      <tr class="tr-agent-head">
+		<th style="width:25%">Наименование агента</th>
+		<th style="width:5%">Тип</th>
+		<th style="width:25%">Адрес</th>
+		<th style="width:25%">Состояние</th>
+		<th style="width:20%">Последняя проверка</th>
+	      </tr>
+	    <thead>
+	    % $th = 1; }
+	    <tbody>
+	    % for my $a (@{$_->{agents}}) {
+	    <tr class="tr-agent">
+	      <td style="width:25%">
+	        <i class="material-icons tiny">extension</i>
+		%= $a->{name} ne '' ? $a->{name} : 'н/д'
+	      </td>
+	      <td style="width:5%">
+		<span class="listagenttype"><%= $a->{type} %></span>
+	      </td>
+	      <td style="width:25%">
+		<%= $a->{url} %>
+	      </td>
+	      <td style="width:25%">
+	      % if ($a->{state} > 0) {
+	        <span class="listagenttype green accent-2"><%= 'OK: '.$a->{status} %></span>
+              % $agents_good++;
+	      % } else {
+	        <span class="listagenttype red lighten-1"><%= 'Ошибка: '.$a->{status} %></span>
+              % $agents_bad++;
+	      % }
+	      </td>
+	      <td style="width:20%">
+		%= $a->{lastcheck} ne '' ? $a->{lastcheck} : 'н/д'
+	      </td>
+	    </tr>
+	    % }
+	    % unless (@{$_->{agents}}) {
+	    <tr>
+	      <td colspan="5">
+		<i class="material-icons tiny">report</i>
+		<span>Агенты отсутствуют</span>
+	      </td>
+	    </tr>
+            % $agents_total++;
+	    % }
+	    </tbody>
+	  </table>
+	</td>
+      </tr>
+
+    % }
+    </tbody>
+  </table>
+  %= m_page_nav($rec->{page}, $rec->{pages}, {round=>3, outer=>1, start=>1, class=>'center-align', param=>'p', query=>'#top'});
+  <p>
+    Всего объектов:&nbsp;<%= $rec->{lines_total} %>, агентов:&nbsp;<%= $agents_total %>,
+    <span class="listagenttype green accent-2">исправных:&nbsp;<%= $agents_good %></span>,
+    <span class="listagenttype red lighten-1">с&nbsp;ошибками:&nbsp;<%= $agents_bad %></span>.
+  </p>
+  <p>Автоматическое обновление страницы каждые 2 мин.</p>
+</div>
+<div class="fixed-action-btn">
+  %= link_to 'oplog' => (class=>'btn-floating green darken-1 btn-large btn-tooltip', 'data-position'=>'left', 'data-tooltip'=>'Просмотр лога системных событий') => begin
+  <i class="material-icons">more_vert</i>
+  % end
+</div>
+% content_for script0 => begin
+<script>
+  $(document).ready(function(){
+    $('.fixed-action-btn').floatingActionButton();
+    $('.btn-tooltip').tooltip();
+    //$('.table-tooltips').tooltip({enterDelay:700});
+    setTimeout(function(){window.location.reload()}, 120000);
+  });
+</script>
+% end

@@ -73,6 +73,8 @@ sub startup {
   $r->get('/stat')->to('stat#index');
   $r->post('/stat/email')->to('stat#emailpost');
 
+  $r->get('/status')->to('system#index');
+
   $r->get('/oplog')->to('oplog#index');
 
   $r->get('/server/new')->to('server#newform');

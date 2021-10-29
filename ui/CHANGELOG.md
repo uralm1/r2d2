@@ -2,6 +2,7 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+- Страница состояния системы.
 - Флаг уведомления у клиентов и серверов.
 - Статистика по трафику.
 - Функция переноса клиентского устройства другому клиенту.

@@ -2004,7 +2004,7 @@ components:
           description: 'Наименование профиля'
         lastcheck:
           type: string
-          description: 'Дата и время последней проверки, дд-мм-гггг чч:мм:сс'
+          description: 'Дата и время последней проверки, чч:мм:сс дд-мм-гггг, пустое если проверка еще не производилась.'
         agents:
           type: array
           description: 'Массив записей об агентах'
@@ -2024,14 +2024,14 @@ components:
                 description: Url агента
               state:
                 type: integer
-                description: 'Состояние агента: 0-нормальное, 1 - ошибка.'
+                description: 'Состояние агента: 1-нормальное, 0 - ошибка.'
               status:
                 type: string
                 description: 'Статус агента или описание ошибки'
                 example: 'rtsyn@wispa (3.00)'
               lastcheck:
                 type: string
-                description: 'Дата и время последней проверки, дд-мм-гггг чч:мм:сс'
+                description: 'Дата и время последней проверки, чч:мм:сс дд-мм-гггг, пустое если проверка еще не производилась.'
             required:
               - name
               - type

@@ -62,7 +62,14 @@ pre.newversion-hist {
   margin-top:20px;
 }
 
-.listclienttype {
+.listagenttype {
+  color:#0;
+  background-color:#e0e0e0;
+  padding:4px;
+  border-radius:4px;
+}
+
+.listclienttype, .listprofiletype {
   color:#fff;
   font-size:.8rem!important;
   background-color:#444444;
@@ -76,15 +83,15 @@ pre.newversion-hist {
   padding:4px;
 }
 
-.listdevicerow {
+.listdevicerow, .listagentrow {
   padding:0 0 0 18px;
 }
 
-.tr-client, .tr-devices, .tr-device, .tr-device-head {
+.tr-client, .tr-devices, .tr-device, .tr-device-head, .tr-head-status, .tr-status, .tr-agents, .tr-agent, .tr-agent-head {
   border-bottom:none;
 }
 
-tr.tr-client, tr.tr-device {
+tr.tr-client, tr.tr-device, tr.tr-status, tr.tr-agent {
   -webkit-transition: background-color .25s ease;
   transition: background-color .25s ease;
 }
@@ -94,19 +101,29 @@ tr.tr-client, tr.tr-device {
   background-color: rgba(225,225,225,.5);
 }
 
-tr.tr-client>td, tr.tr-client-head>th {
+tr.tr-client>td, tr.tr-client-head>th, tr.tr-status>td {
   padding-top:25px;
   padding-bottom:10px;
 }
 
-tr.tr-device-head>th {
+tr.tr-status-head>th {
+  padding-top:10px;
+  padding-bottom:6px;
+}
+
+tr.tr-head-status>td {
+  padding-top:10px;
+  padding-bottom:20px;
+}
+
+tr.tr-device-head>th, tr.tr-agent-head>th {
   padding:5px;
   border:1px solid #adadad;
 }
 
-tr.tr-device>td {
+tr.tr-device>td, tr.tr-agent>td {
   padding:5px;
-  border:1px solid #adadad;
+  border:1px solid #e3e3e3;
 }
 
 .toc-wrapper {

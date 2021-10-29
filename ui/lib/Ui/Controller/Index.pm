@@ -10,14 +10,11 @@ sub index {
   # IMPORTANT!
   # redirect to stat if not admin
   if ($self->stash('remote_user_role') ne 'admin') {
-    $self->redirect_to('stat');
+    return $self->redirect_to('stat');
   }
 
   return undef unless $self->authorize({ admin=>1 });
-
-  # TODO
-
-  $self->render;
+  return $self->redirect_to('status');
 }
 
 

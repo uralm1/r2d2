@@ -18,7 +18,7 @@
     % my $th;
     % for (@{$rec->{d}}) {
       <tr class="tr-client" data-type="<%= $_->{type} %>" data-clientid="<%== $_->{id} %>">
-	<td>
+	<td style="width:5%">
 	  <span class="<%== $_->{type} == 1 ? 'listservertype':'listclienttype' %>">
 	    <%== $_->{type} == 0 ? 'Клиент':$_->{type} == 1 ? 'Сервер':'Неизв.' %>
 	  </span>

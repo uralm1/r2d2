@@ -14,14 +14,15 @@
 <body>
 % my $newversion = check_newversion;
 %= $newversion if $newversion;
-  <ul id="servers-dropdown" class="dropdown-content">
-    <li><%= link_to 'servers' => begin %>Серверы<% end %></li>
-  </ul>
   <ul id="clients-dropdown" class="dropdown-content">
     <li><%= link_to 'clients' => begin %>Список клиентов<% end %></li>
     <li class="divider" tabindex="-1"></li>
     <li><%= link_to 'clientnew' => begin %><i class="material-icons">add_box</i>Добавить нового клиента&hellip;<% end %></li>
     <li><%= link_to 'servernew' => begin %><i class="material-icons">dns</i>Добавить новый сервер&hellip;<% end %></li>
+  </ul>
+  <ul id="logs-dropdown" class="dropdown-content">
+    <li class="divider" tabindex="-1"></li>
+    <li><%= link_to 'oplog' => begin %>Лог системных событий<% end %></li>
   </ul>
   <nav class="nav-extended white-text pink darken-2">
     <div class="nav-wrapper scont">
@@ -32,9 +33,9 @@
       <a href="/" class="brand-logo"><%= $title %></a>
       % }
       <ul class="right hide-on-med-and-down">
-	<li><a class="dropdown-trigger" href="#!" data-target="servers-dropdown">Серверы<i class="material-icons right">arrow_drop_down</i></a></li>
-	<li><a class="dropdown-trigger" href="#!" data-target="clients-dropdown">Клиенты<i class="material-icons right">arrow_drop_down</i></a></li>
-	<li><%= link_to 'oplog' => begin %>Лог<% end %></li>
+	<li><%= link_to 'status' => begin %>Состояние<% end %></li>
+	<li><a class="dropdown-trigger" href="#!" data-target="clients-dropdown">Управление<i class="material-icons right">arrow_drop_down</i></a></li>
+	<li><a class="dropdown-trigger" href="#!" data-target="logs-dropdown">Логи и отчёты<i class="material-icons right">arrow_drop_down</i></a></li>
         <li><a href="<%== config 'help_url' %>" target="_blank"><i class="material-icons">help</i></a></li>
       </ul>
     </div>
