@@ -1197,7 +1197,7 @@ paths:
                 description: error message
 
 
-  /ui/systemstatus:
+  /ui/profiles/status:
     get:
       summary: Получение состояния системы R2D2
       description: Запрос текущего состояния инфраструктуры R2D2.
@@ -1222,7 +1222,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ui_systemstatus'
+                $ref: '#/components/schemas/ui_profilesstatus'
         '400':
           description: Ошибка в параметрах, в основном неверный номер текущей страницы
           content:
@@ -1503,7 +1503,7 @@ components:
           TODO: 'Массив client_device_record'
 
 
-    ui_systemstatus:
+    ui_profilesstatus:
       description: 'Страница данных списка профилей системы'
       type: object
       properties:
@@ -2024,7 +2024,7 @@ components:
                 description: Url агента
               state:
                 type: integer
-                description: 'Состояние агента: 1-нормальное, 0 - ошибка.'
+                description: 'Состояние агента: 1-нормальное, 0 - ошибка, 2 - неизвестно.'
               status:
                 type: string
                 description: 'Статус агента или описание ошибки'

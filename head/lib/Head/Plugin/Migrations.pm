@@ -186,6 +186,31 @@ ALTER TABLE `devices` ADD `name` VARCHAR(255) NOT NULL AFTER `login`;
 ALTER TABLE `devices` ADD `client_id` INT(11) UNSIGNED NULL AFTER `profile`;
 ALTER TABLE `devices` ADD INDEX (`client_id`);
 
+DROP TABLE IF EXISTS `profiles`;
+CREATE TABLE IF NOT EXISTS `profiles` (
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `profile` varchar(30) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `lastcheck` datetime DEFAULT NULL,
+  PRIMARY KEY(`id`),
+  UNIQUE KEY `profile` (`profile`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `profiles_agents` (
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `profile_id` int(11) UNSIGNED NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `type` varchar(30) NOT NULL,
+  `url` varchar(255) NOT NULL,
+  `block` tinyint(1) NOT NULL,
+  `lastcheck` datetime DEFAULT NULL,
+  `state` tinyint(1) NOT NULL,
+  `status` varchar(255) NOT NULL,
+  PRIMARY KEY(`id`),
+  KEY `profile_id` (`profile_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
 -- 5 down
 DROP TABLE IF EXISTS `clients`;
 ALTER TABLE `devices` DROP INDEX `client_id`;
@@ -200,4 +225,7 @@ ALTER TABLE `amonthly` CHANGE `device_id` `client_id` INT(11) UNSIGNED NOT NULL;
 
 ALTER TABLE `devices` RENAME `clients`;
 ALTER TABLE `devices_sync` RENAME `clients_sync`;
+
+DROP TABLE IF EXISTS `profiles`;
+DROP TABLE IF EXISTS `profiles_agents`;
 

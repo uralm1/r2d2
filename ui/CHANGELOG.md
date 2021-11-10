@@ -2,6 +2,7 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+- Профили перенесены в БД.
 - Страница состояния системы.
 - Флаг уведомления у клиентов и серверов.
 - Статистика по трафику.

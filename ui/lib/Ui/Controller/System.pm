@@ -25,7 +25,7 @@ sub index {
     $head_status .=  " ($v->{version})" if defined $v->{version};
     $self->stash(head_status => $head_status);
 
-    return $self->ua->get_p(Mojo::URL->new('/ui/systemstatus')->to_abs($self->head_url)->
+    return $self->ua->get_p(Mojo::URL->new('/ui/profiles/status')->to_abs($self->head_url)->
         query({page => $active_page, lop => $self->config('lines_on_page')}) =>
         {Accept => 'application/json'});
   })->then(sub {

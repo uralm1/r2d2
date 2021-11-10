@@ -28,9 +28,9 @@
     <div class="nav-wrapper scont">
       % my $title = stash('title') // 'Управление Интернет';
       % if (my $u = stash 'back_url') {
-      <a href="<%== $u %>" class="brand-logo"><i class="material-icons">arrow_back</i><%= $title %></a>
+      <a href="<%== $u %>" class="brand-logo"><i class="material-icons">arrow_back</i><%== $title %></a>
       % } else {
-      <a href="/" class="brand-logo"><%= $title %></a>
+      <a href="/" class="brand-logo"><%== $title %></a>
       % }
       <ul class="right hide-on-med-and-down">
 	<li><%= link_to 'status' => begin %>Состояние<% end %></li>

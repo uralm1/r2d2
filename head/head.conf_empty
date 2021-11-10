@@ -27,6 +27,12 @@
     yearly => '5 0 1 1 *',
   },
 
+  # connectivity tests schedule
+  connectivity_schedule => '37 */2 * * *',
+
+  # all supported agents types
+  agent_types => ['gwsyn', 'fwsyn', 'rtsyn', 'dhcpsyn'],
+
   # agents that support statistic collection
   agent_types_stat => ['gwsyn', 'fwsyn'],
 

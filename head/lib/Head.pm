@@ -24,8 +24,8 @@ sub startup {
   my $config = $self->plugin('Config', { default => {
     secrets => ['6ac63578bb604df4865ae802de3098b80c082740'],
     delcheck_compat_file => 'compat_chk.dat',
+    agent_types => [],
     agent_types_stat => [],
-    profiles => {},
     duplicate_rlogs => 0,
   }});
   delete $self->defaults->{config}; # safety - not to pass passwords to stashes
@@ -95,7 +95,7 @@ sub startup {
 
   $r->post('/log/#rsubsys' => {rsubsys => 'none'})->to('log#log');
 
-  $r->get('/ui/systemstatus')->to('ui_system#systemstatus');
+  $r->get('/ui/profiles/status')->to('ui_system#profilesstatus');
   $r->get('/ui/oplog')->to('ui_oplog#oplog');
   $r->get('/ui/list')->to('ui_list#list');
   $r->get('/ui/search/0')->to('ui_search#searchclient');
@@ -129,6 +129,18 @@ sub validate_config {
   for (qw/smtp_host mail_from/) {
     unless ($c->{$_}) {
       $e = "Config parameter $_ is not defined!";
+      last;
+    }
+  }
+
+  # agent_types shouldn't be empty
+  my $agent_types = $c->{agent_types};
+  $e = 'Config parameter agent_types is empty!' unless @$agent_types;
+
+  # agent_types_stat must contain only agent_types elements
+  for my $elem (@{$c->{agent_types_stat}}) {
+    unless (grep($_ eq $elem, @$agent_types)) {
+      $e = 'Config parameter agent_types_stat is invalid!';
       last;
     }
   }

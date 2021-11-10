@@ -24,6 +24,7 @@ sub run {
   $sch->{block} = $app->config('block_schedule');
   $sch->{unblock} = $app->config('unblock_schedule');
   $sch->{truncatelog} = $app->config('logtruncate_schedule');
+  $sch->{connectivity} = $app->config('connectivity_schedule');
 
   my $xxx = {
     checkdb => { name=>'checkdb', cmd=>['checkdb'] },
@@ -31,6 +32,7 @@ sub run {
     block => { name=>'block', cmd=>['block'] },
     unblock => { name=>'unblock', cmd=>['unblock'] },
     truncatelog => { name=>'truncatelog', cmd=>['truncatelog'] },
+    connectivity => { name=>'connectivity', cmd=>['connectivity'] },
     daily => { name=>'stat daily', cmd=>[statprocess => '--daily'] },
     monthly => { name=>'stat monthly', cmd=>[statprocess => '--monthly'] },
     yearly => { name=>'stat yearly', cmd=>[statprocess => '--yearly'] },

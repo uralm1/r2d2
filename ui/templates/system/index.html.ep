@@ -1,4 +1,4 @@
-% layout 'default', title => 'R2D2 2021';
+% layout 'default', title => 'R2D2 <span style="font-size:smaller;font-weight:bold">2021</span>';
 <div class="scont">
   <h6><b>Центр управления</b></h6>
   <table>
@@ -18,7 +18,7 @@
 	<td style="width:5%"><span class="listagenttype">head</span></td>
 	<td style="width:25%"><%= head_url %></td>
 	<td style="width:44%">
-	  <span class="listagenttype green accent-2"><%= $head_status %></span>
+	  <span class="listagenttype green lighten-3"><%= $head_status %></span>
 	</td>
       </tr>
     </tbody>
@@ -69,12 +69,14 @@
 		<%= $a->{url} %>
 	      </td>
 	      <td style="width:25%">
-	      % if ($a->{state} > 0) {
-	        <span class="listagenttype green accent-2"><%= 'OK: '.$a->{status} %></span>
+	      % if ($a->{state} == 1) {
+	        <span class="listagenttype green lighten-3"><%= 'OK: '.$a->{status} %></span>
               % $agents_good++;
-	      % } else {
-	        <span class="listagenttype red lighten-1"><%= 'Ошибка: '.$a->{status} %></span>
+	      % } elsif ($a->{state} == 0) {
+	        <span class="listagenttype red lighten-2"><%= 'Ошибка: '.$a->{status} %></span>
               % $agents_bad++;
+	      % } else {
+	        <span class="listagenttype"><%= '??: '.$a->{status} %></span>
 	      % }
 	      </td>
 	      <td style="width:20%">
@@ -102,8 +104,8 @@
   %= m_page_nav($rec->{page}, $rec->{pages}, {round=>3, outer=>1, start=>1, class=>'center-align', param=>'p', query=>'#top'});
   <p>
     Всего объектов:&nbsp;<%= $rec->{lines_total} %>, агентов:&nbsp;<%= $agents_total %>,
-    <span class="listagenttype green accent-2">исправных:&nbsp;<%= $agents_good %></span>,
-    <span class="listagenttype red lighten-1">с&nbsp;ошибками:&nbsp;<%= $agents_bad %></span>.
+    <span class="listagenttype green lighten-3">исправных:&nbsp;<%= $agents_good %></span>,
+    <span class="listagenttype red lighten-2">с&nbsp;ошибками:&nbsp;<%= $agents_bad %></span>.
   </p>
   <p>Автоматическое обновление страницы каждые 2 мин.</p>
 </div>

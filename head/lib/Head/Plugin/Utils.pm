@@ -5,6 +5,7 @@ use Carp;
 use Mojo::mysql;
 use Head::Ural::Dblog;
 use Head::Ural::CompatChk;
+use Head::Ural::Profiles;
 
 sub register {
   my ($self, $app, $args) = @_;
@@ -19,6 +20,11 @@ sub register {
   $app->helper(dblog => sub {
     my $self = shift;
     state $dblog = Head::Ural::Dblog->new($self->mysql_inet, subsys => $self->app->defaults('subsys'));
+  });
+
+  # profiles singleton
+  $app->helper(profiles => sub {
+    state $profiles = Head::Ural::Profiles->new(@_);
   });
 
   # del_compat_check singleton

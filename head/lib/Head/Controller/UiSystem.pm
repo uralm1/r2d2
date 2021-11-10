@@ -4,7 +4,7 @@ use Mojo::Base 'Mojolicious::Controller';
 use POSIX qw(ceil);
 use Time::Piece;
 
-sub systemstatus {
+sub profilesstatus {
   my $self = shift;
   my $page = $self->param('page') // 1; # page is always defined
   my $lines_on_page = $self->param('lop');
@@ -14,49 +14,56 @@ sub systemstatus {
 
   $self->render_later;
 
-  my $profiles = $self->config('profiles');
-  #say $self->dumper($profiles);
-  my $lines_total = scalar keys %$profiles;
+  my $lines_total = scalar keys %{$self->profiles->hash};
   my $num_pages = ceil($lines_total / $lines_on_page);
   return $self->render(text => 'Bad parameter value', status => 503)
     if $page < 1 || ($num_pages > 0 && $page > $num_pages);
 
-  my $j = []; # resulting d attribute
+  # we have to load checks status from db
+  # do this asyncronously
+  $self->profiles->loadchecks_p()
+  ->then(sub {
+    $self->profiles->handle_loadchecks(@_); # always success
 
-  while (my ($key, $prof) = each %$profiles) {
-    my $p_rec = { key => $key };
-    $p_rec->{name} = defined $prof->{name} ? $prof->{name} : 'Имя не задано';
+  })->then(sub {
+    my $j = []; # resulting d attribute
 
-    my $t = localtime;
-    $p_rec->{lastcheck} = $t->hms.' '.$t->dmy;
+    $self->profiles->each(sub {
+      my ($key, $prof) = @_;
+      my $p_rec = {
+        key => $key,
+        name => $prof->{name},
+        lastcheck => $prof->{lastcheck} // '',
+        agents => []
+      };
 
-    $p_rec->{agents} = [];
-    for my $agent (@{$prof->{agents}}) {
-      my $a_rec = {};
-      $a_rec->{name} = defined $agent->{name} ? $agent->{name} : 'Имя не задано';
-      for (qw/type url/) {
-        die 'Agent attribute error' unless defined $agent->{$_};
-        $a_rec->{$_} = $agent->{$_};
+      for my $agent (values %{$prof->{agents}}) {
+        my $a_rec = {};
+        for (qw/name type url state status/) {
+          die 'Agent attribute error' unless defined $agent->{$_};
+          $a_rec->{$_} = $agent->{$_};
+        }
+        $a_rec->{lastcheck} = $agent->{lastcheck} // '';
+
+        push @{$p_rec->{agents}}, $a_rec;
       }
-      $a_rec->{lastcheck} = $t->hms.' '.$t->dmy;
 
-      $a_rec->{state} = 1;
-      $a_rec->{status} = 'test@host (3.00)';
+      push @$j, $p_rec;
+    });
 
-      push @{$p_rec->{agents}}, $a_rec;
-    }
+    #say $self->dumper($j);
+    $self->render(json => {
+      d => $j,
+      lines_total => $lines_total,
+      pages => $num_pages,
+      page => $page,
+      lines_on_page => $lines_on_page
+    });
 
-    push @$j, $p_rec;
-  }
-
-
-  say $self->dumper($j);
-  $self->render(json => {
-    d => $j,
-    lines_total => $lines_total,
-    pages => $num_pages,
-    page => $page,
-    lines_on_page => $lines_on_page
+  })->catch(sub {
+    my $err = shift;
+    $self->log->error($err);
+    $self->render(text => 'Database error, loading profiles status', status => 503);
   });
 }
 
