@@ -29,6 +29,7 @@ use Time::Piece;
 
 # new constructor
 # my $obj = Head::Ural::Profiles->new();
+# dies on errors
 sub new {
   my ($class, $app, %opt) = @_;
   croak 'App parameter required!' unless $app;
@@ -118,6 +119,7 @@ sub each {
 
 # $obj->eachagent('this_profile_key', sub { my ($profile_key, $agent_key, $agent) = @_; say "$profile_key => $agent->{name}" });
 # $obj->eachagent(sub { my ($profile_key, $agent_key, $agent) = @_; say "$profile_key => $agent->{name}" });
+# returns 1 if ok, 0 - 'this_profile_key' is not found.
 sub eachagent {
   my ($self, $pk, $cb) = @_;
   if (!defined $pk or ref $pk eq 'CODE') {
@@ -128,12 +130,15 @@ sub eachagent {
       }
     }
   } else {
-    while (my @e = CORE::each %{$self->{profiles}{$pk}{agents}}) {
-      $cb->($pk, @e)
+    if (my $p = $self->{profiles}{$pk}) {
+      while (my @e = CORE::each %{$p->{agents}}) {
+        $cb->($pk, @e)
+      }
+    } else {
+      return 0;
     }
   }
-
-  return $self;
+  return 1;
 }
 
 

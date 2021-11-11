@@ -41,20 +41,28 @@ $p->each(sub {
   is($profile->{name}, $_profs->{$profile_key}{name}, "Testing each, key: $profile_key");
 });
 
-$p->eachagent(sub {
+my $r = $p->eachagent(sub {
   my ($profile_key, $agent_key, $agent) = @_;
   #say "$agent_key => $agent->{name}";
   is($agent->{name}, $_profs->{$profile_key}{agents}{$agent_key}{name},
     "Testing eachagent, profilekey: $profile_key, agentkey: $agent_key");
 });
+is($r, 1, "eachagent1 returned 1");
 
-$p->eachagent('test2', sub {
+$r = $p->eachagent('test2', sub {
   my ($profile_key, $agent_key, $agent) = @_;
   #say "$agent_key => $agent->{name}";
   is($profile_key, 'test2', "Testing eachagent profile 'test2'");
   is($agent->{name}, $_profs->{$profile_key}{agents}{$agent_key}{name},
     "Testing eachagent, profilekey: $profile_key, agentkey: $agent_key");
 });
+is($r, 1, "eachagent2 returned 1");
+
+$r = $p->eachagent('test3', sub {
+  my ($profile_key, $agent_key, $agent) = @_;
+  say "$agent_key => $agent->{name}";
+});
+is($r, 0, "eachagent3 returned 0");
 
 
 done_testing();

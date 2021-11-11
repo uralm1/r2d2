@@ -3,6 +3,7 @@ use Mojo::Base 'Mojolicious::Command';
 
 use Carp;
 use Head::Ural::CompatChk;
+use Head::Ural::Profiles;
 
 has description => '* Run check for database deletions (run from cron cmd, compatibility)';
 has usage => "Usage: APPLICATION checkdbdel\n";
@@ -11,7 +12,7 @@ sub run {
   my $self = shift;
   my $app = $self->app;
 
-  my $profiles = $app->config('profiles');
+  my $profiles = $app->profiles(dont_copy_config_to_db => 1);
 
   my $dcc = $app->del_compat_check;
   return 1 unless $dcc;
@@ -21,20 +22,19 @@ sub run {
   $dcc->eachdel(sub {
     my ($id, $prof) = @_;
     #say "$id => $prof has been removed!";
-    if (my $profile = $profiles->{ $prof }) {
-      # loop by agents
-      for my $agent (@{$profile->{agents}}) {
-        my $agent_url = $agent->{url};
-        my $m = "REFRESH deleted device id $id $agent_url";
-        $app->log->info($m);
-        $app->dblog->info($m);
+    # loop by agents
+    my $res = $profiles->eachagent($prof, sub {
+      my ($profile_key, $agent_key, $agent) = @_;
 
-        $app->refresh_id($agent_url, $id);
-      }
+      my $agent_url = $agent->{url};
+      my $m = "REFRESH deleted device id $id $agent_url";
+      $app->log->info($m);
+      $app->dblog->info($m);
 
-    } else {
-      $app->log->error("Refresh deleted device id $id failed: invalid profile!");
-    }
+      $app->refresh_id($agent_url, $id);
+    });
+    $app->log->error("Refresh deleted device id $id failed: invalid profile!") unless $res;
+
   })->update();
 
   Mojo::IOLoop->start unless Mojo::IOLoop->is_running;

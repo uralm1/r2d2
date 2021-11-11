@@ -4,7 +4,6 @@ use Mojo::Base 'Mojolicious::Command';
 #use Carp;
 use Mojo::URL;
 use Mojo::Promise;
-use Time::Piece;
 
 has description => '* Check agents connectivity (run from cron cmd)';
 has usage => "Usage: APPLICATION connectivity [<profile>]\n";
@@ -67,13 +66,6 @@ sub run {
   });
 
   return 1;
-}
-
-
-# internal
-sub _update_lastcheck {
-  my $t = localtime;
-  $_[0]->{lastcheck} = $t->hms.' '.$t->dmy;
 }
 
 

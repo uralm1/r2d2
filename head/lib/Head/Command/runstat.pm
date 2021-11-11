@@ -2,6 +2,7 @@ package Head::Command::runstat;
 use Mojo::Base 'Mojolicious::Command';
 
 use Mojo::URL;
+use Head::Ural::Profiles;
 #use Carp;
 
 has description => '* Manually run traffic statistics collection for <profile>';
@@ -12,11 +13,10 @@ sub run {
   my $app = $self->app;
   die "Bad <profile> argument\n" unless defined $p;
 
-  my $profile = $app->config('profiles')->{$p};
-  die "Given <profile> is not found in config file!\n" unless defined $profile;
-
   # loop by agents
-  for my $agent (@{$profile->{agents}}) {
+  my $res1 = $app->profiles(dont_copy_config_to_db => 1)->eachagent($p, sub {
+    my ($profile_key, $agent_key, $agent) = @_;
+
     my $t = $agent->{type};
 
     # agents that support runstat
@@ -45,7 +45,8 @@ sub run {
     } else {
       $app->log->info("$p agent $t: Agent doesn't support traffic statistics collection.");
     }
-  } # agents loop
+  });
+  die "Given <profile> is not found!\n" unless $res1;
 
   Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
 

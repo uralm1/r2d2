@@ -3,6 +3,7 @@ use Mojo::Base 'Mojolicious::Controller';
 
 use POSIX qw(ceil);
 use Time::Piece;
+use Head::Ural::Profiles;
 
 sub profilesstatus {
   my $self = shift;

@@ -3,6 +3,7 @@ use Mojo::Base 'Mojolicious::Plugin';
 
 use Mojo::mysql;
 use Mojo::URL;
+use Head::Ural::Profiles;
 #use Carp;
 
 sub register {
@@ -56,45 +57,44 @@ ON DUPLICATE KEY UPDATE m_in = sum_in, m_out = sum_out") };
     }
 
     # send RELOAD to all block agents to unblock devices in one request
-    while (my ($p, $pv) = each %{$app->config('profiles')}) {
-    LOOP_AGENTS:
-      for my $agent (@{$pv->{agents}}) {
-        next LOOP_AGENTS unless $agent->{block};
+    $app->profiles(dont_copy_config_to_db => 1)->eachagent(sub {
+      my ($profile_key, $agent_key, $agent) = @_;
 
-        my $agent_url = $agent->{url};
-        my $agent_type = $agent->{type};
-        # send reload to agent
-        $m = "Reloading profile $p, agent $agent_type [$agent_url]";
-        $app->log->info($m);
-        $app->dblog->info($m, sync=>1);
+      return unless $agent->{block};
 
-        $r = eval {
-          $app->ua->post(Mojo::URL->new("$agent_url/reload"))->result;
-        };
-        unless (defined $r) {
-          # connection to agent failed
-          $m = "Connection to agent $agent_type [$agent_url] failed";
-          $app->log->error($m.": $@");
-          $app->dblog->error($m, sync=>1);
+      my $agent_url = $agent->{url};
+      my $agent_type = $agent->{type};
+      # send reload to agent
+      $m = "Reloading profile $profile_key, agent $agent_type [$agent_url]";
+      $app->log->info($m);
+      $app->dblog->info($m, sync=>1);
 
+      $r = eval {
+        $app->ua->post(Mojo::URL->new("$agent_url/reload"))->result;
+      };
+      unless (defined $r) {
+        # connection to agent failed
+        $m = "Connection to agent $agent_type [$agent_url] failed";
+        $app->log->error($m.": $@");
+        $app->dblog->error($m, sync=>1);
+
+      } else {
+        if ($r->is_success) {
+          # successful reload
+          $m = "Agent $agent_type [$agent_url] reload request successfully sent";
+          $app->log->info($m);
+          $app->dblog->info($m, sync=>1);
         } else {
-          if ($r->is_success) {
-            # successful reload
-            $m = "Agent $agent_type [$agent_url] reload request successfully sent";
-            $app->log->info($m);
-            $app->dblog->info($m, sync=>1);
-          } else {
-            # request error 503
-            if ($r->is_error) {
-              $m = "Agent $agent_type [$agent_url] reload error: ".$r->body;
-              $app->log->error($m);
-              $app->dblog->error($m, sync=>1);
-            }
+          # request error 503
+          if ($r->is_error) {
+            $m = "Agent $agent_type [$agent_url] reload error: ".$r->body;
+            $app->log->error($m);
+            $app->dblog->error($m, sync=>1);
           }
-
         }
-      } # agents loop
-    } # profiles loop
+
+      }
+    });
 
     $m = 'MONTHLY processing finished'.($error) ? ' (FAILED with ERRORS)' : '';
     $app->log->info($m);
