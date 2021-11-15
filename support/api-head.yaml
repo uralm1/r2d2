@@ -1258,10 +1258,10 @@ paths:
                 description: error message
 
 
-  /ui/oplog:
+  /ui/log/oplog:
     get:
       summary: Получение лога операций
-      description: Просмотр лога операций для интерфейса пользователя.
+      description: Просмотр лога операций в интерфейсе пользователя.
       parameters:
         - name: page
           in: query
@@ -1284,6 +1284,48 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ui_oplog'
+        '400':
+          description: Ошибка в параметрах, в основном неверный номер текущей страницы
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+
+  /ui/log/audit:
+    get:
+      summary: Получение лога аудита
+      description: Просмотр лога аудита в интерфейсе пользователя.
+      parameters:
+        - name: page
+          in: query
+          description: Текущая страница (начиная с 1)
+          schema:
+            type: integer
+            example: 2
+        - name: lop
+          in: query
+          required: true
+          description: Число строк на странице (lines_on_page)
+          schema:
+            type: integer
+            example: 50
+
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ui_auditlog'
         '400':
           description: Ошибка в параметрах, в основном неверный номер текущей страницы
           content:
@@ -1435,7 +1477,7 @@ components:
           description: Subsystem name. Имя агента должно совпадать с одним из прописанных в коде.
           example: agent@host
 
-          
+
     ui_oplog:
       description: Страница данных лога операций
       type: object
@@ -1475,11 +1517,6 @@ components:
                 type: string
                 description: Описание события
                 example: 'Finished traffic_stat'
-            example:
-              - id: 54321
-                date: '14:04:24 30/04/21'
-                subsys: 'gwsyn@gwsev'
-                info: 'Finished traffic_stat'
       example:
         lines_total: 1000
         pages: 10
@@ -1490,6 +1527,57 @@ components:
             date: '14:04:24 30/04/21'
             subsys: 'gwsyn@gwsev'
             info: 'Finished traffic_stat'
+
+
+    ui_auditlog:
+      description: Страница данных лога аудита
+      type: object
+      properties:
+        lines_total:
+          type: integer
+          description: Всего строк в БД лога
+        pages:
+          type: integer
+          description: Всего страниц данных в логе
+        page:
+          type: integer
+          description: Текущая страница, возвращенная в данном объекте. Равна параметру запроса.
+        lines_on_page:
+          type: integer
+          description: Строк на одной странице. Равно параметру запроса.
+        d:
+          type: array
+          description: Массив строк
+          items:
+            description: Строка лога
+            type: object
+            properties:
+              id:
+                type: integer
+                description: Код записи лога
+                example: '54321'
+              date:
+                type: string
+                description: Время события (14:04:24 30/04/21)
+                example: '14:04:24 30/04/21'
+              login:
+                type: string
+                description: Логин пользователя
+                example: 'testuser'
+              info:
+                type: string
+                description: Описание события
+                example: 'Редактирование клиента: testclient.'
+      example:
+        lines_total: 1000
+        pages: 10
+        page: 1
+        lines_on_page: 100
+        d:
+          - id: 54321
+            date: '14:04:24 30/04/21'
+            login: 'testuser'
+            info: 'Редактирование клиента: testclient.'
 
 
     ui_list:

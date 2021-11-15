@@ -23,6 +23,9 @@
   <ul id="logs-dropdown" class="dropdown-content">
     <li class="divider" tabindex="-1"></li>
     <li><%= link_to 'oplog' => begin %>Лог системных событий<% end %></li>
+    <li class="divider" tabindex="-1"></li>
+    <li><%= link_to 'auditlog' => begin %>Лог аудита<% end %></li>
+    <li class="divider" tabindex="-1"></li>
   </ul>
   <nav class="nav-extended white-text pink darken-2">
     <div class="nav-wrapper scont">

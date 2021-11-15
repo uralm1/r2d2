@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+- Лог аудита.
+
+## [0.5 unusable] - 2021-11-15
+- UI в формах отображает полные названия профилей.
 - Профили перенесены в БД.
 - Страница состояния системы.
 - Флаг уведомления у клиентов и серверов.

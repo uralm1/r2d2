@@ -10,10 +10,11 @@ lib/Ui/Controller/Client.pm
 lib/Ui/Controller/Clients.pm
 lib/Ui/Controller/Device.pm
 lib/Ui/Controller/Index.pm
-lib/Ui/Controller/Oplog.pm
+lib/Ui/Controller/Log.pm
 lib/Ui/Controller/Rep.pm
 lib/Ui/Controller/Server.pm
 lib/Ui/Controller/Stat.pm
+lib/Ui/Controller/System.pm
 lib/Ui/Plugin/MPagenav.pm
 lib/Ui/Plugin/StatUtils.pm
 lib/Ui/Plugin/Utils.pm
@@ -69,13 +70,13 @@ templates/device/stat.html.ep
 templates/index/_hist.html.ep
 templates/index/about.html.ep
 templates/index/aboutstat.html.ep
-templates/index/index.html.ep
 templates/layouts/clientedit.html.ep
 templates/layouts/default.html.ep
 templates/layouts/deviceedit.html.ep
 templates/layouts/serveredit.html.ep
 templates/layouts/userstat.html.ep
-templates/oplog/index.html.ep
+templates/log/auditlog.html.ep
+templates/log/oplog.html.ep
 templates/rep/client.html.ep
 templates/server/delete.html.ep
 templates/server/edit.html.ep
@@ -87,4 +88,5 @@ templates/stat/_device_head.html.ep
 templates/stat/_device_js.html.ep
 templates/stat/index.html.ep
 templates/stat/nouser.html.ep
+templates/system/index.html.ep
 ui.conf_empty

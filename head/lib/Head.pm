@@ -14,7 +14,7 @@ use Head::Command::unblock;
 
 use Sys::Hostname;
 
-our $VERSION = '2.72';
+our $VERSION = '2.73';
 
 # This method will run once at server start
 sub startup {
@@ -97,7 +97,8 @@ sub startup {
 
   $r->get('/ui/profiles')->to('ui_system#profileshash');
   $r->get('/ui/profiles/status')->to('ui_system#profilesstatus');
-  $r->get('/ui/oplog')->to('ui_oplog#oplog');
+  $r->get('/ui/log/oplog')->to('ui_log#oplog');
+  $r->get('/ui/log/audit')->to('ui_log#auditlog');
   $r->get('/ui/list')->to('ui_list#list');
   $r->get('/ui/search/0')->to('ui_search#searchclient');
   $r->get('/ui/search/1')->to('ui_search#searchclientbylogin');

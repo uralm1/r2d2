@@ -1,7 +1,7 @@
 package Ui;
 use Mojo::Base 'Mojolicious';
 
-our $VERSION = '0.5';
+our $VERSION = '0.6';
 
 # This method will run once at server start
 sub startup {
@@ -75,7 +75,8 @@ sub startup {
 
   $r->get('/status')->to('system#index');
 
-  $r->get('/oplog')->to('oplog#index');
+  $r->get('/oplog')->to('log#oplog');
+  $r->get('/auditlog')->to('log#auditlog');
 
   $r->get('/server/new')->to('server#newform');
   $r->post('/server/new')->to('server#newpost');

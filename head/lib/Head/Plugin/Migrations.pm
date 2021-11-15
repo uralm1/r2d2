@@ -210,6 +210,18 @@ CREATE TABLE IF NOT EXISTS `profiles_agents` (
   KEY `profile_id` (`profile_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS `audit_log` (
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `date` datetime NOT NULL,
+  `login` varchar(30) NOT NULL,
+  `info` varchar(1024) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `date` (`date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+DROP TABLE IF EXISTS `log_agents`;
+DROP TABLE IF EXISTS `log_admin`;
+
 
 -- 5 down
 DROP TABLE IF EXISTS `clients`;
@@ -228,4 +240,26 @@ ALTER TABLE `devices_sync` RENAME `clients_sync`;
 
 DROP TABLE IF EXISTS `profiles`;
 DROP TABLE IF EXISTS `profiles_agents`;
+
+DROP TABLE IF EXISTS `audit_log`;
+
+CREATE TABLE IF NOT EXISTS `log_admin` (
+  `log_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `row_id` int(10) UNSIGNED NOT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `msg` varchar(255) NOT NULL,
+  PRIMARY KEY (`log_id`),
+  UNIQUE KEY `row_id` (`row_id`),
+  KEY `timestamp` (`timestamp`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `log_agents` (
+  `log_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `row_id` int(10) UNSIGNED NOT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `msg` varchar(255) NOT NULL,
+  PRIMARY KEY (`log_id`),
+  UNIQUE KEY `row_id` (`row_id`),
+  KEY `timestamp` (`timestamp`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 

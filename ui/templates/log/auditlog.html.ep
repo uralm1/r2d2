@@ -1,20 +1,20 @@
-% layout 'default', title => 'Лог системных событий', back_url => '/';
+% layout 'default', title => 'Лог аудита', back_url => '/';
 <div class="scont">
   <table class="striped narrow-log">
     <thead>
       <tr>
-	<th>Id</th>
-	<th>Время</th>
-	<th>Подсистема</th>
-	<th>Событие</th>
+	<th>ID</th>
+	<th>ВРЕМЯ</th>
+	<th>ПОЛЬЗОВАТЕЛЬ</th>
+	<th>ДЕЙСТВИЕ</th>
       </tr>
     </thead>
     <tbody>
       % for (@{$log_rec->{d}}) {
-      <tr style="color:<%== log_rowcolor($_->{subsys}) %>;">
+      <tr>
 	<td><%= $_->{id} %></td>
 	<td><%= $_->{date} %></td>
-	<td><%= $_->{subsys} %></td>
+	<td><%= $_->{login} %></td>
 	<td><%= $_->{info} %></td>
       </tr>
       % }
