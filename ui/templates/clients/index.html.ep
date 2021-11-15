@@ -38,10 +38,10 @@
 	    % unless ($th) {
 	    <thead>
 	      <tr class="tr-device-head">
-		<th style="width:25%">Наименование устройства</th>
-		<th style="width:10%">Место</th>
+		<th style="width:23%">Наименование устройства</th>
+		<th style="width:15%">Место</th>
 		<th style="width:13%">IP</th>
-		<th style="width:18%">MAC</th>
+		<th style="width:15%">MAC</th>
 		<th style="width:10%">Провайдер</th>
 		<th style="width:12%">Правило</th>
 		<th style="width:12%">Лимит</th>
@@ -51,7 +51,7 @@
 	    <tbody>
 	    % for my $d (@{$_->{devices}}) {
 	    <tr class="tr-device" data-type="<%= $_->{type} %>" data-clientid="<%== $_->{id} %>" data-deviceid="<%== $d->{id} %>">
-	      <td style="width:25%">
+	      <td style="width:23%">
 		<i class="material-icons tiny"><%== $_->{type} == 1 ? 'dns':'computer' %></i>
 		%= link_to $_->{type} == 1 ? url_for('serveredit')->query(id => $_->{id}) : url_for('deviceedit')->query(clientid => $_->{id}, id => $d->{id}) => (class => 'listlink') => begin
 		% if ($d->{name} ne '') {
@@ -61,13 +61,13 @@
 		% }
 		% end
 	      </td>
-	      <td style="width:10%">
-		<%= $d->{profile} %>
+	      <td style="width:15%">
+		<%= $d->{profile_name} // "Нет данных ($d->{profile})" %>
 	      </td>
 	      <td style="width:13%">
 		<%= $d->{ip} %>
 	      </td>
-	      <td style="width:18%">
+	      <td style="width:15%">
 		<%= $d->{mac} %>
 	      </td>
 	      <td style="width:10%">

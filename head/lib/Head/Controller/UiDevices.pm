@@ -14,16 +14,17 @@ sub deviceget {
 
   $self->render_later;
 
-  $self->mysql_inet->db->query("SELECT id, name, d.desc, DATE_FORMAT(create_time, '%k:%i:%s %e/%m/%y') AS create_time, \
-ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, profile \
-FROM devices d WHERE id = ? AND client_id = ?", $device_id, $client_id =>
+  $self->mysql_inet->db->query("SELECT d.id, d.name, d.desc, DATE_FORMAT(create_time, '%k:%i:%s %e/%m/%y') AS create_time, \
+ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, d.profile, p.name AS profile_name \
+FROM devices d LEFT OUTER JOIN profiles p ON d.profile = p.profile \
+WHERE d.id = ? AND d.client_id = ?", $device_id, $client_id =>
     sub {
       my ($db, $err, $results) = @_;
       return $self->render(text => 'Database error, retrieving device', status => 503) if $err;
 
       if (my $rh = $results->hash) {
         my $dr = eval { _build_device_rec($rh) };
-        return $self->render(text => 'Invalid IP', status => 503) unless $dr;
+        return $self->render(text => 'Invalid attibute or IP', status => 503) unless $dr;
         $self->render(json => $dr);
       } else {
         return $self->render(text => 'Not found', status => 404);
@@ -41,6 +42,9 @@ sub _build_device_rec {
   for (qw/id name desc create_time mac rt defjump speed_in speed_out no_dhcp qs limit_in blocked profile/) {
     die 'Undefined device record attribute' unless exists $h->{$_};
     $r->{$_} = $h->{$_};
+  }
+  for (qw/profile_name/) {
+    $r->{$_} = $h->{$_} if defined $h->{$_};
   }
   return $r;
 }

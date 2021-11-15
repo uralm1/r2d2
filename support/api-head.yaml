@@ -1197,6 +1197,25 @@ paths:
                 description: error message
 
 
+  /ui/profiles:
+    get:
+      summary: Получение перечня профилей и их имен
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ui_profiles'
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+
   /ui/profiles/status:
     get:
       summary: Получение состояния системы R2D2
@@ -1222,7 +1241,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ui_profilesstatus'
+                $ref: '#/components/schemas/ui_profiles_status'
         '400':
           description: Ошибка в параметрах, в основном неверный номер текущей страницы
           content:
@@ -1350,7 +1369,7 @@ components:
           example: 0
         profile:
           type: string
-          description: 'client profile name'
+          description: 'client profile name (key)'
           example: 'gwtest1'
 
     
@@ -1503,7 +1522,17 @@ components:
           TODO: 'Массив client_device_record'
 
 
-    ui_profilesstatus:
+    ui_profiles:
+      description: 'Хеш массив профилей и их названий'
+      type: object
+      additionalProperties:
+        type: string
+      example:
+        plk: 'Производственно-лабораторный комплекс'
+        test1: 'Тестовый объект'
+
+
+    ui_profiles_status:
       description: 'Страница данных списка профилей системы'
       type: object
       properties:
@@ -1602,8 +1631,12 @@ components:
           example: 0
         profile:
           type: string
-          description: 'client profile name'
+          description: 'server profile (key)'
           example: 'gwtest1'
+        profile_name:
+          type: string
+          description: 'server profile human readable name (передается в операциях чтения данных, игнорируется в операциях записи, редактирования)'
+          example: 'Тестовое подразделение'          
       required:
         - cn
         - ip
@@ -1776,8 +1809,12 @@ components:
           example: 0
         profile:
           type: string
-          description: 'device profile name'
+          description: 'device profile (key)'
           example: 'gwtest1'
+        profile_name:
+          type: string
+          description: 'device profile human readable name (передается в операциях чтения данных, игнорируется в операциях записи, редактирования)'
+          example: 'Тестовое подразделение'
       required:
         - name
         - ip
@@ -1852,8 +1889,12 @@ components:
           example: 0
         profile:
           type: string
-          description: 'device profile name'
+          description: 'device profile (key)'
           example: 'gwtest1'
+        profile_name:
+          type: string
+          description: 'device profile human readable name'
+          example: 'Тестовое подразделение'
         today_traf:
           #description: 'трафик за сегодня'
           $ref: '#/components/schemas/stat_traffic_object'
@@ -1920,8 +1961,12 @@ components:
           example: 0
         profile:
           type: string
-          description: 'server profile name'
+          description: 'server profile (key)'
           example: 'gwtest1'
+        profile_name:
+          type: string
+          description: 'server profile human readable name'
+          example: 'Тестовое подразделение'
         today_traf:
           #description: 'трафик за сегодня'
           $ref: '#/components/schemas/stat_traffic_object'

@@ -157,7 +157,7 @@
 	          % }
 		  % end
 		</td>
-		<td><%= $_->{profile} %></td>
+		<td><%= $_->{profile_name} // "Нет данных ($_->{profile})" %></td>
 		<td><%= $_->{ip} %></td>
 		<td><%= $_->{mac} %></td>
 		<td><%= $_->{defjump} %></td>

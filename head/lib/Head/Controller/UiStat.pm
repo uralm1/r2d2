@@ -60,8 +60,9 @@ sub deviceget {
 sub device_attrs_p {
   my ($self, $db, $device_id, $client_id) = @_;
 
-  $db->query_p("SELECT id, name, sum_in, sum_out, qs, limit_in, sum_limit_in, blocked, profile \
-FROM devices WHERE id = ? AND client_id = ?",
+  $db->query_p("SELECT d.id, d.name, sum_in, sum_out, qs, limit_in, sum_limit_in, blocked, d.profile, p.name AS profile_name \
+FROM devices d LEFT OUTER JOIN profiles p ON d.profile = p.profile \
+WHERE d.id = ? AND d.client_id = ?",
     $device_id,
     $client_id
   );
@@ -77,9 +78,12 @@ sub handle_device_attrs {
   $j->{date} = $t->dmy('-');
 
   if (my $rh = $result->hash) {
-    for (qw/id name profile limit_in sum_limit_in qs blocked/) {
+    for (qw/id name limit_in sum_limit_in qs blocked profile/) {
       die 'Undefined device attribute' unless exists $rh->{$_};
       $j->{$_} = $rh->{$_};
+    }
+    for (qw/profile_name/) {
+      $j->{$_} = $rh->{$_} if defined $rh->{$_};
     }
     for (qw/sum_in sum_out/) {
       die 'Undefined device stat attribute' unless exists $rh->{$_};
@@ -397,8 +401,9 @@ sub server_attrs_p {
   my ($self, $db, $server_id) = @_;
 
   $db->query_p("SELECT d.id AS deviceid, c.id, cn, email, c.email_notify, \
-sum_in, sum_out, qs, limit_in, sum_limit_in, blocked, profile \
+sum_in, sum_out, qs, limit_in, sum_limit_in, blocked, d.profile, p.name AS profile_name \
 FROM clients c INNER JOIN devices d ON d.client_id = c.id \
+LEFT OUTER JOIN profiles p ON d.profile = p.profile \
 WHERE type = 1 AND c.id = ?",
     $server_id
   );
@@ -414,9 +419,12 @@ sub handle_server_attrs {
   $j->{date} = $t->dmy('-');
 
   if (my $rh = $result->hash) {
-    for (qw/id cn profile limit_in sum_limit_in qs blocked/) {
+    for (qw/id cn limit_in sum_limit_in qs blocked profile/) {
       die 'Undefined server attribute' unless exists $rh->{$_};
       $j->{$_} = $rh->{$_};
+    }
+    for (qw/profile_name/) {
+      $j->{$_} = $rh->{$_} if defined $rh->{$_};
     }
     for (qw/email email_notify sum_in sum_out deviceid/) {
       die 'Undefined server stat attribute' unless exists $rh->{$_};
@@ -540,9 +548,10 @@ sub handle_client_attrs {
 sub devices_attrs_p {
   my ($self, $db, $client_id) = @_;
 
-  $db->query_p("SELECT id, name, sum_in, sum_out, qs, limit_in, sum_limit_in, blocked, profile \
-FROM devices WHERE client_id = ? \
-ORDER BY id ASC LIMIT 20",
+  $db->query_p("SELECT d.id, d.name, sum_in, sum_out, qs, limit_in, sum_limit_in, blocked, d.profile, p.name AS profile_name \
+FROM devices d LEFT OUTER JOIN profiles p ON d.profile = p.profile \
+WHERE d.client_id = ? \
+ORDER BY d.id ASC LIMIT 20",
     $client_id
   );
 }
@@ -563,9 +572,12 @@ sub handle_devices_attrs {
     my $t = localtime;
     $dev->{date} = $t->dmy('-');
 
-    for (qw/id name profile limit_in sum_limit_in qs blocked/) {
+    for (qw/id name limit_in sum_limit_in qs blocked profile/) {
       die 'Undefined devices attribute' unless exists $next->{$_};
       $dev->{$_} = $next->{$_};
+    }
+    for (qw/profile_name/) {
+      $dev->{$_} = $next->{$_} if defined $next->{$_};
     }
 
     push @{$j->{devices}}, $dev;

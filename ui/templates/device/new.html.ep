@@ -32,7 +32,7 @@
 	<h5>Местоположение</h5>
 	<div class="row">
 	  <div class="input-field col s12 m8 l5">
-	    %= select_field profile => ['plk', 'gwtest1', 'atcsev', 'kns3'], id => 'profile';
+	    %= select_field profile => $profile_array, id => 'profile';
 	    %#= label_for profile => 'Расположение'
 	    %= t 'span', class => 'helper-text', 'data-error' => 'Ошибка', ''
 	  </div>

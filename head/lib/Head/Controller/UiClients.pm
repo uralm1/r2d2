@@ -22,10 +22,10 @@ FROM clients c WHERE id = ?", $id =>
         return $self->render(text => 'Client attribute error', status => 503) unless $cl;
         $results->finish;
 
-        $db->query("SELECT id, name, d.desc, DATE_FORMAT(create_time, '%k:%i:%s %e/%m/%y') AS create_time, \
-ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, profile \
-FROM devices d WHERE client_id = ? \
-ORDER BY id ASC LIMIT 20", $cl->{id} =>
+        $db->query("SELECT d.id, d.name, d.desc, DATE_FORMAT(create_time, '%k:%i:%s %e/%m/%y') AS create_time, \
+ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, d.profile, p.name AS profile_name \
+FROM devices d LEFT OUTER JOIN profiles p ON d.profile = p.profile WHERE d.client_id = ? \
+ORDER BY d.id ASC LIMIT 20", $cl->{id} =>
         sub {
           my ($db, $err, $results) = @_;
           return $self->render(text => "Database error, retrieving devices: $err", status => 503) if $err;

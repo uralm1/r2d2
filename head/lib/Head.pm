@@ -95,6 +95,7 @@ sub startup {
 
   $r->post('/log/#rsubsys' => {rsubsys => 'none'})->to('log#log');
 
+  $r->get('/ui/profiles')->to('ui_system#profileshash');
   $r->get('/ui/profiles/status')->to('ui_system#profilesstatus');
   $r->get('/ui/oplog')->to('ui_oplog#oplog');
   $r->get('/ui/list')->to('ui_list#list');

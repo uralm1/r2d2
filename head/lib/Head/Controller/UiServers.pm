@@ -12,8 +12,9 @@ sub serverget {
 
   $self->render_later;
   $self->mysql_inet->db->query("SELECT c.id, cn, c.desc, DATE_FORMAT(c.create_time, '%k:%i:%s %e/%m/%y') AS create_time, email, c.email_notify, \
-ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, profile \
+ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, d.profile, p.name AS profile_name \
 FROM clients c INNER JOIN devices d ON d.client_id = c.id \
+LEFT OUTER JOIN profiles p ON d.profile = p.profile \
 WHERE type = 1 AND c.id = ?", $id =>
     sub {
       my ($db, $err, $results) = @_;
@@ -39,6 +40,9 @@ sub _build_server_rec {
   for (qw/id cn desc create_time email email_notify mac rt defjump speed_in speed_out no_dhcp qs limit_in blocked profile/) {
     die 'Undefined server record attribute' unless exists $h->{$_};
     $sr->{$_} = $h->{$_};
+  }
+  for (qw/profile_name/) {
+    $sr->{$_} = $h->{$_} if defined $h->{$_};
   }
   return $sr;
 }

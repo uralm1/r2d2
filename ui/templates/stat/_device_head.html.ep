@@ -18,7 +18,7 @@
     % if (exists $rec->{name}) {
     <b>Устройство:</b>&nbsp;<%= $rec->{name} ne '' ? $rec->{name} : "ID: $rec->{id}" %><br>
     % }
-    <b>Местоположение:</b>&nbsp;<%= $rec->{profile} %><br>
+    <b>Местоположение:</b>&nbsp;<%= $rec->{profile_name} // "Нет данных ($rec->{profile})" %><br>
     %# print limit info only if quota enabled
     % if ($rec->{qs} != 0) {
     %   my $check_text_style = $rec->{sum_limit_in} <= 0 ? 'style="color:#ff0000"' : '';

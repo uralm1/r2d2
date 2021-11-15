@@ -1,6 +1,7 @@
 package Ui::Controller::Device;
 use Mojo::Base 'Mojolicious::Controller';
 
+use Carp;
 use Mojo::URL;
 use Regexp::Common qw(number net);
 use MIME::Base64 qw(decode_base64url);
@@ -13,16 +14,16 @@ sub newpost {
   my $v = $self->validation;
   return $self->render(text=>'Не дал показания') unless $v->has_data;
 
-  #$self->log->debug("I: ".$self->dumper($v->input));
+  $self->log->debug("I: ".$self->dumper($v->input));
 
   # client_id parameter is a must
   my $client_id = $v->optional('client_id')->param;
   return unless $self->exists_and_number($client_id);
 
-  # render initial form
-  return $self->render(template => 'device/new',
-    client_id => $client_id) if keys %{$v->input} == 1;
+  $self->render_later;
 
+  # render initial form
+  return $self->_render_new_device_page($client_id) if keys %{$v->input} == 1;
 
   my $j = { }; # resulting json
   $j->{name} = $v->required('name', 'not_empty')->param;
@@ -47,11 +48,10 @@ sub newpost {
   my $limit_in = $v->required('limit_in', 'not_empty')->like(qr/^$RE{num}{decimal}{-radix=>'[,.]'}{-sep=>'[ ]?'}$/)->param;
   $j->{profile} = $v->required('profile', 'not_empty')->param;
 
-  #if ($v->has_error) { my @f=@{$v->failed}; $self->log->debug("Failed validation: @f") }
+  if ($v->has_error) { my @f=@{$v->failed}; $self->log->debug("Failed validation: @f") }
 
   # rerender page with errors
-  return $self->render(template => 'device/new',
-    client_id => $client_id) if $v->has_error;
+  return $self->_render_new_device_page($client_id) if $v->has_error;
 
   # retrive speed
   if ($speed_key ne 'userdef') {
@@ -71,8 +71,6 @@ sub newpost {
   #$self->log->debug("J: ".$self->dumper($j));
 
   # post to system
-  $self->render_later;
-
   $self->ua->post(Mojo::URL->new("/ui/device/$client_id")->to_abs($self->head_url) => json => $j =>
     sub {
       my ($ua, $tx) = @_;
@@ -83,6 +81,29 @@ sub newpost {
       $self->flash(oper => 'Выполнено успешно.');
       $self->redirect_to($self->url_for('clientedit')->query(id => $client_id));
     } # post closure
+  );
+}
+
+
+# internal
+sub _render_new_device_page {
+  my ($self, $client_id) = @_;
+  croak 'Must pass client_id parameter!' unless defined $client_id;
+
+  # we need profiles list
+  $self->ua->get(Mojo::URL->new("/ui/profiles")->to_abs($self->head_url) =>
+    {Accept => 'application/json'} =>
+    sub {
+      my ($ua, $tx) = @_;
+      my $res = eval { $tx->result };
+      return unless $self->request_success($res);
+      return unless my $v = $self->request_json($res);
+
+      my @pa = map { $_ eq 'plk' ? [$v->{$_} => $_, selected => 'selected'] : [$v->{$_} => $_] } sort keys %$v;
+      $self->stash(profile_array => \@pa);
+
+      return $self->render(template => 'device/new', client_id => $client_id);
+    } # get closure
   );
 }
 
@@ -260,7 +281,7 @@ sub movepost {
   #$self->log->debug("I: ".$self->dumper($v->input));
 
   $self->render_later;
-    
+
   my $device_id = $v->optional('id')->param;
   return unless $self->exists_and_number($device_id);
   my $old_client_id = $v->optional('clientid')->param;

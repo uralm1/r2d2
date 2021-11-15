@@ -59,6 +59,7 @@ __DATA__
     "limit_in": { "type":"integer", "minimum":0 },
     "blocked": { "type":"integer", "enum":[0,1] },
     "profile": { "type":"string", "minLength":1 }
+    "profile_name": { "type":"string", "minLength":1 }
   }
 }
 
@@ -119,6 +120,7 @@ __DATA__
     "limit_in": { "type":"integer", "minimum":0 },
     "blocked": { "type":"integer", "enum":[0,1] },
     "profile": { "type":"string", "minLength":1 }
+    "profile_name": { "type":"string", "minLength":1 }
   }
 }
 

@@ -46,7 +46,7 @@
 	    % param profile => $rec->{profile} unless defined param 'profile';
 	    %= input_tag 'profile', type => 'hidden'
 	    % param profile1 => param 'profile';
-	    %= select_field profile1 => ['plk', 'gwtest1', 'atcsev', 'kns3'], id => 'profile', disabled => undef
+	    %= select_field profile1 => [[$rec->{profile_name} // "Нет данных ($rec->{profile})" => $rec->{profile}]], id => 'profile', disabled => undef
 	    %#= label_for profile => 'Расположение'
 	    %= t 'span', class => 'helper-text', 'Изменение местоположения не допускается'
 	  </div>

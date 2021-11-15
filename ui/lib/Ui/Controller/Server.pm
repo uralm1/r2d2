@@ -107,7 +107,9 @@ sub newform {
   my $self = shift;
   return undef unless $self->authorize({ admin=>1 });
 
-  return $self->render(template => 'server/new');
+  $self->render_later;
+
+  $self->_render_new_server_page;
 }
 
 
@@ -147,8 +149,10 @@ sub newpost {
 
   #if ($v->has_error) { my @f=@{$v->failed}; $self->log->debug("Failed validation: @f") }
 
+  $self->render_later;
+
   # rerender page with errors
-  return $self->render(template => 'server/new') if $v->has_error;
+  return $self->_render_new_server_page if $v->has_error;
 
   # retrive speed
   if ($speed_key ne 'userdef') {
@@ -168,8 +172,6 @@ sub newpost {
   #$self->log->debug($self->dumper($j));
 
   # post to system
-  $self->render_later;
-
   $self->ua->post(Mojo::URL->new("/ui/server")->to_abs($self->head_url) => json => $j =>
     sub {
       my ($ua, $tx) = @_;
@@ -180,6 +182,28 @@ sub newpost {
       $self->flash(oper => 'Выполнено успешно.');
       $self->redirect_to($self->url_for('clients'));
     } # post closure
+  );
+}
+
+
+# internal
+sub _render_new_server_page {
+  my $self = shift;
+
+  # we need profiles list
+  $self->ua->get(Mojo::URL->new("/ui/profiles")->to_abs($self->head_url) =>
+    {Accept => 'application/json'} =>
+    sub {
+      my ($ua, $tx) = @_;
+      my $res = eval { $tx->result };
+      return unless $self->request_success($res);
+      return unless my $v = $self->request_json($res);
+
+      my @pa = map { $_ eq 'plk' ? [$v->{$_} => $_, selected => 'selected'] : [$v->{$_} => $_] } sort keys %$v;
+      $self->stash(profile_array => \@pa);
+
+      return $self->render(template => 'server/new');
+    } # get closure
   );
 }
 

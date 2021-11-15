@@ -25,7 +25,7 @@ sub run {
         my $res = $profiles->eachagent($n->{profile}, sub {
           my ($profile_key, $agent_key, $agent) = @_;
 
-            $app->refresh_id($agent->{url}, $id);
+          $app->refresh_id($agent->{url}, $id);
 
         });
         $app->log->error("Refresh device id $id failed: invalid profile!") unless $res;

@@ -2,7 +2,7 @@
 <div class="scont">
   <div class="row">
     <div class="col s12">
-      <h5><b>Управление комплексом &laquo;R2D2 2021&raquo;. Версия <%== $version %></b></h5>
+      <h5><b>Управление комплексом &laquo;R2D2 <span style="font-size:smaller;font-weight:bold">2021</span>&raquo;. Версия <%== $version %></b></h5>
     </div>
   </div>
 %= include 'index/_hist'

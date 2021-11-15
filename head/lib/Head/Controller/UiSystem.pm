@@ -69,4 +69,17 @@ sub profilesstatus {
 }
 
 
+sub profileshash {
+  my $self = shift;
+
+  my $j = {};
+  $self->profiles->each(sub {
+    my ($profile_key, $profile) = @_;
+    $j->{$profile_key} = $profile->{name};
+  });
+
+  $self->render(json => $j);
+}
+
+
 1;
