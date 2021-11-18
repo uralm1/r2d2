@@ -14,11 +14,10 @@ sub register {
 
   # remote logger
   $app->helper(rlog => sub {
-    my ($self, $m, @param) = @_;
+    my ($self, $m, %param) = @_;
     croak 'Parameter missing' unless defined $m;
 
-    my $logdata = {@param};
-    my $sync = $logdata->{sync} // 0;
+    my $sync = $param{sync} // 0;
 
     $self->log->info($m) if $self->config('rlog_local');
 
