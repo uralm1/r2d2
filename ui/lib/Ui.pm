@@ -10,6 +10,10 @@ sub startup {
   # Load configuration from hash returned by config file
   my $config = $self->plugin('Config', { default => {
     secrets => ['4098673ahdde74de78ab0980a098'],
+    rt_names => [],
+    qs_names => [],
+    defjump_names => [],
+    speed_plans => [],
   }});
   delete $self->defaults->{config}; # safety - not to pass passwords to stashes
 
@@ -33,6 +37,10 @@ sub startup {
   # set cert/key to useragent (for head requests)
   $self->ua->ca($config->{ca});
   $self->ua->cert($config->{local_cert})->key($config->{local_key});
+
+  # create useful hashes in config
+  $self->config(rt_resolve => { map { $_->[1] => $_->[0] } @{$config->{rt_names}} });
+  $self->config(qs_resolve => { map { $_->[1] => $_->[0] } @{$config->{qs_names}} });
 
   # Router authentication routine
   $self->hook(before_dispatch => sub {

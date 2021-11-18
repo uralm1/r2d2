@@ -29,14 +29,16 @@ paths:
 
   /log:
     post:
-      summary: Записывает сообщение в op_log
+      summary: Записывает сообщение в operations или audit log
       requestBody:
         description: log data
         required: true
         content:
           'application/json':
             schema:
-              $ref: '#/components/schemas/log_record'
+              oneOf:
+                - $ref: '#/components/schemas/log_record'
+                - $ref: '#/components/schemas/audit_log_record'
           '*/*':
             schema:
               type: string
@@ -57,7 +59,7 @@ paths:
 
   /log/{subsys}:
     post:
-      summary: Записывает сообщение в op_log
+      summary: Записывает сообщение в operations или audit log
       parameters:
         - name: subsys
           in: path
@@ -73,12 +75,14 @@ paths:
         content:
           'application/json':
             schema:
-              $ref: '#/components/schemas/log_record'
+              oneOf:
+                - $ref: '#/components/schemas/log_record'
+                - $ref: '#/components/schemas/audit_log_record'
           '*/*':
             schema:
               type: string
               example: Initialization started
-              description: string to put into log
+              description: string to put into operation log
 
       responses:
         '200':
@@ -1352,7 +1356,7 @@ servers:
 components:
   schemas:
     log_record:
-      description: Data to put in DB log
+      description: Data to put in operation log
       type: object
       properties:
         subsys:
@@ -1363,8 +1367,26 @@ components:
           type: string
           example: Initialization started
           description: String to put into log
+      required:
+        - info
 
-          
+
+    audit_log_record:
+      description: Data to put in audit log
+      type: object
+      properties:
+        login:
+          type: string
+          description: Optional login name
+          example: testuser
+        audit:
+          type: string
+          example: Operation started
+          description: String to put into audit log
+      required:
+        - audit
+
+
     device_record:
       description: Device record
       type: object
@@ -1903,6 +1925,14 @@ components:
           type: string
           description: 'device profile human readable name (передается в операциях чтения данных, игнорируется в операциях записи, редактирования)'
           example: 'Тестовое подразделение'
+        client_cn:
+          type: string
+          description: 'ФИО клиента владельца устройства (передается в операции чтения данных, игнорируется в операциях записи, редактирования)'
+          example: 'Иванов Иван Иванович'
+        client_login:
+          type: string
+          description: 'Логин клиента владельца устройства (передается в операции чтения данных, игнорируется в операциях записи, редактирования)'
+          example: 'ivanovii'
       required:
         - name
         - ip

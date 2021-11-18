@@ -19,6 +19,9 @@
       <div id="client" class="section scrollspy margin-top">
 	%= hidden_field id => $client_id, id => 'client_id'
 	%= hidden_field guid => $rec->{guid}
+	%= hidden_field cn_a => $rec->{cn}
+	%= hidden_field login_a => $rec->{login}
+	%= hidden_field email_a => $rec->{email}
 
         % if ($rec->{guid}) {
 	<div class="row">
@@ -175,6 +178,8 @@
 	  <div class="col s12">
 	  %= form_for devicenew => (method=>'POST', style=>'display:inline-block;') => begin
 	    %= hidden_field client_id => $client_id
+	    %= hidden_field client_cn_a => $rec->{cn}
+	    %= hidden_field client_login_a => $rec->{login}
 	    <button class="btn-large waves-effect waves-light" type="submit">Добавить новое устройство&hellip;</button>
 	  % end
 	  </div>

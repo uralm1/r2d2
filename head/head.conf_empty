@@ -36,7 +36,7 @@
   # agents that support statistic collection
   agent_types_stat => ['gwsyn', 'fwsyn'],
 
-  profiles => {
+  profiles_source => {
     'plk' => {
       name => 'Производственно-лабораторный комплекс',
       agents => [

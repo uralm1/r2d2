@@ -107,17 +107,21 @@ sub client_devices_p {
   my ($self, $db) = @_;
   my $j = $self->stash('j');
 
-  # return map promise with limited concurrency
-  Mojo::Promise->map(
-    {concurrency => 1},
-    sub {
-      $db->query_p("SELECT d.id, d.name, d.desc, DATE_FORMAT(create_time, '%k:%i:%s %e/%m/%y') AS create_time, \
-ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, d.profile, p.name AS profile_name \
-FROM devices d LEFT OUTER JOIN profiles p ON d.profile = p.profile WHERE d.client_id = ? \
-ORDER BY d.id ASC LIMIT 20", $_->{id})
-    },
-    @$j
-  );
+  if (@$j) {
+    # return map promise with limited concurrency
+    Mojo::Promise->map(
+      {concurrency => 1},
+      sub {
+        $db->query_p("SELECT d.id, d.name, d.desc, DATE_FORMAT(create_time, '%k:%i:%s %e/%m/%y') AS create_time, \
+  ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, d.profile, p.name AS profile_name \
+  FROM devices d LEFT OUTER JOIN profiles p ON d.profile = p.profile WHERE d.client_id = ? \
+  ORDER BY d.id ASC LIMIT 20", $_->{id})
+      },
+      @$j
+    );
+  } else {
+    Mojo::Promise->resolve();
+  }
 }
 
 

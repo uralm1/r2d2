@@ -113,6 +113,9 @@
   %= link_to 'oplog' => (class=>'btn-floating green darken-1 btn-large btn-tooltip', 'data-position'=>'left', 'data-tooltip'=>'Просмотр лога системных событий') => begin
   <i class="material-icons">more_vert</i>
   % end
+  <ul>
+    <li><%= link_to 'auditlog' => (class=>'btn-floating green lighten-2 btn-tooltip', 'data-position'=>'left', 'data-tooltip'=>'Просмотр лога аудита') => begin %><i class="material-icons">assignment_ind</i><% end %></li>
+  </ul>
 </div>
 % content_for script0 => begin
 <script>

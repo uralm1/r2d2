@@ -241,7 +241,7 @@ sub _compat_from_config_to_db {
   };
   die "Tables cleanup error\n" unless defined $e;
 
-  my $profiles = $app->config('profiles');
+  my $profiles = $app->config('profiles_source');
   my $agent_types = $app->config('agent_types');
 
   while (my ($profile_key, $v) = CORE::each %$profiles) {

@@ -75,6 +75,8 @@
   %= hidden_field cn => '', id => 'u-cn'
   %= hidden_field login => '', id => 'u-login'
   %= hidden_field email => '', id => 'u-email'
+  %= hidden_field oldcn_a => $rec->{cn}
+  %= hidden_field oldlogin_a => $rec->{login}
   <p></p>
   <div class="row no-margin-bottom">
     <div class="input-field col s12 m8 l5">

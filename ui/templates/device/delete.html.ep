@@ -8,6 +8,11 @@
   %= form_for devicedelete => (method=>'POST') => begin
     %= hidden_field id => $device_id
     %= hidden_field clientid => $client_id
+    %= hidden_field name_a => $rec->{name}
+    %= hidden_field profile_a => $rec->{profile}
+    %= hidden_field ip_a => $rec->{ip}
+    %= hidden_field client_cn_a => $rec->{client_cn}
+    %= hidden_field client_login_a => $rec->{client_login}
     <div class="row">
       <div class="input-field col s12 m8 l5">
 	%= text_field 'name' => $rec->{name} ne '' ? $rec->{name} : "Не указано, ID: $rec->{id}", id => 'name', disabled => undef

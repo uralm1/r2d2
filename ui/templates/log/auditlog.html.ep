@@ -1,4 +1,4 @@
-% layout 'default', title => 'Лог аудита', back_url => '/';
+% layout 'default', title => 'Лог аудита', back_url => '/clients';
 <div class="scont">
   <table class="striped narrow-log">
     <thead>
@@ -14,7 +14,7 @@
       <tr>
 	<td><%= $_->{id} %></td>
 	<td><%= $_->{date} %></td>
-	<td><%= $_->{login} %></td>
+	<td><%= oprs $_->{login} %></td>
 	<td><%= $_->{info} %></td>
       </tr>
       % }

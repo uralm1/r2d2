@@ -7,6 +7,9 @@
   </div>
   %= form_for serverdelete => (method=>'POST') => begin
     %= hidden_field id => $srv_id
+    %= hidden_field cn_a => $srv_rec->{cn}
+    %= hidden_field profile_a => $srv_rec->{profile}
+    %= hidden_field ip_a => $srv_rec->{ip}
     <div class="row">
       <div class="input-field col s12 m8 l5">
 	%= text_field 'cn' => $srv_rec->{cn}, id => 'cn', disabled => undef

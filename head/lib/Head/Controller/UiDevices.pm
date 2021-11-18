@@ -14,9 +14,9 @@ sub deviceget {
 
   $self->render_later;
 
-  $self->mysql_inet->db->query("SELECT d.id, d.name, d.desc, DATE_FORMAT(create_time, '%k:%i:%s %e/%m/%y') AS create_time, \
-ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, d.profile, p.name AS profile_name \
-FROM devices d LEFT OUTER JOIN profiles p ON d.profile = p.profile \
+  $self->mysql_inet->db->query("SELECT d.id, d.name, d.desc, DATE_FORMAT(d.create_time, '%k:%i:%s %e/%m/%y') AS create_time, \
+ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, d.profile, p.name AS profile_name, c.cn AS client_cn, c.login AS client_login \
+FROM devices d INNER JOIN clients c ON d.client_id = c.id LEFT OUTER JOIN profiles p ON d.profile = p.profile \
 WHERE d.id = ? AND d.client_id = ?", $device_id, $client_id =>
     sub {
       my ($db, $err, $results) = @_;
@@ -43,7 +43,7 @@ sub _build_device_rec {
     die 'Undefined device record attribute' unless exists $h->{$_};
     $r->{$_} = $h->{$_};
   }
-  for (qw/profile_name/) {
+  for (qw/profile_name client_cn client_login/) {
     $r->{$_} = $h->{$_} if defined $h->{$_};
   }
   return $r;
@@ -126,9 +126,10 @@ sub devicepost {
 
       $results->finish;
 
+      ## email_notify field in devices is deprecated
       $db->query("INSERT INTO devices \
-(name, devices.desc, create_time, ip, mac, no_dhcp, rt, defjump, speed_in, speed_out, qs, limit_in, sum_limit_in, profile, notified, blocked, bot, client_id) \
-VALUES (?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 1, ?)",
+(name, devices.desc, create_time, ip, mac, no_dhcp, rt, defjump, speed_in, speed_out, qs, limit_in, sum_limit_in, profile, notified, blocked, bot, email_notify, client_id) \
+VALUES (?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 1, 0, ?)",
         $j->{name},
         $j->{desc} // '',
         scalar($ipo->numeric),

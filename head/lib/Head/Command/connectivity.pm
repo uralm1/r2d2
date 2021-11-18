@@ -3,14 +3,19 @@ use Mojo::Base 'Mojolicious::Command';
 
 #use Carp;
 use Mojo::URL;
+use Mojo::Util qw(getopt);
 use Mojo::Promise;
 
 has description => '* Check agents connectivity (run from cron cmd)';
 has usage => "Usage: APPLICATION connectivity [<profile>]\n";
 
 sub run {
-  my ($self, $p) = @_;
-  my $app = $self->app;
+  my $app = shift->app;
+
+  getopt \@_, 'cron'=>\my $cron
+    or die "Error in commandline arguments\n";
+
+  my ($p) = @_;
 
   my $profiles = $app->profiles(dont_copy_config_to_db => 1)->hash;
   if (defined $p) {

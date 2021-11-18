@@ -58,7 +58,7 @@ __DATA__
     "qs": { "type":"integer", "minimum":0, "maximum":9 },
     "limit_in": { "type":"integer", "minimum":0 },
     "blocked": { "type":"integer", "enum":[0,1] },
-    "profile": { "type":"string", "minLength":1 }
+    "profile": { "type":"string", "minLength":1 },
     "profile_name": { "type":"string", "minLength":1 }
   }
 }
@@ -119,8 +119,10 @@ __DATA__
     "qs": { "type":"integer", "minimum":0, "maximum":9 },
     "limit_in": { "type":"integer", "minimum":0 },
     "blocked": { "type":"integer", "enum":[0,1] },
-    "profile": { "type":"string", "minLength":1 }
-    "profile_name": { "type":"string", "minLength":1 }
+    "profile": { "type":"string", "minLength":1 },
+    "profile_name": { "type":"string", "minLength":1 },
+    "client_cn": { "type":"string", "minLength":1 },
+    "client_login": { "type":"string", "minLength":1 }
   }
 }
 

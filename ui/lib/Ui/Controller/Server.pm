@@ -81,6 +81,7 @@ sub editpost {
   # improve limit_in a little
   $limit_in =~ s/ //g; # remove separators
   $limit_in =~ s/,/./; # fix comma
+  my $audit_limit_in = $limit_in;
   $j->{limit_in} = $self->mbtob($limit_in);
 
   #$self->log->debug($self->dumper($j));
@@ -93,6 +94,10 @@ sub editpost {
       my ($ua, $tx) = @_;
       my $res = eval { $tx->result };
       return unless $self->request_success($res);
+
+      $self->raudit("Редактирование сервера $j->{cn}, местоположение $j->{profile}, $j->{ip}, провайдер ".
+$self->config('rt_resolve')->{$j->{rt}}.
+', режим квоты '.$self->config('qs_resolve')->{$j->{qs}}.", лимит $audit_limit_in Мб.");
 
       # do redirect with flash
       $self->flash(oper => 'Выполнено успешно.');
@@ -167,6 +172,7 @@ sub newpost {
   # improve limit_in a little
   $limit_in =~ s/ //g; # remove separators
   $limit_in =~ s/,/./; # fix comma
+  my $audit_limit_in = $limit_in;
   $j->{limit_in} = $self->mbtob($limit_in);
 
   #$self->log->debug($self->dumper($j));
@@ -177,6 +183,10 @@ sub newpost {
       my ($ua, $tx) = @_;
       my $res = eval { $tx->result };
       return unless $self->request_success($res);
+
+      $self->raudit("Добавление нового сервера $j->{cn}, местоположение $j->{profile}, $j->{ip}, провайдер ".
+$self->config('rt_resolve')->{$j->{rt}}.
+', режим квоты '.$self->config('qs_resolve')->{$j->{qs}}.", лимит $audit_limit_in Мб.");
 
       # do redirect with flash
       $self->flash(oper => 'Выполнено успешно.');
@@ -235,8 +245,13 @@ sub deletepost {
   my $self = shift;
   return undef unless $self->authorize({ admin=>1 });
 
-  my $id = $self->param('id');
+  my $v = $self->validation;
+  my $id = $v->optional('id')->param;
   return unless $self->exists_and_number($id);
+
+  my $audit_cn = $v->optional('cn_a')->param // 'н/д';
+  my $audit_ip = $v->optional('ip_a')->param // 'н/д';
+  my $audit_profile = $v->optional('profile_a')->param // 'н/д';
 
   # send (delete) to system
   $self->render_later;
@@ -246,6 +261,8 @@ sub deletepost {
       my ($ua, $tx) = @_;
       my $res = eval { $tx->result };
       return unless $self->request_success($res);
+
+      $self->raudit("Удаление сервера $audit_cn, местоположение $audit_profile, $audit_ip.");
 
       # do redirect with flash
       $self->flash(oper => 'Выполнено успешно.');

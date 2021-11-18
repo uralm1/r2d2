@@ -12,6 +12,8 @@
       %= form_for devicenew => (method=>'POST') => begin
       <div id="main" class="section scrollspy">
 	%= hidden_field client_id => $client_id
+	%= hidden_field client_cn_a => $audit_client_rec->{cn}
+	%= hidden_field client_login_a => $audit_client_rec->{login}
 	<div class="row">
 	  <div class="input-field col s12 m8 l5">
 	    %= text_field 'name', id => 'name'

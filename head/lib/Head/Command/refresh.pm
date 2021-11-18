@@ -1,6 +1,7 @@
 package Head::Command::refresh;
 use Mojo::Base 'Mojolicious::Command';
 
+use Mojo::Util qw(getopt);
 use Head::Ural::Profiles;
 #use Carp;
 
@@ -8,8 +9,12 @@ has description => '* Manually refresh device by <id>';
 has usage => "Usage: APPLICATION refresh <device-id>\n";
 
 sub run {
-  my ($self, $id) = @_;
-  my $app = $self->app;
+  my $app = shift->app;
+
+  #getopt \@_, 'cron'=>\my $cron
+  #  or die "Error in commandline arguments\n";
+
+  my ($id) = @_;
   die "Bad <device-id> argument.\n" unless (defined($id) && $id =~ /^\d+$/);
 
   my $profiles = $app->profiles(dont_copy_config_to_db => 1);

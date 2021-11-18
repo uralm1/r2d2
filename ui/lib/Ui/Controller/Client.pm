@@ -110,6 +110,9 @@ sub newpost {
         my $res = eval { $tx->result };
         return unless $self->request_success($res);
 
+        my $email = $j->{email} // 'отсутствует';
+        $self->raudit("Создание нового клиента $j->{cn}, логин $j->{login}, e-mail $email.");
+
         # do redirect with a toast
         $self->flash(oper => 'Выполнено успешно.');
         return $self->redirect_to($self->url_for('clients'));
@@ -155,6 +158,9 @@ sub newpainpost {
       my ($ua, $tx) = @_;
       my $res = eval { $tx->result };
       return unless $self->request_success($res);
+
+      my $email = $j->{email} // 'отсутствует';
+      $self->raudit("Создание вручную нового клиента $j->{cn}, логин $j->{login}, e-mail $email. Предупреждения о нежелательности этого проигнорированы.");
 
       # do redirect with a toast
       $self->flash(oper => 'Выполнено успешно.');
@@ -205,6 +211,7 @@ sub editpost {
   my $j = { id => $id }; # resulting json
   my $method;
   my $url;
+  my ($audit_cn, $audit_login, $audit_email);
   if (defined $guid && $guid ne '') {
     # edit desc of AD client
     $method = 'PATCH';
@@ -212,6 +219,9 @@ sub editpost {
     $v->optional('desc');
     $j->{desc} = $v->is_valid ? $v->param : '';
     $j->{email_notify} = $v->optional('email_notify')->like(qr/^[01]$/)->param // 0;
+    $audit_cn = $v->optional('cn_a')->param // 'н/д';
+    $audit_login = $v->optional('login_a')->param // 'н/д';
+    $audit_email = $v->optional('email_a')->param // 'отсутствует';
 
   } else {
     # edit multiple properties of manual client
@@ -259,6 +269,15 @@ sub editpost {
       my ($ua, $tx) = @_;
       my $res = eval { $tx->result };
       return unless $self->request_success($res);
+
+      if ($method =~ /^PUT/i) {
+        my $email = $j->{email} // 'отсутствует';
+        $self->raudit("Редактирование клиента заданного вручную $j->{cn}, логин $j->{login}, e-mail $email.");
+      } elsif ($method =~ /^PATCH/i) {
+        $self->raudit("Редактирование клиента $audit_cn, логин $audit_login, e-mail $audit_email.");
+      } else {
+        $self->raudit("Неизвестная операция редактирования клиента!");
+      }
 
       # do redirect with flash
       $self->flash(oper => 'Выполнено успешно.');
@@ -378,6 +397,8 @@ sub replacepost {
     $j->{desc} = $v->param if $v->is_valid;
     $v->optional('email', 'not_empty')->like(qr/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/);
     $j->{email} = $v->param if $v->is_valid;
+    my $audit_oldcn = $v->optional('oldcn_a')->param // 'н/д';
+    my $audit_oldlogin = $v->optional('oldlogin_a')->param // 'н/д';
 
     if ($v->has_error) {
       $self->flash(oper => 'Ошибка. Неверные данные. Проверьте учетную запись пользователя.');
@@ -392,6 +413,9 @@ sub replacepost {
         my ($ua, $tx) = @_;
         my $res = eval { $tx->result };
         return unless $self->request_success($res);
+
+        my $email = $j->{email} // 'отсутствует';
+        $self->raudit("Замена клиента $audit_oldcn ($audit_oldlogin) на $j->{cn}, логин $j->{login}, e-mail $email с передачей всех подчиненных устройств.");
 
         # do redirect with a toast
         $self->flash(oper => 'Выполнено успешно.');
@@ -433,8 +457,12 @@ sub deletepost {
   my $self = shift;
   return undef unless $self->authorize({ admin=>1 });
 
-  my $id = $self->param('id');
+  my $v = $self->validation;
+  my $id = $v->optional('id')->param;
   return unless $self->exists_and_number($id);
+
+  my $audit_cn = $v->optional('cn_a')->param // 'н/д';
+  my $audit_login = $v->optional('login_a')->param // 'н/д';
 
   # send (delete) to system
   $self->render_later;
@@ -444,6 +472,8 @@ sub deletepost {
       my ($ua, $tx) = @_;
       my $res = eval { $tx->result };
       return unless $self->request_success($res);
+
+      $self->raudit("Удаление клиента $audit_cn, логин $audit_login.");
 
       # do redirect with flash
       $self->flash(oper => 'Выполнено успешно.');

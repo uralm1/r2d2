@@ -6,6 +6,8 @@ use Ui::Ural::OperatorResolver;
 use Ui::Ural::Changelog;;
 use Mojo::URL;
 use Mojo::ByteStream 'b';
+use Mojo::IOLoop;
+use Carp;
 
 sub register {
   my ($self, $app, $args) = @_;
@@ -152,6 +154,41 @@ sub register {
     return $oprs->resolve($login);
   });
 
+
+  # remote audit logging
+  $app->helper(raudit => sub {
+    my ($self, $m, %param) = @_;
+    croak 'Parameter missing' unless defined $m;
+
+    my $sync = $param{sync} // 0;
+    my $login = $param{login} // $self->stash('remote_user');
+
+    my $url = Mojo::URL->new('/log')->to_abs($self->head_url);
+    if ($sync) {
+      my $res = eval { $self->ua->post($url => json
+        => { login => $login, audit => $m })->result };
+      unless (defined $res) {
+        $self->log->error('Audit log request failed, probably connection refused');
+      } else {
+        $self->log->error('Audit log request error: '.substr($res->body, 0, 40)) if $res->is_error;
+      }
+
+    } else {
+      $self->ua->post($url => json
+        => { login => $login, audit => $m } =>
+        sub {
+          my ($ua, $tx) = @_;
+          my $res = eval { $tx->result };
+          unless (defined $res) {
+            $self->log->error('Audit log request failed, probably connection refused');
+          } else {
+            $self->log->error('Audit log request error: '.substr($res->body, 0, 40)) if $res->is_error;
+          }
+        }
+      );
+      Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+    }
+  });
 }
 
 1;

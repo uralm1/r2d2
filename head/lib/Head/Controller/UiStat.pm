@@ -601,12 +601,16 @@ sub devices_trafs_p {
   my ($self, $db) = @_;
   my $j = $self->stash('j');
 
-  # return map promise with limited concurrency
-  Mojo::Promise->map(
-    {concurrency => 1},
-    sub { $self->device_traf_p($db, $_->{id}) },
-    @{$j->{devices}}
-  );
+  if (@{$j->{devices}}) {
+    # return map promise with limited concurrency
+    Mojo::Promise->map(
+      {concurrency => 1},
+      sub { $self->device_traf_p($db, $_->{id}) },
+      @{$j->{devices}}
+    );
+  } else {
+    Mojo::Promise->resolve();
+  }
 }
 
 

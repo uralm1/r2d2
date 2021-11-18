@@ -55,7 +55,7 @@ sub run {
   Mojo::IOLoop->next_tick(sub {
     $self->_cron($sch->{$_},
       $xxx->{$_}{name},
-      @{$xxx->{$_}{cmd}}
+      @{$xxx->{$_}{cmd}}, '--cron'
     ) for (sort keys %$xxx);
   });
 

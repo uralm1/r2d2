@@ -20,10 +20,15 @@ sub newpost {
   my $client_id = $v->optional('client_id')->param;
   return unless $self->exists_and_number($client_id);
 
+  my $audit_client_rec = {
+    cn => $v->optional('client_cn_a')->param // 'н/д',
+    login => $v->optional('client_login_a')->param // 'н/д'
+  };
+
   $self->render_later;
 
   # render initial form
-  return $self->_render_new_device_page($client_id) if keys %{$v->input} == 1;
+  return $self->_render_new_device_page($client_id, $audit_client_rec) if keys %{$v->input} <= 3;
 
   my $j = { }; # resulting json
   $j->{name} = $v->required('name', 'not_empty')->param;
@@ -51,7 +56,7 @@ sub newpost {
   if ($v->has_error) { my @f=@{$v->failed}; $self->log->debug("Failed validation: @f") }
 
   # rerender page with errors
-  return $self->_render_new_device_page($client_id) if $v->has_error;
+  return $self->_render_new_device_page($client_id, $audit_client_rec) if $v->has_error;
 
   # retrive speed
   if ($speed_key ne 'userdef') {
@@ -66,6 +71,7 @@ sub newpost {
   # improve limit_in a little
   $limit_in =~ s/ //g; # remove separators
   $limit_in =~ s/,/./; # fix comma
+  my $audit_limit_in = $limit_in;
   $j->{limit_in} = $self->mbtob($limit_in);
 
   #$self->log->debug("J: ".$self->dumper($j));
@@ -77,6 +83,11 @@ sub newpost {
       my $res = eval { $tx->result };
       return unless $self->request_success($res);
 
+      $self->raudit("Добавление нового клиентского устройства $j->{name}, местоположение $j->{profile}, $j->{ip}, провайдер ".
+$self->config('rt_resolve')->{$j->{rt}}.
+', режим квоты '.$self->config('qs_resolve')->{$j->{qs}}.
+", лимит $audit_limit_in Мб. Клиент $audit_client_rec->{cn} ($audit_client_rec->{login}).");
+
       # do redirect with flash
       $self->flash(oper => 'Выполнено успешно.');
       $self->redirect_to($self->url_for('clientedit')->query(id => $client_id));
@@ -87,8 +98,8 @@ sub newpost {
 
 # internal
 sub _render_new_device_page {
-  my ($self, $client_id) = @_;
-  croak 'Must pass client_id parameter!' unless defined $client_id;
+  my ($self, $client_id, $audit_client_rec) = @_;
+  croak 'Must pass client_id, audit_client_rec parameters!' unless defined $client_id && defined $audit_client_rec;
 
   # we need profiles list
   $self->ua->get(Mojo::URL->new("/ui/profiles")->to_abs($self->head_url) =>
@@ -102,7 +113,8 @@ sub _render_new_device_page {
       my @pa = map { $_ eq 'plk' ? [$v->{$_} => $_, selected => 'selected'] : [$v->{$_} => $_] } sort keys %$v;
       $self->stash(profile_array => \@pa);
 
-      return $self->render(template => 'device/new', client_id => $client_id);
+      return $self->render(template => 'device/new', client_id => $client_id,
+        audit_client_rec => $audit_client_rec);
     } # get closure
   );
 }
@@ -151,6 +163,11 @@ sub editpost {
   my $client_id = $v->optional('clientid')->param;
   return unless $self->exists_and_number($client_id);
 
+  my $audit_client_rec = {
+    client_cn => $v->optional('client_cn_a')->param // 'н/д',
+    client_login => $v->optional('client_login_a')->param // 'н/д'
+  };
+
   my $j = { id => $id }; # resulting json
   $j->{name} = $v->required('name', 'not_empty')->param;
   $v->optional('desc', 'not_empty');
@@ -178,7 +195,7 @@ sub editpost {
 
   # rerender page with errors
   return $self->render(template => 'device/edit',
-    client_id => $client_id, device_id => $id) if $v->has_error;
+    client_id => $client_id, device_id => $id, rec => $audit_client_rec) if $v->has_error;
 
   # retrive speed
   if ($speed_key ne 'userdef') {
@@ -193,6 +210,7 @@ sub editpost {
   # improve limit_in a little
   $limit_in =~ s/ //g; # remove separators
   $limit_in =~ s/,/./; # fix comma
+  my $audit_limit_in = $limit_in;
   $j->{limit_in} = $self->mbtob($limit_in);
 
   #$self->log->debug("J: ".$self->dumper($j));
@@ -205,6 +223,11 @@ sub editpost {
       my ($ua, $tx) = @_;
       my $res = eval { $tx->result };
       return unless $self->request_success($res);
+
+      $self->raudit("Редактирование клиентского устройства $j->{name}, местоположение $j->{profile}, $j->{ip}, провайдер ".
+$self->config('rt_resolve')->{$j->{rt}}.
+', режим квоты '.$self->config('qs_resolve')->{$j->{qs}}.
+", лимит $audit_limit_in Мб. Клиент $audit_client_rec->{client_cn} ($audit_client_rec->{client_login}).");
 
       # do redirect with flash
       $self->flash(oper => 'Выполнено успешно.');
@@ -287,6 +310,14 @@ sub movepost {
   my $old_client_id = $v->optional('clientid')->param;
   return unless $self->exists_and_number($old_client_id);
 
+  my $audit_name = $v->optional('name_a')->param // 'н/д';
+  my $audit_ip = $v->optional('ip_a')->param // 'н/д';
+  my $audit_profile = $v->optional('profile_a')->param // 'н/д';
+  my $audit_oldclient_cn = $v->optional('oldclient_cn_a')->param // 'н/д';
+  my $audit_oldclient_login = $v->optional('oldclient_login_a')->param // 'н/д';
+  my $audit_client_cn = $v->optional('client_cn_a')->param // 'н/д';
+  my $audit_client_login = $v->optional('client_login_a')->param // 'н/д';
+
   my $search = $v->optional('s')->param || '';
   my $back_url = defined $v->optional('back')->param ?
     $self->url_for('devicemove')->query(id => $device_id, clientid => $old_client_id, s => $search, back => 1) :
@@ -310,6 +341,9 @@ sub movepost {
         my ($ua, $tx) = @_;
         my $res = eval { $tx->result };
         return unless $self->request_success($res);
+
+        $self->raudit("Перенос клиентского устройства $audit_name, местоположение $audit_profile, $audit_ip \
+от клиента $audit_oldclient_cn ($audit_oldclient_login) новому клиенту $audit_client_cn ($audit_client_login).");
 
         # do redirect with a toast
         $self->flash(oper => 'Выполнено успешно.');
@@ -353,10 +387,17 @@ sub deletepost {
   my $self = shift;
   return undef unless $self->authorize({ admin=>1 });
 
-  my $id = $self->param('id');
+  my $v = $self->validation;
+  my $id = $v->optional('id')->param;
   return unless $self->exists_and_number($id);
-  my $client_id = $self->param('clientid');
+  my $client_id = $v->optional('clientid')->param;
   return unless $self->exists_and_number($client_id);
+
+  my $audit_name = $v->optional('name_a')->param // 'н/д';
+  my $audit_ip = $v->optional('ip_a')->param // 'н/д';
+  my $audit_profile = $v->optional('profile_a')->param // 'н/д';
+  my $audit_client_cn = $v->optional('client_cn_a')->param // 'н/д';
+  my $audit_client_login = $v->optional('client_login_a')->param // 'н/д';
 
   # send (delete) to system
   $self->render_later;
@@ -366,6 +407,8 @@ sub deletepost {
       my ($ua, $tx) = @_;
       my $res = eval { $tx->result };
       return unless $self->request_success($res);
+
+      $self->raudit("Удаление клиентского устройства $audit_name, местоположение $audit_profile, $audit_ip. Клиент $audit_client_cn ($audit_client_login).");
 
       # do redirect with flash
       $self->flash(oper => 'Выполнено успешно.');

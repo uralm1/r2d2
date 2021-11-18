@@ -2,6 +2,7 @@ package Head::Command::runstat;
 use Mojo::Base 'Mojolicious::Command';
 
 use Mojo::URL;
+use Mojo::Util qw(getopt);
 use Head::Ural::Profiles;
 #use Carp;
 
@@ -9,8 +10,12 @@ has description => '* Manually run traffic statistics collection for <profile>';
 has usage => "Usage: APPLICATION runstat <profile>\n";
 
 sub run {
-  my ($self, $p) = @_;
-  my $app = $self->app;
+  my $app = shift->app;
+
+  #getopt \@_, 'cron'=>\my $cron
+  #  or die "Error in commandline arguments\n";
+
+  my ($p) = @_;
   die "Bad <profile> argument\n" unless defined $p;
 
   # loop by agents

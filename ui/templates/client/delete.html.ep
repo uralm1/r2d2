@@ -40,6 +40,8 @@
     <h5>Вы действительно желаете удалить данного клиента?</h5>
     %= form_for clientdelete => (method=>'POST') => begin
       %= hidden_field id => $client_id
+      %= hidden_field cn_a => $rec->{cn}
+      %= hidden_field login_a => $rec->{login}
       <div class="row">
 	<div class="input-field col s12 m8 l5">
 	  %= text_field 'cn' => $rec->{cn}, id => 'cn', disabled => undef
