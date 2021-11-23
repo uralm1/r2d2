@@ -43,7 +43,7 @@ sub new {
   # to remove in future versions!
   $self->_compat_from_config_to_db unless $opt{dont_copy_config_to_db};
 
-  unless (eval { $self->load }) {
+  unless (defined eval { $self->load }) {
     chomp $@;
     die "Profiles loading error: $@\n";
   }

@@ -21,7 +21,7 @@ sub run {
 
   my $unblock_results = eval { $db->query("SELECT id, profile FROM devices \
 WHERE blocked = 1 AND (sum_limit_in > 0 OR qs = 0 OR qs = 1)") };
-  unless ($unblock_results) {
+  unless (defined $unblock_results) {
     $app->log->error("Unblock: database operation error: $@");
   } else {
     while (my $n = $unblock_results->hash) {

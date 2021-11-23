@@ -10,31 +10,29 @@ sub register {
     my $job = shift;
     my $app = $job->app;
 
-    my $m = 'Truncate log operation started';
-    $app->log->info($m);
-    $app->dblog->info($m, sync=>1);
+    $app->log->info('Truncate log operation started');
 
-    # keep last 5000 records
-    my $e = eval {
-      $app->mysql_inet->db->query("DELETE FROM op_log WHERE id <= ( \
-SELECT id FROM (SELECT id FROM op_log ORDER BY id DESC LIMIT 1 OFFSET 5000) foo )");
-    };
-    if (defined $e) {
-      $m = 'Database oplog successfully truncated';
-      $app->log->info($m);
-      $app->dblog->info($m, sync=>1);
+    unless (defined eval { _do($app) }) {
+      chomp $@;
+      $app->log->error("Fatal error. $@");
+      $app->dblog->error('Truncate log SQL operation failed', sync=>1);
     } else {
-      $m = 'Truncate log SQL operation failed';
-      $app->log->error($m);
-      $app->dblog->error($m, sync=>1);
+      ###
+      $app->dblog->info('Truncate log operation performed', sync=>1);
     }
 
-    $m = 'Truncate log operation finished';
-    $app->log->info($m);
-    $app->dblog->info($m, sync=>1);
-
+    $app->log->info('Truncate log operation finished');
     $job->finish;
   });
+}
+
+
+# _do($app)
+# dies on error (database)
+sub _do {
+  # keep last 5000 records
+  shift->mysql_inet->db->query("DELETE FROM op_log WHERE id <= ( \
+SELECT id FROM (SELECT id FROM op_log ORDER BY id DESC LIMIT 1 OFFSET 5000) foo )");
 }
 
 

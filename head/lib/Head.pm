@@ -11,6 +11,7 @@ use Head::Command::runstat;
 use Head::Command::connectivity;
 use Head::Command::block;
 use Head::Command::unblock;
+use Head::Command::checkclients;
 
 use Sys::Hostname;
 
@@ -55,6 +56,8 @@ sub startup {
   $self->plugin('Head::Task::ProcMonthly');
   $self->plugin('Head::Task::ProcYearly');
   $self->plugin('Head::Task::TruncateLog');
+  $self->plugin('Head::Task::Connectivity');
+  $self->plugin('Head::Task::CheckClients');
   $self->commands->namespaces(['Mojolicious::Command', 'Minion::Command', 'Head::Command']);
 
   my $subsys = $self->moniker.'@'.hostname;

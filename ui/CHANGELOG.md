@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 - Лог аудита.
+- Задача проверки клиентов, запускаемая по расписанию.
+- Рефакторинг cron в head.
 
 ## [0.5 unusable] - 2021-11-15
 - UI в формах отображает полные названия профилей.

@@ -17,7 +17,7 @@
   unblock_schedule => '18,48 * * * *',
 
   # log truncation (weekly)
-  logtruncate_schedule => '50 2 * * 7',
+  truncatelog_schedule => '50 2 * * 7',
 
   # stats rotation
   # set to undef to disable scheduling
@@ -29,6 +29,9 @@
 
   # connectivity tests schedule
   connectivity_schedule => '37 */2 * * *',
+
+  # clients check schedule
+  checkclients_schedule => '18 3 * * *',
 
   # all supported agents types
   agent_types => ['gwsyn', 'fwsyn', 'rtsyn', 'dhcpsyn'],
@@ -79,7 +82,7 @@
   ldap_servers => ['ldap://dcsrv1', 'ldap://dcsrv2'],
   ldap_user => 'ldapuser',
   ldap_pass => 'ldappass',
-  ldap_base => 'DC=contoso,DC=local',
+  personnel_ldap_base => 'DC=contoso,DC=local',
 
   smtp_host => 'mail.testdomain',
   mail_from => 'r2d2@testdomain',

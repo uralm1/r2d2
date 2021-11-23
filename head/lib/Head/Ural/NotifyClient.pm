@@ -105,7 +105,7 @@ sub retrive_ad_fullname_email {
 
   my $flogin = escape_filter_value $login;
   my $filter = "(&(objectCategory=person)(objectClass=user)(sAMAccountName=$flogin))";
-  $mesg = $ldap->search(base => $app->config('ldap_base'), scope => 'sub',
+  $mesg = $ldap->search(base => $app->config('personnel_ldap_base'), scope => 'sub',
     filter => $filter,
     attrs => ['cn', 'sn', 'givenname', 'mail']
   );

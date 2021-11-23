@@ -8,8 +8,7 @@ has description => '* Run check for database changes (run from cron cmd, compati
 has usage => "Usage: APPLICATION checkdb\n";
 
 sub run {
-  my $self = shift;
-  my $app = $self->app;
+  my $app = shift->app;
 
   my $profiles = $app->profiles(dont_copy_config_to_db => 1);
   my $db = $app->mysql_inet->db;

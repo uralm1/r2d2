@@ -14,13 +14,15 @@ sub run {
   getopt \@_, 'clean|c'=>\my $clean, 'cron'=>\my $cron
     or die "Error in commandline arguments.\n";
 
+  die "Not supported\n" if $cron;
+
   if ($clean) {
     my $e = eval { $app->mysql_inet->db->query("DELETE FROM op_log") };
     if (defined $e) {
       $app->dblog->info('Database oplog cleaned.', sync=>1);
     } else {
       $app->log->error('Clean oplog SQL operation failed.');
-      return undef;
+      return 0;
     }
 
     $e = eval { $app->mysql_inet->db->query("DELETE FROM audit_log") };
@@ -29,15 +31,17 @@ sub run {
       $app->dblog->audit('Выполнено ручное удаление логов.', sync=>1);
     } else {
       $app->log->error('Clean audit log SQL operation failed.');
-      return undef;
+      return 0;
     }
 
   } else {
-    $app->log->error('Warning! Execution subsystem unavailable.') unless $app->check_workers;
-
-    # keep last 1000 records
-    my $id = $app->minion->enqueue('truncate_log');
-    $app->log->info("Truncate log task $id was enqueued");
+    unless (defined eval { Head::Task::TruncateLog::_do($app) }) {
+      chomp $@;
+      die "Fatal error. $@\n";
+    } else {
+      $app->log->info('Log databases successfully truncated.');
+      $app->dblog->audit('Выполнено ручное усечение логов.', sync=>1);
+    }
   }
 
   return 1;

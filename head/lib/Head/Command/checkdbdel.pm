@@ -9,8 +9,7 @@ has description => '* Run check for database deletions (run from cron cmd, compa
 has usage => "Usage: APPLICATION checkdbdel\n";
 
 sub run {
-  my $self = shift;
-  my $app = $self->app;
+  my $app = shift->app;
 
   my $profiles = $app->profiles(dont_copy_config_to_db => 1);
 
