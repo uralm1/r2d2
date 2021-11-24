@@ -101,8 +101,13 @@ tr.tr-client, tr.tr-device, tr.tr-status, tr.tr-agent {
   background-color: rgba(225,225,225,.5);
 }
 
-tr.tr-client>td, tr.tr-client-head>th, tr.tr-status>td {
-  padding-top:25px;
+tr.tr-client>td, tr.tr-status>td {
+  padding-top:20px;
+  padding-bottom:10px;
+}
+
+tr.tr-client-head>th {
+  padding-top:5px;
   padding-bottom:10px;
 }
 
@@ -164,4 +169,14 @@ tr.tr-device>td, tr.tr-agent>td {
 
 .head-text {
   font-size:16px;
+}
+
+.main-search-row {
+  margin-top:7px;
+  margin-bottom:0px;
+}
+
+a.sortlink {
+  color: #000000de;
+  text-decoration: underline;
 }

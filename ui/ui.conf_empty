@@ -65,6 +65,8 @@
   ldap_pass => 'ldappass',
   personnel_ldap_base => 'DC=contoso,DC=local',
 
+  report_load_url => 'https://report.contoso.com/netload',
+
   help_url => 'https://faq.contoso.com',
   client_help_url => 'https://faq.contoso.com/user',
 }

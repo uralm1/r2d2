@@ -20,12 +20,17 @@
     <li><%= link_to 'clientnew' => begin %><i class="material-icons">add_box</i>Добавить нового клиента&hellip;<% end %></li>
     <li><%= link_to 'servernew' => begin %><i class="material-icons">dns</i>Добавить новый сервер&hellip;<% end %></li>
   </ul>
+  <ul id="places-dropdown" class="dropdown-content">
+    <li><%= link_to 'profiles' => begin %>Список объектов<% end %></li>
+    <li class="divider" tabindex="-1"></li>
+  </ul>
   <ul id="logs-dropdown" class="dropdown-content">
     <li class="divider" tabindex="-1"></li>
     <li><%= link_to 'oplog' => begin %>Лог системных событий<% end %></li>
     <li class="divider" tabindex="-1"></li>
     <li><%= link_to 'auditlog' => begin %>Лог аудита<% end %></li>
     <li class="divider" tabindex="-1"></li>
+    <li><a href="<%== config 'report_load_url' %>" target="_blank">Загрузка каналов</a></li>
   </ul>
   <nav class="nav-extended white-text pink darken-2">
     <div class="nav-wrapper scont">
@@ -38,6 +43,7 @@
       <ul class="right hide-on-med-and-down">
 	<li><%= link_to 'status' => begin %>Состояние<% end %></li>
 	<li><a class="dropdown-trigger" href="#!" data-target="clients-dropdown">Управление<i class="material-icons right">arrow_drop_down</i></a></li>
+	<li><a class="dropdown-trigger" href="#!" data-target="places-dropdown">Объекты<i class="material-icons right">arrow_drop_down</i></a></li>
 	<li><a class="dropdown-trigger" href="#!" data-target="logs-dropdown">Логи и отчёты<i class="material-icons right">arrow_drop_down</i></a></li>
         <li><a href="<%== config 'help_url' %>" target="_blank"><i class="material-icons">help</i></a></li>
       </ul>

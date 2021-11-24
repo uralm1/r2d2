@@ -41,14 +41,32 @@
 	</div>
       </div>
 
+      <div id="client" class="section scrollspy">
+	<h5>Клиент</h5>
+	<div class="row">
+	  <div class="input-field col s5 m5 l5">
+	    %= text_field 'client-cn' => $rec->{client_cn}, id => 'client-cn', disabled => undef
+	    %= label_for 'client-cn' => 'Фамилия Имя Отчество'
+	    %= t 'span', class => 'helper-text', 'воспользуйтесь переносом устройства для изменения'
+	  </div>
+	  <div class="input-field col s5 m5 l5">
+	    %= text_field 'client-login' => $rec->{client_login}, id => 'client-login', disabled => undef
+	    %= label_for 'client-login' => 'логин'
+	  </div>
+	</div>
+      </div>
+
       <div id="place" class="section scrollspy">
 	<h5>Местоположение</h5>
 	<div class="row">
 	  <div class="input-field col s12 m8 l5">
 	    % param profile => $rec->{profile} unless defined param 'profile';
 	    %= input_tag 'profile', type => 'hidden'
+	    % param profile_name => $rec->{profile_name} // "Нет данных ($rec->{profile})" unless defined param 'profile_name';
+	    %= input_tag 'profile_name', type => 'hidden'
+
 	    % param profile1 => param 'profile';
-	    %= select_field profile1 => [[$rec->{profile_name} // "Нет данных ($rec->{profile})" => $rec->{profile}]], id => 'profile', disabled => undef
+	    %= select_field profile1 => [[param('profile_name') => param('profile')]], id => 'profile', disabled => undef
 	    %#= label_for profile => 'Расположение'
 	    %= t 'span', class => 'helper-text', 'Изменение местоположения не допускается'
 	  </div>
@@ -161,6 +179,7 @@
       <div class="toc-wrapper">
 	<ul class="section table-of-contents">
 	  <li><a href="#main">Основное</a></li>
+	  <li><a href="#client">Клиент</a></li>
 	  <li><a href="#place">Местоположение</a></li>
 	  <li><a href="#netparams">Сетевые параметры</a></li>
 	  <li><a href="#speeds">Скорость</a></li>

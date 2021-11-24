@@ -5,13 +5,36 @@
 %   end
 % }
 <div class="scont">
+  <div class="row main-search-row">
+    %= form_for clients => (method=>'GET') => begin
+    <div class="input-field col s5">
+      <i class="material-icons prefix">search</i>
+      <input id="main-search" type="text" name="s" value="">
+      <label for="main-search">Поиск по ФИО, логину, полному IP</label>
+    </div>
+    <div class="input-field col s4">
+      <select name="v">
+	<option value="">Все (клиенты+серверы)</option>
+	<option value="clients">Клиенты</option>
+	<option value="lost">Клиенты (удаленные в AD)</option>
+	<option value="servers">Серверы</option>
+        <option value="devs">Устройства</option>
+        <option value="flag">Устройства (несинхронизированные)</option>
+      </select>
+      <label>или выберите вариант представления</label>
+    </div>
+    <div class="input-field col s2">
+      <button class="btn waves-effect waves-light" type="submit">Поиск</button>
+    </div>
+    % end
+  </div>
   <table>
     <thead>
       <tr class="tr-client-head">
 	<th style="width:5%">Тип</th>
-	<th>Наименование клиента</th>
+	<th><a class="sortlink" href="<%== url_with->query({sort => 'cn'}) %>">Наименование клиента</a>&nbsp;<i class="material-icons tiny">sort</i></th>
+	<th><a class="sortlink" href="<%== url_with->query({sort => 'login'}) %>">Логин</a></th>
 	<th>E-mail</th>
-	<th>Логин</th>
       </tr>
     </thead>
     <tbody>
@@ -29,8 +52,8 @@
 	  <%= $_->{cn} %>
 	  % end
 	</td>
-	<td><%= $_->{email} %></td>
 	<td><%= $_->{login} %></td>
+	<td><%= $_->{email} %></td>
       </tr>
       <tr class="tr-devices">
 	<td class="listdevicerow" colspan="4">
@@ -39,10 +62,10 @@
 	    <thead>
 	      <tr class="tr-device-head">
 		<th style="width:23%">Наименование устройства</th>
-		<th style="width:15%">Место</th>
-		<th style="width:13%">IP</th>
+		<th style="width:15%"><a class="sortlink" href="<%== url_with->query({sort => 'place'}) %>">Место</a></th>
+		<th style="width:13%"><a class="sortlink" href="<%== url_with->query({sort => 'ip'}) %>">IP</a></th>
 		<th style="width:15%">MAC</th>
-		<th style="width:10%">Провайдер</th>
+		<th style="width:10%"><a class="sortlink" href="<%== url_with->query({sort => 'rt'}) %>">Провайдер</a></th>
 		<th style="width:12%">Правило</th>
 		<th style="width:12%">Лимит</th>
 	      </tr>
@@ -99,7 +122,8 @@
     </tbody>
   </table>
   %= m_page_nav($rec->{page}, $rec->{pages}, {round=>3, outer=>1, start=>1, class=>'center-align', param=>'p', query=>'#top'});
-  <p>Общее число клиентов: <%= $rec->{lines_total} %></p>
+  <p>Выбрано <%= $rec->{lines_total} %> объектов.
+  Общее число клиентов: <%= $rec->{lines_total} %></p>
 </div>
 <div class="fixed-action-btn">
   %= link_to 'clientnew' => (class=>'btn-floating yellow darken-1 btn-large btn-tooltip', 'data-position'=>'left', 'data-tooltip'=>'Добавить нового клиента') => begin
@@ -112,6 +136,7 @@
 % content_for script0 => begin
 <script>
   $(document).ready(function(){
+    $('select').formSelect();
     $('.fixed-action-btn').floatingActionButton();
     $('.btn-tooltip').tooltip();
     $('.table-tooltips').tooltip({enterDelay:700});

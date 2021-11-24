@@ -4,8 +4,9 @@
   <table>
     <thead>
       <tr class="tr-status-head">
-	<th style="width:5%"></th>
-	<th style="width:21%">Наименование</th>
+	<!--style="width:5%"></th>
+	<th style="width:21%">Наименование</th-->
+	<th style="width:26%" colspan="2">Наименование</th>
 	<th style="width:5%">Тип</th>
 	<th style="width:25%">Адрес</th>
 	<th style="width:44%">Состояние</th>
@@ -27,8 +28,9 @@
   <table>
     <thead>
       <tr class="tr-status-head">
-	<th style="width:5%"></th>
-	<th style="width:75%">Наименование объекта</th>
+	<!--th style="width:5%"></th>
+	<th style="width:75%">Наименование объекта</th-->
+	<th style="width:80%" colspan="2">Наименование объекта</th>
 	<th style="width:20%">Последняя проверка</th>
       </tr>
     </thead>
