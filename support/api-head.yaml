@@ -1840,6 +1840,10 @@ components:
           type: integer
           description: 'Уведомлять по эл.почте (0 или 1)'
           example: 1
+        lost:
+          type: integer
+          description: 'Потерянный=удаленный в AD клиент (0 или 1)'
+          example: 0
         devices:
           type: array
           description: 'Массив устройств'
@@ -1855,6 +1859,7 @@ components:
         - login
         - email
         - email_notify
+        - lost
         - devices
 
 

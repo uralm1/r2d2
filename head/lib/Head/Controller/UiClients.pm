@@ -11,7 +11,7 @@ sub clientget {
 
   $self->render_later;
 
-  $self->mysql_inet->db->query("SELECT id, type, guid, login, c.desc, DATE_FORMAT(create_time, '%k:%i:%s %e/%m/%y') AS create_time, cn, email, email_notify \
+  $self->mysql_inet->db->query("SELECT id, type, guid, login, c.desc, DATE_FORMAT(create_time, '%k:%i:%s %e/%m/%y') AS create_time, cn, email, email_notify, lost \
 FROM clients c WHERE id = ?", $id =>
     sub {
       my ($db, $err, $results) = @_;
@@ -53,7 +53,7 @@ ORDER BY d.id ASC LIMIT 20", $cl->{id} =>
 sub _build_client_rec {
   my $h = shift;
   my $r = {};
-  for (qw/id type guid login desc create_time cn email email_notify/) {
+  for (qw/id type guid login desc create_time cn email email_notify lost/) {
     die 'Undefined client record attribute' unless exists $h->{$_};
     $r->{$_} = $h->{$_};
   }

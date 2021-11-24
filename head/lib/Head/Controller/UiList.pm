@@ -65,7 +65,7 @@ sub clients_p {
 
   my $count_p = $db->query_p('SELECT COUNT(*) FROM clients');
 
-  my $clients_p = $db->query_p("SELECT id, type, guid, login, c.desc, DATE_FORMAT(create_time, '%k:%i:%s %e/%m/%y') AS create_time, cn, email, email_notify \
+  my $clients_p = $db->query_p("SELECT id, type, guid, login, c.desc, DATE_FORMAT(create_time, '%k:%i:%s %e/%m/%y') AS create_time, cn, email, email_notify, lost \
 FROM clients c \
 ORDER BY id ASC LIMIT ? OFFSET ?",
     $lines_on_page,

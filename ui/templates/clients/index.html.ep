@@ -40,9 +40,15 @@
     <tbody>
     % my $th;
     % for (@{$rec->{d}}) {
-      <tr class="tr-client" data-type="<%= $_->{type} %>" data-clientid="<%== $_->{id} %>">
+      % my ($lost_class, $lost_tooltip_class, $lost_tooltip_data) = ('','','');
+      % if ($_->{lost} == 1) {
+      %   $lost_class = 'lostclient';
+      %   $lost_tooltip_class = 'table-tooltips';
+      %   $lost_tooltip_data = 'data-tooltip="Данный клиент удален в глобальном каталоге. Выполните замену или удаление клиента.", data-position="bottom"';
+      % }
+      <tr class="tr-client <%== $lost_class %>" data-type="<%= $_->{type} %>" data-clientid="<%== $_->{id} %>">
 	<td style="width:5%">
-	  <span class="<%== $_->{type} == 1 ? 'listservertype':'listclienttype' %>">
+	  <span class="<%== $_->{type} == 1 ? 'listservertype':'listclienttype' %> <%== $lost_tooltip_class %>" <%== $lost_tooltip_data %>>
 	    <%== $_->{type} == 0 ? 'Клиент':$_->{type} == 1 ? 'Сервер':'Неизв.' %>
 	  </span>
 	</td>
@@ -55,7 +61,7 @@
 	<td><%= $_->{login} %></td>
 	<td><%= $_->{email} %></td>
       </tr>
-      <tr class="tr-devices">
+      <tr class="tr-devices <%== $lost_class %>">
 	<td class="listdevicerow" colspan="4">
 	  <table>
 	    % unless ($th) {

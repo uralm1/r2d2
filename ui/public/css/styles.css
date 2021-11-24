@@ -180,3 +180,10 @@ a.sortlink {
   color: #000000de;
   text-decoration: underline;
 }
+
+.tr-client.lostclient {
+  text-decoration: line-through;
+}
+.tr-devices.lostclient {
+  color: #9b9b9b;
+}
