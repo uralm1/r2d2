@@ -31,6 +31,7 @@ lib/Head/Controller/UiClients.pm
 lib/Head/Controller/UiDevices.pm
 lib/Head/Controller/UiList.pm
 lib/Head/Controller/UiLog.pm
+lib/Head/Controller/UiProfiles.pm
 lib/Head/Controller/UiSearch.pm
 lib/Head/Controller/UiServers.pm
 lib/Head/Controller/UiStat.pm

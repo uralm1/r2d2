@@ -1269,6 +1269,48 @@ paths:
                 description: error message
 
 
+  /ui/profiles/list:
+    get:
+      summary: Получение списка объектов и агентов
+      description: Запрос списка объектов и агентов системы.
+      parameters:
+        - name: page
+          in: query
+          description: Текущая страница (начиная с 1)
+          schema:
+            type: integer
+            example: 2
+        - name: lop
+          in: query
+          required: true
+          description: Число строк на странице (lines_on_page)
+          schema:
+            type: integer
+            example: 20
+
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ui_profiles_status'
+        '400':
+          description: Ошибка в параметрах, в основном неверный номер текущей страницы
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+
   /ui/log/oplog:
     get:
       summary: Получение лога операций

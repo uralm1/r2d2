@@ -17,6 +17,7 @@
 	<option value="">Все (клиенты+серверы)</option>
 	<option value="clients">Клиенты</option>
 	<option value="lost">Клиенты (удаленные в AD)</option>
+	<option value="pain">Клиенты (созданные вручную)</option>
 	<option value="servers">Серверы</option>
         <option value="devs">Устройства</option>
         <option value="flag">Устройства (несинхронизированные)</option>
