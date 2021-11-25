@@ -92,14 +92,14 @@ sub handle_profiles {
   while (my $next = $agents_p->[0]->hash) {
     my $ag = eval { _build_agent_rec($next) };
     return 'Profile attribute error (agent)' unless $ag;
-    push @{$_ah{$next->{profile_id}}}, $ag;
+    push @{$_ah{ $next->{profile_id} }}, $ag;
   }
 
   while (my $next = $profiles_p->[0]->hash) {
     my $pr = eval { _build_profile_rec($next) };
     return 'Profile attribute error' unless $pr;
 
-    $pr->{agents} = $_ah{$next->{id}};
+    $pr->{agents} = $_ah{ $next->{id} } // [];
     push @$j, $pr;
   }
 
