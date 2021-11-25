@@ -9,10 +9,13 @@ sub list {
   my $self = shift;
   my $page = $self->param('page') // 1; # page is always defined
   my $lines_on_page = $self->param('lop');
+  my $lostonlyifexist = $self->param('lostonlyifexist');
   return $self->render(text => 'Bad parameter format', status => 400) unless defined $lines_on_page &&
-    $lines_on_page =~ /^\d+$/ && $page =~ /^\d+$/ && $lines_on_page > 0;
+    $lines_on_page =~ /^\d+$/ && $page =~ /^\d+$/ && $lines_on_page > 0 &&
+    (!defined $lostonlyifexist || (defined $lostonlyifexist && $lostonlyifexist =~ /^[0,1]$/));
   return $self->render(text => 'Max 100 per page', status => 400) if $lines_on_page > 100;
   $self->stash(page => $page, lines_on_page => $lines_on_page);
+  $self->stash(lostonlyifexist => $lostonlyifexist);
 
   $self->render_later;
 
@@ -20,28 +23,39 @@ sub list {
 
   $self->stash(j => []); # resulting d attribute
 
-  $self->clients_p($db)
+  $self->clients_count_p($db)
   ->then(sub {
-    my $err = $self->handle_clients(@_);
-    if ($err eq '') {
-      $self->client_devices_p($db);
-    } else {
+    my $err = $self->handle_clients_count(@_);
+    if ($err) {
       Mojo::Promise->reject($err);
+    } else {
+      $self->clients_p($db, $lostonlyifexist && $self->stash('has_lost_clients'));
+    }
+
+  })->then(sub {
+    my $err = $self->handle_clients(@_);
+    if ($err) {
+      Mojo::Promise->reject($err);
+    } else {
+      $self->client_devices_p($db);
     }
 
   })->then(sub {
     my $err = $self->handle_client_devices(@_);
-    Mojo::Promise->reject($err) if $err ne '';
+    Mojo::Promise->reject($err) if $err;
 
   })->then(sub {
     my $j = $self->stash('j');
     #say $self->dumper($j);
+
     $self->render(json => {
       d => $j,
       lines_total => $self->stash('lines_total'),
+      lines_total_all => $self->stash('lines_total_all'),
       pages => $self->stash('num_pages'),
       page => $page,
-      lines_on_page => $lines_on_page
+      lines_on_page => $lines_on_page,
+      has_lost_clients => $self->stash('has_lost_clients')
     });
 
   })->catch(sub {
@@ -58,40 +72,67 @@ sub list {
 }
 
 
-# $all_db_promise = $self->clients_p($db)
-sub clients_p {
+# $all_db_promise = $self->clients_count_p($db)
+sub clients_count_p {
   my ($self, $db) = @_;
+
+  my $count_lost_p = $db->query_p("SELECT COUNT(*) FROM clients WHERE lost = 1");
+  my $count_all_p = $db->query_p("SELECT COUNT(*) FROM clients");
+
+  # return compound promise
+  Mojo::Promise->all($count_lost_p, $count_all_p);
+}
+
+
+# ''|'error string' = $self->handle_clients_count($all_db_promise_resolve)
+sub handle_clients_count {
+  my ($self, $count_lost_p, $count_all_p) = @_;
+
+  my $lines_lost = $count_lost_p->[0]->array->[0];
+  my $lines_total_all = $count_all_p->[0]->array->[0];
+  my $lines_total;
+  if ($lines_lost > 0 && $self->stash('lostonlyifexist')) {
+    $lines_total = $lines_lost;
+  } else {
+    $lines_total = $lines_total_all;
+  }
+
+  my $page = $self->stash('page');
   my $lines_on_page = $self->stash('lines_on_page');
 
-  my $count_p = $db->query_p('SELECT COUNT(*) FROM clients');
+  my $num_pages = ceil($lines_total / $lines_on_page);
+  return 'Bad parameter value' if $page < 1 || ($num_pages > 0 && $page > $num_pages);
 
-  my $clients_p = $db->query_p("SELECT id, type, guid, login, c.desc, DATE_FORMAT(create_time, '%k:%i:%s %e/%m/%y') AS create_time, cn, email, email_notify, lost \
-FROM clients c \
+  $self->stash(lines_total_all => $lines_total_all, lines_total => $lines_total, num_pages => $num_pages);
+  $self->stash(has_lost_clients => $lines_lost > 0 ? 1 : 0);
+
+  # success
+  return '';
+}
+
+
+# $db_promise = $self->clients_p($db, $onlylost)
+sub clients_p {
+  my ($self, $db, $onlylost) = @_;
+  my $lines_on_page = $self->stash('lines_on_page');
+
+  my $where = $onlylost ? ' WHERE lost = 1' : '';
+  $db->query_p("SELECT id, type, guid, login, c.desc, DATE_FORMAT(create_time, '%k:%i:%s %e/%m/%y') AS create_time, cn, email, email_notify, lost \
+FROM clients c$where \
 ORDER BY id ASC LIMIT ? OFFSET ?",
     $lines_on_page,
     ($self->stash('page') - 1) * $lines_on_page
   );
-
-  # return compound promise
-  Mojo::Promise->all($count_p, $clients_p);
 }
 
 
-# ''|'error string' = $self->handle_clients($all_db_promise_resolve)
+# ''|'error string' = $self->handle_clients($db_promise_resolve)
 sub handle_clients {
-  my ($self, $count_p, $clients_p) = @_;
+  my ($self, $results) = @_;
 
   my $j = $self->stash('j');
-  my $page = $self->stash('page');
-  my $lines_on_page = $self->stash('lines_on_page');
 
-  my $lines_total = $count_p->[0]->array->[0];
-  my $num_pages = ceil($lines_total / $lines_on_page);
-  return 'Bad parameter value' if $page < 1 || ($num_pages > 0 && $page > $num_pages);
-
-  $self->stash(lines_total => $lines_total, num_pages => $num_pages);
-
-  while (my $next = $clients_p->[0]->hash) {
+  while (my $next = $results->hash) {
     my $cl = eval { Head::Controller::UiClients::_build_client_rec($next) };
     return 'Client attribute error' unless $cl;
 

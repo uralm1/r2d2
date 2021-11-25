@@ -28,6 +28,9 @@
     </div>
     % end
   </div>
+  % if ($rec->{has_lost_clients}) {
+  <h5 class="red-text">Имеются клиенты, отсутствующие в глобальном каталоге. Выполните замену или удаление.</h5>
+  % }
   <table>
     <thead>
       <tr class="tr-client-head">
@@ -44,7 +47,7 @@
       % if ($_->{lost} == 1) {
       %   $lost_class = 'lostclient';
       %   $lost_tooltip_class = 'table-tooltips';
-      %   $lost_tooltip_data = 'data-tooltip="Данный клиент удален в глобальном каталоге. Выполните замену или удаление клиента.", data-position="bottom"';
+      %   $lost_tooltip_data = 'data-tooltip="Данный клиент отсутствует в глобальном каталоге. Выполните замену или удаление клиента.", data-position="bottom"';
       % }
       <tr class="tr-client <%== $lost_class %>" data-type="<%= $_->{type} %>" data-clientid="<%== $_->{id} %>">
 	<td style="width:5%">
@@ -129,7 +132,7 @@
   </table>
   %= m_page_nav($rec->{page}, $rec->{pages}, {round=>3, outer=>1, start=>1, class=>'center-align', param=>'p', query=>'#top'});
   <p>Выбрано <%= $rec->{lines_total} %> объектов.
-  Общее число клиентов: <%= $rec->{lines_total} %></p>
+  Общее число клиентов: <%= $rec->{lines_total_all} %></p>
 </div>
 <div class="fixed-action-btn">
   %= link_to 'clientnew' => (class=>'btn-floating yellow darken-1 btn-large btn-tooltip', 'data-position'=>'left', 'data-tooltip'=>'Добавить нового клиента') => begin

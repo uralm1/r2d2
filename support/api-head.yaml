@@ -394,6 +394,13 @@ paths:
           schema:
             type: integer
             example: 20
+        - name: lostonlyifexist
+          in: query
+          description: Включение=1 режима получения только 'потерянных' (lost) клиентов. В данном режиме массив d будет содержать данные только по 'потерянным' клиентам, если такие имеются. Число строк и страниц ответа будут скорректированы соответственно. Если потерянных клиентов нет, то будут возвращены все клиенты. Флаг  has_lost_clients в ответе устанавливается в 0 или 1 при любом случае.
+          schema:
+            type: integer
+            enum: [0, 1]
+            example: 1
 
       responses:
         '200':
@@ -1603,12 +1610,15 @@ components:
 
 
     ui_list:
-      description: 'Страница данных перечня клиентов'
+      description: Страница данных перечня клиентов
       type: object
       properties:
-        lines_total:
+        lines_total_all:
           type: integer
           description: Всего строк данных
+        lines_total:
+          type: integer
+          description: Всего строк данных (отфильтрованных)
         pages:
           type: integer
           description: Всего страниц данных
@@ -1623,13 +1633,25 @@ components:
           description: Массив строк
           items:
             $ref: '#/components/schemas/client_full_record'
+        has_lost_clients:
+          type: integer
+          enum: [0, 1]
+          description: Флаг наличия 'потерянных' клиентов (0 или 1)
+      required:
+        - lines_total_all
+        - lines_total
+        - pages
+        - page
+        - lines_on_page
+        - d
+        - has_lost_clients
       example:
         lines_total: 1000
         pages: 50
         page: 1
         lines_on_page: 20
         d:
-          TODO: 'Массив client_device_record'
+          TODO: 'Массив client_full_record'
 
 
     ui_profiles:
@@ -1663,6 +1685,12 @@ components:
           description: Массив строк
           items:
             $ref: '#/components/schemas/system_profile_record'
+      required:
+        - lines_total
+        - pages
+        - page
+        - lines_on_page
+        - d
 
 
     ui_client_search_result:
