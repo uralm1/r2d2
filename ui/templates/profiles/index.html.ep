@@ -1,0 +1,93 @@
+% layout 'default', title => 'Список объектов', back_url => '/';
+<div class="scont">
+  <table>
+    <thead>
+      <tr class="tr-status-head">
+	<th style="width:5%">Тип</th>
+	<th style="width:20%">Имя профиля</th>
+	<th style="width:75%">Наименование объекта</th>
+      </tr>
+    </thead>
+    <tbody>
+    % my $th;
+    % my $agents_total = 0;
+    % for (@{$rec->{d}}) {
+      <tr class="tr-profile" data-profilekey="<%== $_->{key} %>">
+	<td style="width:5%"><span class="listprofiletype">Объект</span></td>
+	<td style="width:20%"><%= $_->{key} %></td>
+	<td style="width:75%"><%= $_->{name} %></td>
+      </tr>
+      <tr class="tr-agents">
+	<td class="listagentrow" colspan="3">
+	  <table>
+	    % unless ($th) {
+	    <thead>
+	      <tr class="tr-agent-head">
+		<th style="width:25%">Наименование агента</th>
+		<th style="width:10%">Тип</th>
+		<th style="width:25%">Адрес (URL)</th>
+		<th style="width:40%">Поддержка блокировки</th>
+	      </tr>
+	    <thead>
+	    % $th = 1; }
+	    <tbody>
+	    % for my $a (@{$_->{agents}}) {
+	    <tr class="tr-agent">
+	      <td style="width:25%">
+		%= $a->{name} ne '' ? $a->{name} : 'н/д'
+	      </td>
+	      <td style="width:10%">
+		<%= $a->{type} %>
+	      </td>
+	      <td style="width:25%">
+		<%= $a->{url} %>
+	      </td>
+	      <td style="width:40%">
+		<%= $a->{block} ? 'Да':'Нет' %>
+	      </td>
+	    </tr>
+            % $agents_total++;
+	    % }
+	    % unless (@{$_->{agents}}) {
+	    <tr>
+	      <td colspan="4">
+		Агенты отсутствуют
+	      </td>
+	    </tr>
+	    % }
+	    </tbody>
+	  </table>
+	</td>
+      </tr>
+
+    % }
+    </tbody>
+  </table>
+  %= m_page_nav($rec->{page}, $rec->{pages}, {round=>3, outer=>1, start=>1, class=>'center-align', param=>'p', query=>'#top'});
+  <p>
+    Всего объектов:&nbsp;<%= $rec->{lines_total} %>, агентов:&nbsp;<%= $agents_total %>.
+  </p>
+</div>
+<!--div class="fixed-action-btn">
+  %= link_to 'profilenew' => (class=>'btn-floating yellow darken-3 btn-large btn-tooltip', 'data-position'=>'left', 'data-tooltip'=>'Добавить новый объект') => begin
+  <i class="material-icons">add_location</i>
+  % end
+</div-->
+% content_for script0 => begin
+<script>
+  $(document).ready(function(){
+    $('.fixed-action-btn').floatingActionButton();
+    $('.btn-tooltip').tooltip();
+    //$('.table-tooltips').tooltip({enterDelay:700});
+    $('.tr-profile').click(function(){
+      var key = $(this).attr('data-profilekey');
+      if (key==undefined)
+	M.toast({html:'Ошибка. Объект не выбран.',displayLength:3000});
+      else {
+	//location.assign('<%== url_for('profileedit') %>?key='+key);
+	M.toast({html:'Функция не поддерживается.',displayLength:3000});
+      }
+    });
+  });
+</script>
+% end

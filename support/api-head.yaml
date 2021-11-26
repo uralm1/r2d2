@@ -2260,6 +2260,10 @@ components:
               url:
                 type: string
                 description: Url агента
+              block:
+                type: integer
+                enum: [0, 1]
+                description: '1-агент использует (и поддерживает) блокировку, 0-нет'
               state:
                 type: integer
                 description: 'Состояние агента: 1-нормальное, 0 - ошибка, 2 - неизвестно.'
@@ -2274,6 +2278,7 @@ components:
               - name
               - type
               - url
+              - block
               - state
               - status
               - lastcheck

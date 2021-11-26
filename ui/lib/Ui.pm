@@ -115,6 +115,9 @@ sub startup {
   $r->post('/device/delete')->to('device#deletepost');
   $r->get('/device/stat')->to('device#stat');
 
+  $r->get('/profiles')->to('profiles#index');
+  $r->get('/profile/new')->to('profile#newform');
+  $r->get('/profile/edit')->to('profile#edit');
 }
 
 

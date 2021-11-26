@@ -11,6 +11,8 @@ lib/Ui/Controller/Clients.pm
 lib/Ui/Controller/Device.pm
 lib/Ui/Controller/Index.pm
 lib/Ui/Controller/Log.pm
+lib/Ui/Controller/Profile.pm
+lib/Ui/Controller/Profiles.pm
 lib/Ui/Controller/Rep.pm
 lib/Ui/Controller/Server.pm
 lib/Ui/Controller/Stat.pm
@@ -77,6 +79,7 @@ templates/layouts/serveredit.html.ep
 templates/layouts/userstat.html.ep
 templates/log/auditlog.html.ep
 templates/log/oplog.html.ep
+templates/profiles/index.html.ep
 templates/rep/client.html.ep
 templates/server/delete.html.ep
 templates/server/edit.html.ep

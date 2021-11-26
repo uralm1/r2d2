@@ -40,7 +40,7 @@ sub profilesstatus {
 
       for my $agent (values %{$prof->{agents}}) {
         my $a_rec = {};
-        for (qw/name type url state status/) {
+        for (qw/name type url block state status/) {
           die 'Agent attribute error' unless defined $agent->{$_};
           $a_rec->{$_} = $agent->{$_};
         }

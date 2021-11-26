@@ -85,6 +85,7 @@
 		%= $a->{lastcheck} ne '' ? $a->{lastcheck} : 'н/д'
 	      </td>
 	    </tr>
+            % $agents_total++;
 	    % }
 	    % unless (@{$_->{agents}}) {
 	    <tr>
@@ -93,7 +94,6 @@
 		<span>Агенты отсутствуют</span>
 	      </td>
 	    </tr>
-            % $agents_total++;
 	    % }
 	    </tbody>
 	  </table>

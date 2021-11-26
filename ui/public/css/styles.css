@@ -87,21 +87,21 @@ pre.newversion-hist {
   padding:0 0 0 18px;
 }
 
-.tr-client, .tr-devices, .tr-device, .tr-device-head, .tr-head-status, .tr-status, .tr-agents, .tr-agent, .tr-agent-head {
+.tr-client, .tr-devices, .tr-device, .tr-device-head, .tr-head-status, .tr-status, .tr-agents, .tr-agent, .tr-agent-head, .tr-profile {
   border-bottom:none;
 }
 
-tr.tr-client, tr.tr-device, tr.tr-status, tr.tr-agent {
+tr.tr-client, tr.tr-device, tr.tr-status, tr.tr-agent, tr.tr-profile {
   -webkit-transition: background-color .25s ease;
   transition: background-color .25s ease;
 }
 
-.tr-client:hover, .tr-device:hover, .tr-device-edit:hover {
+.tr-client:hover, .tr-device:hover, .tr-device-edit:hover, .tr-profile:hover {
   cursor:pointer;
   background-color: rgba(225,225,225,.5);
 }
 
-tr.tr-client>td, tr.tr-status>td {
+tr.tr-client>td, tr.tr-status>td, tr.tr-profile>td {
   padding-top:20px;
   padding-bottom:10px;
 }
