@@ -3,10 +3,23 @@ info:
   version: '3.1'
   title: The R2d2 Head api
   description: 'API модуля Head'
+
+tags:
+  - name: Agent operations
+  - name: Ui list
+    description: Main (clients, servers, devices) list control operation
+  - name: Ui servers
+  - name: Ui clients
+  - name: Ui devices
+  - name: Ui stats
+  - name: Ui profiles
+  - name: Ui logging
+
 paths:
   /subsys:
     get:
       summary: Имя модуля агента и версия
+      tags: ['Agent operations']
       responses:
         '200':
           description: Success
@@ -30,6 +43,7 @@ paths:
   /log:
     post:
       summary: Записывает сообщение в operations или audit log
+      tags: ['Agent operations']
       requestBody:
         description: log data
         required: true
@@ -60,6 +74,7 @@ paths:
   /log/{subsys}:
     post:
       summary: Записывает сообщение в operations или audit log
+      tags: ['Agent operations']
       parameters:
         - name: subsys
           in: path
@@ -99,6 +114,7 @@ paths:
   /clients:
     get:
       summary: Load devices data for profiles
+      tags: ['Agent operations']
       deprecated: true
       parameters:
         - name: profile
@@ -136,6 +152,7 @@ paths:
   /devices:
     get:
       summary: Load devices data for profiles
+      tags: ['Agent operations']
       parameters:
         - name: profile
           in: query
@@ -172,6 +189,7 @@ paths:
   /client/{device_id}:
     get:
       summary: Load device data
+      tags: ['Agent operations']
       deprecated: true
       parameters:
         - name: device_id
@@ -208,6 +226,7 @@ paths:
   /device/{device_id}:
     get:
       summary: Load device data
+      tags: ['Agent operations']
       parameters:
         - name: device_id
           in: path
@@ -243,6 +262,7 @@ paths:
   /trafstat:
     post:
       summary: Submit traffic statistics for profiles
+      tags: ['Agent operations']
       parameters:
         - name: profile
           in: query
@@ -281,6 +301,7 @@ paths:
     post:
       summary: Извещение о выполненной операции обновления
       description: Агенты вызывают данную функцию после удачного завершения обновления клиента. Используется для сброса флагов обновления в БД.
+      tags: ['Agent operations']
 
       parameters:
         - name: profile
@@ -314,6 +335,7 @@ paths:
     post:
       summary: Извещение о выполненной операции блокирования/разблокирования
       description: Агенты вызывают данную функцию после удачного завершения блокирования/разблокирования клиента. Используется для сброса флага блокирования в БД.
+      tags: ['Agent operations']
 
       parameters:
         - name: profile
@@ -347,6 +369,7 @@ paths:
     post:
       summary: Извещение о выполненной операции перезагрузки всех клиентов
       description: Агенты вызывают данную функцию после завершения перезагрузки всех клиентов.
+      tags: ['Agent operations']
 
       parameters:
         - name: profile
@@ -380,6 +403,7 @@ paths:
     get:
       summary: Получение списка клиентов и серверов
       description: Запрос списка клиентов и серверов.
+      tags: ['Ui list']
       parameters:
         - name: page
           in: query
@@ -429,6 +453,7 @@ paths:
     get:
       summary: Поиск клиентов
       description: Поиск среди клиентов по подстроке, пейджинг не поддерживается.
+      tags: ['Ui clients']
       parameters:
         - name: s
           in: query
@@ -471,6 +496,7 @@ paths:
     get:
       summary: Поиск клиента по логину
       description: Поиск клиента по логину, пейджинг не поддерживается.
+      tags: ['Ui clients']
       parameters:
         - name: login
           in: query
@@ -512,7 +538,8 @@ paths:
 
   /ui/server/{server_id}:
     get:
-      summary: 'Запрос данных по серверу'
+      summary: Запрос данных по серверу
+      tags: ['Ui servers']
       parameters:
         - name: server_id
           in: path
@@ -544,8 +571,9 @@ paths:
                 description: error message
 
     put:
-      summary: 'Редактирование данных сервера'
-      description: 'Свойство id необязательное, если указывается то должно совпадать с параметром server_id. Свойства create_time и profile игнорируются.'
+      summary: Редактирование данных сервера
+      description: Свойство id необязательное, если указывается то должно совпадать с параметром server_id. Свойства create_time и profile игнорируются.
+      tags: ['Ui servers']
       parameters:
         - name: server_id
           in: path
@@ -581,7 +609,8 @@ paths:
                 description: error message
 
     delete:
-      summary: 'Удаление сервера'
+      summary: Удаление сервера
+      tags: ['Ui servers']
       parameters:
         - name: server_id
           in: path
@@ -611,7 +640,8 @@ paths:
 
   /ui/server:
     post:
-      summary: 'Добавление нового сервера'
+      summary: Добавление нового сервера
+      tags: ['Ui servers']
       requestBody:
         description: 'Server data'
         required: true
@@ -639,7 +669,8 @@ paths:
 
   /ui/client/{client_id}:
     get:
-      summary: 'Запрос данных по клиенту'
+      summary: Запрос данных по клиенту
+      tags: ['Ui clients']
       parameters:
         - name: client_id
           in: path
@@ -671,18 +702,19 @@ paths:
                 description: error message
 
     put:
-      summary: 'Редактирование данных клиента'
-      description: 'Свойство id необязательное, если указывается то должно совпадать с параметром client_id. Свойство create_time игнорируется.'
+      summary: Редактирование данных клиента
+      description: Свойство id необязательное, если указывается то должно совпадать с параметром client_id. Свойство create_time игнорируется.
+      tags: ['Ui clients']
       parameters:
         - name: client_id
           in: path
           required: true
-          description: 'Client id'
+          description: Client id
           schema:
             type: integer
             
       requestBody:
-        description: 'Client data'
+        description: Client data
         required: true
         content:
           'application/json':
@@ -709,7 +741,8 @@ paths:
 
 
     delete:
-      summary: 'Удаление клиента'
+      summary: Удаление клиента
+      tags: ['Ui clients']
       parameters:
         - name: client_id
           in: path
@@ -746,18 +779,19 @@ paths:
 
   /ui/client/0/{client_id}:
     patch:
-      summary: 'Редактирование описания (description) и флага извещения (email_notify) клиента'
-      description: 'Свойство id необязательное, если указывается, то должно совпадать с параметром client_id.'
+      summary: Редактирование описания (description) и флага извещения (email_notify) клиента
+      description: Свойство id необязательное, если указывается, то должно совпадать с параметром client_id.
+      tags: ['Ui clients']
       parameters:
         - name: client_id
           in: path
           required: true
-          description: 'Client id'
+          description: Client id
           schema:
             type: integer
             
       requestBody:
-        description: 'Client description'
+        description: Client description
         required: true
         content:
           'application/json':
@@ -766,14 +800,14 @@ paths:
               properties:
                 id:
                   type: integer
-                  description: 'Код клиента'
+                  description: Код клиента
                 desc:
                   type: string
-                  description: 'Описание клиента, возможно пустое'
+                  description: Описание клиента, возможно пустое
                   example: 'Краткое описание'
                 email_notify:
                   type: integer
-                  description: 'Флаг извещения клиента, 0 или 1'
+                  description: Флаг извещения клиента, 0 или 1
                   example: 1
               required:
                 - desc
@@ -800,11 +834,12 @@ paths:
 
   /ui/client/1/bylogin:
     patch:
-      summary: 'Редактирование флага извещения (email_notify) клиента'
-      description: 'По логину клиента.'
+      summary: Редактирование флага извещения (email_notify) клиента
+      description: По логину клиента.
+      tags: ['Ui clients']
 
       requestBody:
-        description: 'Client login and email_notify flag'
+        description: Client login and email_notify flag
         required: true
         content:
           'application/json':
@@ -813,10 +848,10 @@ paths:
               properties:
                 login:
                   type: string
-                  description: 'Логин клиента'
+                  description: Логин клиента
                 email_notify:
                   type: integer
-                  description: 'Устанавливаемый флаг извещения клиента, 0 или 1'
+                  description: Устанавливаемый флаг извещения клиента, 0 или 1
                   example: 1
               required:
                 - login
@@ -843,9 +878,10 @@ paths:
 
   /ui/client:
     post:
-      summary: 'Добавление нового клиента'
+      summary: Добавление нового клиента
+      tags: ['Ui clients']
       requestBody:
-        description: 'Client data'
+        description: Client data
         required: true
         content:
           'application/json':
@@ -859,7 +895,7 @@ paths:
             text/plain:
               schema:
                 type: integer
-                description: 'Inserted client id'
+                description: Inserted client id
         '503':
           description: Operation error
           content:
@@ -871,18 +907,19 @@ paths:
 
   /ui/device/{client_id}/{device_id}:
     get:
-      summary: 'Данные по клиентскому устройству'
+      summary: Данные по клиентскому устройству
+      tags: ['Ui devices']
       parameters:
         - name: client_id
           in: path
           required: true
-          description: 'Client id'
+          description: Client id
           schema:
             type: integer
         - name: device_id
           in: path
           required: true
-          description: 'Device id'
+          description: Device id
           schema:
             type: integer
 
@@ -909,23 +946,24 @@ paths:
                 description: error message
 
     put:
-      summary: 'Редактирование клиентского устройства'
+      summary: Редактирование клиентского устройства
+      tags: ['Ui devices']
       parameters:
         - name: client_id
           in: path
           required: true
-          description: 'Client id'
+          description: Client id
           schema:
             type: integer
         - name: device_id
           in: path
           required: true
-          description: 'Device id'
+          description: Device id
           schema:
             type: integer
 
       requestBody:
-        description: 'Server data'
+        description: Server data
         required: true
         content:
           'application/json':
@@ -952,18 +990,19 @@ paths:
 
 
     delete:
-      summary: 'Удаление клиентского устройства'
+      summary: Удаление клиентского устройства
+      tags: ['Ui devices']
       parameters:
         - name: client_id
           in: path
           required: true
-          description: 'Client id'
+          description: Client id
           schema:
             type: integer
         - name: device_id
           in: path
           required: true
-          description: 'Device id'
+          description: Device id
           schema:
             type: integer
 
@@ -988,24 +1027,25 @@ paths:
 
   /ui/device/0/{client_id}/{device_id}:
     patch:
-      summary: 'Перенос устройства от одного клиента к другому'
-      description: 'Свойство id необязательное, если указывается, то должно совпадать с параметром client_id.'
+      summary: Перенос устройства от одного клиента к другому
+      description: Свойство id необязательное, если указывается, то должно совпадать с параметром client_id.
+      tags: ['Ui devices']
       parameters:
         - name: client_id
           in: path
           required: true
-          description: 'Client id предыдущего владельца'
+          description: Client id предыдущего владельца
           schema:
             type: integer
         - name: device_id
           in: path
           required: true
-          description: 'Device id'
+          description: Device id
           schema:
             type: integer
 
       requestBody:
-        description: 'New client id'
+        description: New client id
         required: true
         content:
           'application/json':
@@ -1014,10 +1054,10 @@ paths:
               properties:
                 id:
                   type: integer
-                  description: 'Код старого клиента'
+                  description: Код старого клиента
                 newid:
                   type: integer
-                  description: 'Код нового клиента'
+                  description: Код нового клиента
               required:
                 - newid
 
@@ -1042,16 +1082,17 @@ paths:
 
   /ui/device/{client_id}:
     post:
-      summary: 'Добавление нового клиентского устройства'
+      summary: Добавление нового клиентского устройства
+      tags: ['Ui devices']
       parameters:
         - name: client_id
           in: path
           required: true
-          description: 'Client id'
+          description: Client id
           schema:
             type: integer
       requestBody:
-        description: 'Device data'
+        description: Device data
         required: true
         content:
           'application/json':
@@ -1065,7 +1106,7 @@ paths:
             text/plain:
               schema:
                 type: integer
-                description: 'Inserted device id'
+                description: Inserted device id
         '404':
           description: Not found, including bad client_id parameter
           content:
@@ -1084,23 +1125,24 @@ paths:
 
   /ui/stat/device/{client_id}/{device_id}:
     get:
-      summary: 'Получение данных по трафику для клиентского устройства'
+      summary: Получение данных по трафику для клиентского устройства
+      tags: ['Ui stats']
       parameters:
         - name: client_id
           in: path
           required: true
-          description: 'Client id'
+          description: Client id
           schema:
             type: integer
         - name: device_id
           in: path
           required: true
-          description: 'Device id'
+          description: Device id
           schema:
             type: integer
         - name: rep
           in: query
-          description: 'Report type, can be day,month or not set'
+          description: Report type, can be day,month or not set
           schema:
             type: string
             enum: [day, month]
@@ -1130,17 +1172,18 @@ paths:
 
   /ui/stat/server/{server_id}:
     get:
-      summary: 'Получение данных по трафику для сервера'
+      summary: Получение данных по трафику для сервера
+      tags: ['Ui stats']
       parameters:
         - name: server_id
           in: path
           required: true
-          description: 'Server id'
+          description: Server id
           schema:
             type: integer
         - name: rep
           in: query
-          description: 'Report type, can be day,month or not set'
+          description: Report type, can be day,month or not set
           schema:
             type: string
             enum: [day, month]
@@ -1170,7 +1213,8 @@ paths:
 
   /ui/stat/client/{client_id}:
     get:
-      summary: 'Получение данных по трафику для клиента'
+      summary: Получение данных по трафику для клиента
+      tags: ['Ui stats']
       parameters:
         - name: client_id
           in: path
@@ -1180,7 +1224,7 @@ paths:
             type: integer
         - name: rep
           in: query
-          description: 'Report type, can be day,month or not set'
+          description: Report type, can be day,month or not set
           schema:
             type: string
             enum: [day, month]
@@ -1211,6 +1255,8 @@ paths:
   /ui/profiles:
     get:
       summary: Получение перечня профилей и их имен
+      description: Получение перечня профилей и их имен в кратком виде для загрузки в поля выбора пользовательских форм
+      tags: ['Ui profiles']
       responses:
         '200':
           description: Success
@@ -1231,6 +1277,7 @@ paths:
     get:
       summary: Получение состояния системы R2D2
       description: Запрос текущего состояния инфраструктуры R2D2.
+      tags: ['Ui profiles']
       parameters:
         - name: page
           in: query
@@ -1272,7 +1319,8 @@ paths:
   /ui/profiles/list:
     get:
       summary: Получение списка объектов и агентов
-      description: Запрос списка объектов и агентов системы.
+      description: Запрос списка объектов и агентов системы для интерфейса редактирования.
+      tags: ['Ui profiles']
       parameters:
         - name: page
           in: query
@@ -1315,6 +1363,7 @@ paths:
     get:
       summary: Получение лога операций
       description: Просмотр лога операций в интерфейсе пользователя.
+      tags: ['Ui logging']
       parameters:
         - name: page
           in: query
@@ -1357,6 +1406,7 @@ paths:
     get:
       summary: Получение лога аудита
       description: Просмотр лога аудита в интерфейсе пользователя.
+      tags: ['Ui logging']
       parameters:
         - name: page
           in: query
@@ -1454,31 +1504,31 @@ components:
           example: '11:22:33:44:55:66'
         rt:
           type: integer
-          description: 'route type (0-ufanet, 1-beeline)'
+          description: route type (0-ufanet, 1-beeline)
           example: 1
         no_dhcp:
           type: integer
-          description: '(0-use dhcp, 1-dont use)'
+          description: (0-use dhcp, 1-dont use)
           example: 0
         defjump:
           type: string
-          description: 'ACCEPT/DROP/HTTP_ICMP/HTTP_IM_ICMP/ICMP_ONLY'
+          description: ACCEPT/DROP/HTTP_ICMP/HTTP_IM_ICMP/ICMP_ONLY
           example: 'ACCEPT'
         speed_in:
           type: string
-          description: 'dl speed tc parameters'
+          description: dl speed tc parameters
           example: 'quantum 6400 rate 1mbit prio 5'
         speed_out:
           type: string
-          description: 'ul speed tc parameters'
+          description: ul speed tc parameters
           example: 'quantum 6400 rate 1mbit ceil 1280kbit prio 5'
         qs:
           type: integer
-          description: 'quote mode (0-disabled, 1-notify, 2-limit, 3-block)'
+          description: quote mode (0-disabled, 1-notify, 2-limit, 3-block)
           example: 2
         blocked:
           type: integer
-          description: 'blocked flag (0-unblocked, 1-blocked)'
+          description: blocked flag (0-unblocked, 1-blocked)
           example: 0
         profile:
           type: string
@@ -1578,8 +1628,8 @@ components:
                 example: '54321'
               date:
                 type: string
-                description: Время события (14:04:24 30/04/21)
-                example: '14:04:24 30/04/21'
+                description: Время события (14:04:24 30-04-21)
+                example: '14:04:24 30-04-21'
               subsys:
                 type: string
                 description: Подсистема
@@ -1595,7 +1645,7 @@ components:
         lines_on_page: 100
         d:
           - id: 54321
-            date: '14:04:24 30/04/21'
+            date: '14:04:24 30-04-21'
             subsys: 'gwsyn@gwsev'
             info: 'Finished traffic_stat'
 
@@ -1629,8 +1679,8 @@ components:
                 example: '54321'
               date:
                 type: string
-                description: Время события (14:04:24 30/04/21)
-                example: '14:04:24 30/04/21'
+                description: Время события (14:04:24 30-04-21)
+                example: '14:04:24 30-04-21'
               login:
                 type: string
                 description: Логин пользователя
@@ -1646,7 +1696,7 @@ components:
         lines_on_page: 100
         d:
           - id: 54321
-            date: '14:04:24 30/04/21'
+            date: '14:04:24 30-04-21'
             login: 'testuser'
             info: 'Редактирование клиента: testclient.'
 
@@ -1670,34 +1720,42 @@ components:
         lines_on_page:
           type: integer
           description: Строк на одной странице. Равно параметру запроса.
-        d:
-          type: array
-          description: Массив строк
-          items:
-            $ref: '#/components/schemas/client_full_record'
+        view_mode:
+          type: string
+          description: Режим просмотра, список по клиентам или по устройствам. Связан с типом объектов, выдаваемых в аттрибуте d.
+          enum: ['clients', 'devices']
         has_lost_clients:
           type: integer
           enum: [0, 1]
           description: Флаг наличия 'потерянных' клиентов (0 или 1)
+        d:
+          type: array
+          description: Массив строк
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/client_full_record'
       required:
         - lines_total_all
         - lines_total
         - pages
         - page
         - lines_on_page
-        - d
+        - view_mode
         - has_lost_clients
+        - d
       example:
         lines_total: 1000
         pages: 50
         page: 1
         lines_on_page: 20
+        view_mode: 'clients'
+        has_lost_clients: 0
         d:
-          TODO: 'Массив client_full_record'
+          TODO: 'Массив client_full_record или ...'
 
 
     ui_profiles:
-      description: 'Хеш массив профилей и их названий'
+      description: Хеш массив профилей и их названий
       type: object
       additionalProperties:
         type: string
@@ -1707,7 +1765,7 @@ components:
 
 
     ui_profiles_status:
-      description: 'Страница данных списка профилей системы'
+      description: Страница данных списка профилей системы
       type: object
       properties:
         lines_total:
@@ -1736,38 +1794,38 @@ components:
 
 
     ui_client_search_result:
-      description: 'Результаты поиска клиентов'
+      description: Результаты поиска клиентов
       type: array
       items:
         $ref: '#/components/schemas/client_record'
 
 
     server_record:
-      description: 'Server record'
+      description: Server record
       type: object
       properties:
         id:
           type: integer
-          description: 'Код сервера (not required on new)'
+          description: Код сервера (not required on new)
         cn:
           type: string
           description: Наименование
           example: 'Сервер DC1'
         desc:
           type: string
-          description: 'Описание сервера, возможно пустое'
+          description: Описание сервера, возможно пустое
           example: 'Краткое описание'
         create_time:
           type: string
-          description: 'Время создания (14:04:24 30/04/21, not required on new)'
-          example: '14:04:24 30/04/21'
+          description: Время создания (14:04:24 30-04-21, not required on new)
+          example: '14:04:24 30-04-21'
         email:
           type: string
-          description: 'Email для уведомлений'
+          description: Email для уведомлений
           example: 'user@domain.tld'
         email_notify:
           type: integer
-          description: 'Уведомлять по эл.почте (0 или 1)'
+          description: Уведомлять по эл.почте (0 или 1)
           example: 1
         ip:
           type: string
@@ -1779,43 +1837,43 @@ components:
           example: '11:22:33:44:55:66'
         rt:
           type: integer
-          description: 'route type (0-ufanet, 1-beeline)'
+          description: route type (0-ufanet, 1-beeline)
           example: 1
         no_dhcp:
           type: integer
-          description: '(0-use dhcp, 1-dont use)'
+          description: (0-use dhcp, 1-dont use)
           example: 0
         defjump:
           type: string
-          description: 'ACCEPT/DROP/HTTP_ICMP/HTTP_IM_ICMP/ICMP_ONLY'
+          description: ACCEPT/DROP/HTTP_ICMP/HTTP_IM_ICMP/ICMP_ONLY
           example: 'ACCEPT'
         speed_in:
           type: string
-          description: 'dl speed tc parameters'
+          description: dl speed tc parameters
           example: 'quantum 6400 rate 1mbit prio 5'
         speed_out:
           type: string
-          description: 'ul speed tc parameters'
+          description: ul speed tc parameters
           example: 'quantum 6400 rate 1mbit ceil 1280kbit prio 5'
         qs:
           type: integer
-          description: 'quote mode (0-disabled, 1-notify, 2-limit, 3-block)'
+          description: quote mode (0-disabled, 1-notify, 2-limit, 3-block)
           example: 2
         limit_in:
           type: integer
-          description: 'quota limit in bytes'
+          description: quota limit in bytes
           example: 1073741824
         blocked:
           type: integer
-          description: 'blocked flag (0-unblocked, 1-blocked)'
+          description: blocked flag (0-unblocked, 1-blocked)
           example: 0
         profile:
           type: string
-          description: 'server profile (key)'
+          description: server profile (key)
           example: 'gwtest1'
         profile_name:
           type: string
-          description: 'server profile human readable name (передается в операциях чтения данных, игнорируется в операциях записи, редактирования)'
+          description: server profile human readable name (передается в операциях чтения данных, игнорируется в операциях записи, редактирования)
           example: 'Тестовое подразделение'          
       required:
         - cn
@@ -1837,34 +1895,34 @@ components:
       properties:
         id:
           type: integer
-          description: 'Код клиента (not required on new)'
+          description: Код клиента (not required on new)
         cn:
           type: string
-          description: 'Фамилия Иия Отчество'
+          description: Фамилия Иия Отчество
           example: 'Иванов Иван Иванович'
         desc:
           type: string
-          description: 'Описание клиента, возможно пустое'
+          description: Описание клиента, возможно пустое
           example: 'Краткое описание'
         guid:
           type: string
-          description: 'ObjectGUID клиента, возможно пустое для клиентов добавленных вручную'
+          description: ObjectGUID клиента, возможно пустое для клиентов добавленных вручную
           example: 'b95108ab-236a-4534-9ef0-6b8fa1cd59fd'
         create_time:
           type: string
-          description: 'Время создания (14:04:24 30/04/21, not required on new)'
-          example: '14:04:24 30/04/21'
+          description: Время создания (14:04:24 30-04-21, not required on new)
+          example: '14:04:24 30-04-21'
         login:
           type: string
-          description: 'Логин клиента (пустой для серверов)'
+          description: Логин клиента (пустой для серверов)
           example: 'user'
         email:
           type: string
-          description: 'Email клиента'
+          description: Email клиента
           example: 'user@domain.tld'
         email_notify:
           type: integer
-          description: 'Уведомлять по эл.почте (0 или 1)'
+          description: Уведомлять по эл.почте (0 или 1)
           example: 1
       required:
         - cn
@@ -1873,50 +1931,50 @@ components:
 
 
     client_full_record:
-      description: 'Client list record including device list'
+      description: Client list record including device list
       type: object
       properties:
         id:
           type: integer
-          description: 'Код клиента'
+          description: Код клиента
         type:
           type: integer
           description: 'Тип клиента: 0-клиент, 1-сервер'
         cn:
           type: string
-          description: 'Фамилия Иия Отчество'
+          description: Фамилия Иия Отчество
           example: 'Иванов Иван Иванович'
         desc:
           type: string
-          description: 'Описание клиента, возможно пустое'
+          description: Описание клиента, возможно пустое
           example: 'Краткое описание'
         guid:
           type: string
-          description: 'ObjectGUID клиента, возможно пустое для клиентов добавленных вручную'
+          description: ObjectGUID клиента, возможно пустое для клиентов добавленных вручную
           example: 'b95108ab-236a-4534-9ef0-6b8fa1cd59fd'
         create_time:
           type: string
-          description: 'Время создания (14:04:24 30/04/21)'
-          example: '14:04:24 30/04/21'
+          description: Время создания (14:04:24 30-04-21)
+          example: '14:04:24 30-04-21'
         login:
           type: string
-          description: 'Логин клиента (пустой для серверов)'
+          description: Логин клиента (пустой для серверов)
           example: 'user'
         email:
           type: string
-          description: 'Email клиента'
+          description: Email клиента
           example: 'user@domain.tld'
         email_notify:
           type: integer
-          description: 'Уведомлять по эл.почте (0 или 1)'
+          description: Уведомлять по эл.почте (0 или 1)
           example: 1
         lost:
           type: integer
-          description: 'Потерянный=удаленный в AD клиент (0 или 1)'
+          description: Потерянный=удаленный в AD клиент (0 или 1)
           example: 0
         devices:
           type: array
-          description: 'Массив устройств'
+          description: Массив устройств
           items:
             $ref: '#/components/schemas/client_device_record'
       required:
@@ -1934,24 +1992,24 @@ components:
 
 
     client_device_record:
-      description: 'Client device record'
+      description: Client device record
       type: object
       properties:
         id:
           type: integer
-          description: 'Код устройства (not required on new)'
+          description: Код устройства (not required on new)
         name:
           type: string
           description: Наименование
           example: 'Рабочий ноутбук'
         desc:
           type: string
-          description: 'Описание, возможно пустое'
+          description: Описание, возможно пустое
           example: 'Краткое описание'
         create_time:
           type: string
-          description: 'Время создания (14:04:24 30/04/21, not required on new)'
-          example: '14:04:24 30/04/21'
+          description: Время создания (14:04:24 30-04-21, not required on new)
+          example: '14:04:24 30-04-21'
         ip:
           type: string
           description: device ip4
@@ -1962,51 +2020,51 @@ components:
           example: '11:22:33:44:55:66'
         rt:
           type: integer
-          description: 'route type (0-ufanet, 1-beeline)'
+          description: route type (0-ufanet, 1-beeline)
           example: 1
         no_dhcp:
           type: integer
-          description: '(0-use dhcp, 1-dont use)'
+          description: (0-use dhcp, 1-dont use)
           example: 0
         defjump:
           type: string
-          description: 'ACCEPT/DROP/HTTP_ICMP/HTTP_IM_ICMP/ICMP_ONLY'
+          description: ACCEPT/DROP/HTTP_ICMP/HTTP_IM_ICMP/ICMP_ONLY
           example: 'ACCEPT'
         speed_in:
           type: string
-          description: 'dl speed tc parameters'
+          description: dl speed tc parameters
           example: 'quantum 6400 rate 1mbit prio 5'
         speed_out:
           type: string
-          description: 'ul speed tc parameters'
+          description: ul speed tc parameters
           example: 'quantum 6400 rate 1mbit ceil 1280kbit prio 5'
         qs:
           type: integer
-          description: 'quote mode (0-disabled, 1-notify, 2-limit, 3-block)'
+          description: quote mode (0-disabled, 1-notify, 2-limit, 3-block)
           example: 2
         limit_in:
           type: integer
-          description: 'quota limit in bytes'
+          description: quota limit in bytes
           example: 1073741824
         blocked:
           type: integer
-          description: 'blocked flag (0-unblocked, 1-blocked)'
+          description: blocked flag (0-unblocked, 1-blocked)
           example: 0
         profile:
           type: string
-          description: 'device profile (key)'
+          description: device profile (key)
           example: 'gwtest1'
         profile_name:
           type: string
-          description: 'device profile human readable name (передается в операциях чтения данных, игнорируется в операциях записи, редактирования)'
+          description: device profile human readable name (передается в операциях чтения данных, игнорируется в операциях записи, редактирования)
           example: 'Тестовое подразделение'
         client_cn:
           type: string
-          description: 'ФИО клиента владельца устройства (передается в операции чтения данных, игнорируется в операциях записи, редактирования)'
+          description: ФИО клиента владельца устройства (передается в операции чтения данных, игнорируется в операциях записи, редактирования)
           example: 'Иванов Иван Иванович'
         client_login:
           type: string
-          description: 'Логин клиента владельца устройства (передается в операции чтения данных, игнорируется в операциях записи, редактирования)'
+          description: Логин клиента владельца устройства (передается в операции чтения данных, игнорируется в операциях записи, редактирования)
           example: 'ivanovii'
       required:
         - name
@@ -2023,42 +2081,42 @@ components:
 
 
     stat_traffic_object:
-      description: 'Traffic object (in/out)'
+      description: Traffic object (in/out)
       type: object
       properties:
         date:
           type: string
-          description: 'Дата (дд-мм-гггг, обязательна в массивах данных по трафику, в записях по месяцам день игнорируется)'
+          description: Дата (дд-мм-гггг, обязательна в массивах данных по трафику, в записях по месяцам день игнорируется)
           example: '06-10-2021'
         in:
           type: integer
-          description: 'input traffic (in bytes, -1 means no-data)'
+          description: input traffic (in bytes, -1 means no-data)
           example: 100
         out:
           type: integer
-          description: 'output traffic (in bytes, -1 means no-data)'
+          description: output traffic (in bytes, -1 means no-data)
           example: 200
         fuzzy_in:
           type: integer
-          description: 'not required, 1-input traffic value is roughly estimated'
+          description: not required, 1-input traffic value is roughly estimated
         fuzzy_out:
           type: integer
-          description: 'not required, 1-output traffic value is roughly estimated'
+          description: not required, 1-output traffic value is roughly estimated
       required:
         - in
         - out
 
 
     stat_device_record:
-      description: 'Traffic statistics device record'
+      description: Traffic statistics device record
       type: object
       properties:
         id:
           type: integer
-          description: 'Код устройства'
+          description: Код устройства
         date:
           type: string
-          description: 'Текущая дата (дд-мм-гггг)'
+          description: Текущая дата (дд-мм-гггг)
           example: '06-10-2021'
         name:
           type: string
@@ -2066,37 +2124,37 @@ components:
           example: 'Рабочий ноутбук'
         qs:
           type: integer
-          description: 'quote mode (0-disabled, 1-notify, 2-limit, 3-block)'
+          description: quote mode (0-disabled, 1-notify, 2-limit, 3-block)
           example: 2
         limit_in:
           type: integer
-          description: 'quota limit in bytes'
+          description: quota limit in bytes
           example: 1073741824
         sum_limit_in:
           type: integer
-          description: 'remaining limit in bytes'
+          description: remaining limit in bytes
           example: 1073741824
         blocked:
           type: integer
-          description: 'blocked flag (0-unblocked, 1-blocked)'
+          description: blocked flag (0-unblocked, 1-blocked)
           example: 0
         profile:
           type: string
-          description: 'device profile (key)'
+          description: device profile (key)
           example: 'gwtest1'
         profile_name:
           type: string
-          description: 'device profile human readable name'
+          description: device profile human readable name
           example: 'Тестовое подразделение'
         today_traf:
-          #description: 'трафик за сегодня'
+          #description: трафик за сегодня
           $ref: '#/components/schemas/stat_traffic_object'
         curmonth_traf:
-          #description: 'трафик за текущий месяц'
+          #description: трафик за текущий месяц
           $ref: '#/components/schemas/stat_traffic_object'
         traf:
           type: array
-          description: 'массив данных по трафику'
+          description: массив данных по трафику
           items:
             $ref: '#/components/schemas/stat_traffic_object'
       required:
@@ -2114,15 +2172,15 @@ components:
 
         
     stat_server_record:
-      description: 'Traffic statistics server record'
+      description: Traffic statistics server record
       type: object
       properties:
         id:
           type: integer
-          description: 'Код сервера'
+          description: Код сервера
         date:
           type: string
-          description: 'Текущая дата (дд-мм-гггг)'
+          description: Текущая дата (дд-мм-гггг)
           example: '06-10-2021'
         cn:
           type: string
@@ -2130,45 +2188,45 @@ components:
           example: 'Сервер DC1'
         email:
           type: string
-          description: 'Email для уведомлений'
+          description: Email для уведомлений
           example: 'user@domain.tld'
         email_notify:
           type: integer
-          description: 'Флаг извещения по email, 0 или 1'
+          description: Флаг извещения по email, 0 или 1
           example: 1
         qs:
           type: integer
-          description: 'quote mode (0-disabled, 1-notify, 2-limit, 3-block)'
+          description: quote mode (0-disabled, 1-notify, 2-limit, 3-block)
           example: 2
         limit_in:
           type: integer
-          description: 'quota limit in bytes'
+          description: quota limit in bytes
           example: 1073741824
         sum_limit_in:
           type: integer
-          description: 'remaining limit in bytes'
+          description: remaining limit in bytes
           example: 1073741824
         blocked:
           type: integer
-          description: 'blocked flag (0-unblocked, 1-blocked)'
+          description: blocked flag (0-unblocked, 1-blocked)
           example: 0
         profile:
           type: string
-          description: 'server profile (key)'
+          description: server profile (key)
           example: 'gwtest1'
         profile_name:
           type: string
-          description: 'server profile human readable name'
+          description: server profile human readable name
           example: 'Тестовое подразделение'
         today_traf:
-          #description: 'трафик за сегодня'
+          #description: трафик за сегодня
           $ref: '#/components/schemas/stat_traffic_object'
         curmonth_traf:
-          #description: 'трафик за текущий месяц'
+          #description: трафик за текущий месяц
           $ref: '#/components/schemas/stat_traffic_object'
         traf:
           type: array
-          description: 'массив данных по трафику'
+          description: массив данных по трафику
           items:
             $ref: '#/components/schemas/stat_traffic_object'
       required:
@@ -2186,39 +2244,39 @@ components:
 
 
     stat_client_record:
-      description: 'Traffic statistics client record'
+      description: Traffic statistics client record
       type: object
       properties:
         id:
           type: integer
-          description: 'Код клиента'
+          description: Код клиента
         date:
           type: string
-          description: 'Текущая дата (дд-мм-гггг)'
+          description: Текущая дата (дд-мм-гггг)
           example: '06-10-2021'
         cn:
           type: string
-          description: 'Фамилия Иия Отчество'
+          description: Фамилия Иия Отчество
           example: 'Иванов Иван Иванович'
         guid:
           type: string
-          description: 'ObjectGUID клиента, возможно пустое для клиентов добавленных вручную'
+          description: ObjectGUID клиента, возможно пустое для клиентов добавленных вручную
           example: 'b95108ab-236a-4534-9ef0-6b8fa1cd59fd'
         login:
           type: string
-          description: 'Логин клиента'
+          description: Логин клиента
           example: 'user'
         email:
           type: string
-          description: 'Email клиента'
+          description: Email клиента
           example: 'user@domain.tld'
         email_notify:
           type: integer
-          description: 'Флаг извещения по email клиента, 0 или 1'
+          description: Флаг извещения по email клиента, 0 или 1
           example: 1
         devices:
           type: array
-          description: 'массив данных трафика по устройствам клиента'
+          description: массив данных трафика по устройствам клиента
           items:
             $ref: '#/components/schemas/stat_device_record'
       required:
@@ -2231,21 +2289,21 @@ components:
 
 
     system_profile_record:
-      description: 'Профиль системы R2D2'
+      description: Профиль (описание объекта) системы R2D2
       type: object
       properties:
         key:
           type: string
-          description: 'Ключ профиля'
+          description: Ключ профиля
         name:
           type: string
-          description: 'Наименование профиля'
+          description: Наименование профиля
         lastcheck:
           type: string
-          description: 'Дата и время последней проверки, чч:мм:сс дд-мм-гггг, пустое если проверка еще не производилась.'
+          description: Дата и время последней проверки, чч:мм:сс дд-мм-гг, пустое если проверка еще не производилась.
         agents:
           type: array
-          description: 'Массив записей об агентах'
+          description: Массив записей об агентах
           items:
             description: Агент системы
             type: object
@@ -2266,14 +2324,14 @@ components:
                 description: '1-агент использует (и поддерживает) блокировку, 0-нет'
               state:
                 type: integer
-                description: 'Состояние агента: 1-нормальное, 0 - ошибка, 2 - неизвестно.'
+                description: 'Состояние агента: 1-нормальное, 0-ошибка, 2-неизвестно'
               status:
                 type: string
-                description: 'Статус агента или описание ошибки'
+                description: Статус агента или описание ошибки
                 example: 'rtsyn@wispa (3.00)'
               lastcheck:
                 type: string
-                description: 'Дата и время последней проверки, чч:мм:сс дд-мм-гггг, пустое если проверка еще не производилась.'
+                description: Дата и время последней проверки, чч:мм:сс дд-мм-гг, пустое если проверка еще не производилась.
             required:
               - name
               - type

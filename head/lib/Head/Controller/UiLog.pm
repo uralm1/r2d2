@@ -28,7 +28,7 @@ sub oplog {
     return Mojo::Promise->reject('Bad parameter value') if $page < 1 ||
       ($num_pages > 0 && $page > $num_pages);
 
-    $db->query_p("SELECT id, DATE_FORMAT(op_log.date, '%k:%i:%s %e/%m/%y') AS date, subsys, info \
+    $db->query_p("SELECT id, DATE_FORMAT(op_log.date, '%k:%i:%s %e-%m-%y') AS date, subsys, info \
 FROM op_log ORDER BY op_log.date DESC, id DESC LIMIT ? OFFSET ?",
       $lines_on_page, ($page - 1) * $lines_on_page);
 
@@ -83,7 +83,7 @@ sub auditlog {
     return Mojo::Promise->reject('Bad parameter value') if $page < 1 ||
       ($num_pages > 0 && $page > $num_pages);
 
-    $db->query_p("SELECT id, DATE_FORMAT(audit_log.date, '%k:%i:%s %e/%m/%y') AS date, login, info \
+    $db->query_p("SELECT id, DATE_FORMAT(audit_log.date, '%k:%i:%s %e-%m-%y') AS date, login, info \
 FROM audit_log ORDER BY audit_log.date DESC, id DESC LIMIT ? OFFSET ?",
       $lines_on_page, ($page - 1) * $lines_on_page);
 

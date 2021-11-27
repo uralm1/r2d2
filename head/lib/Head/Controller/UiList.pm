@@ -55,6 +55,7 @@ sub list {
       pages => $self->stash('num_pages'),
       page => $page,
       lines_on_page => $lines_on_page,
+      view_mode => 'clients',
       has_lost_clients => $self->stash('has_lost_clients')
     });
 
@@ -117,7 +118,7 @@ sub clients_p {
   my $lines_on_page = $self->stash('lines_on_page');
 
   my $where = $onlylost ? ' WHERE lost = 1' : '';
-  $db->query_p("SELECT id, type, guid, login, c.desc, DATE_FORMAT(create_time, '%k:%i:%s %e/%m/%y') AS create_time, cn, email, email_notify, lost \
+  $db->query_p("SELECT id, type, guid, login, c.desc, DATE_FORMAT(create_time, '%k:%i:%s %e-%m-%y') AS create_time, cn, email, email_notify, lost \
 FROM clients c$where \
 ORDER BY id ASC LIMIT ? OFFSET ?",
     $lines_on_page,
@@ -153,7 +154,7 @@ sub client_devices_p {
     Mojo::Promise->map(
       {concurrency => 1},
       sub {
-        $db->query_p("SELECT d.id, d.name, d.desc, DATE_FORMAT(create_time, '%k:%i:%s %e/%m/%y') AS create_time, \
+        $db->query_p("SELECT d.id, d.name, d.desc, DATE_FORMAT(create_time, '%k:%i:%s %e-%m-%y') AS create_time, \
   ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, d.profile, p.name AS profile_name \
   FROM devices d LEFT OUTER JOIN profiles p ON d.profile = p.profile WHERE d.client_id = ? \
   ORDER BY d.id ASC LIMIT 20", $_->{id})

@@ -10,7 +10,7 @@ use Time::Piece;
 # {
 #   profile_key => {
 #     name => 'Profile name',
-#     lastcheck => 'чч:мм:сс дд-мм-гггг' or undef,
+#     lastcheck => 'чч:мм:сс дд-мм-гг' or undef,
 #     agents => {
 #       agent_id => {
 #         name => 'Agent name',
@@ -19,7 +19,7 @@ use Time::Piece;
 #         block => 1 or 0,
 #         state => 0/1/2, # 1-good, 0-bad, 2-unknown
 #         status => 'test@host (3.00)',
-#         lastcheck => 'чч:мм:сс дд-мм-гггг' or undef
+#         lastcheck => 'чч:мм:сс дд-мм-гг' or undef
 #       },
 #       ...
 #     }
@@ -63,7 +63,7 @@ sub load {
 
   my %_ren;
   my $results = eval { $db->query("SELECT id, profile, name, \
-DATE_FORMAT(lastcheck, '%k:%i:%s %e-%m-%Y') AS lastcheck FROM profiles") };
+DATE_FORMAT(lastcheck, '%k:%i:%s %e-%m-%y') AS lastcheck FROM profiles") };
   die "Profile select error\n" unless $results;
   my $p = $self->{profiles};
   while (my $next = $results->hash) {
@@ -76,7 +76,7 @@ DATE_FORMAT(lastcheck, '%k:%i:%s %e-%m-%Y') AS lastcheck FROM profiles") };
   }
   # agents
   $results = eval { $db->query("SELECT id, profile_id, name, type, url, block, \
-DATE_FORMAT(lastcheck, '%k:%i:%s %e-%m-%Y') AS lastcheck, state, status \
+DATE_FORMAT(lastcheck, '%k:%i:%s %e-%m-%y') AS lastcheck, state, status \
 FROM profiles_agents") };
   die "Profile agents select error\n" unless $results;
   while (my $next = $results->hash) {
@@ -149,10 +149,10 @@ sub loadchecks_p {
   my $db = $self->{app}->mysql_inet->db;
 
   my $profiles_p = $db->query_p("SELECT id, profile, \
-DATE_FORMAT(lastcheck, '%k:%i:%s %e-%m-%Y') AS lastcheck FROM profiles");
+DATE_FORMAT(lastcheck, '%k:%i:%s %e-%m-%y') AS lastcheck FROM profiles");
   # agents
   my $agents_p = $db->query_p("SELECT id, profile_id, \
-DATE_FORMAT(lastcheck, '%k:%i:%s %e-%m-%Y') AS lastcheck, state, status \
+DATE_FORMAT(lastcheck, '%k:%i:%s %e-%m-%y') AS lastcheck, state, status \
 FROM profiles_agents");
 
   # return compound promise
@@ -209,7 +209,7 @@ WHERE profile = ?",
 
   # and assign to memory hashes
   my $t = localtime;
-  my $cur_t = $t->hms.' '.$t->dmy('-');
+  my $cur_t = $t->strftime('%H:%M:%S %d-%m-%y');
 
   my $p = $self->{profiles};
   if (exists $p->{$profile_key}) {
