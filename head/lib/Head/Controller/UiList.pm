@@ -17,6 +17,15 @@ sub list {
   $self->stash(page => $page, lines_on_page => $lines_on_page);
   $self->stash(lostonlyifexist => $lostonlyifexist);
 
+  my $search = $self->param('s');
+  my $view = $self->param('v') // '';
+  return $self->render(text => 'Invalid view option', status => 400)
+    unless $view =~ /^(?:|clients|lost|pain|servers|devices|flagged)$/;
+  my $sort = $self->param('sort') // '';
+  return $self->render(text => 'Invalid sort option', status => 400)
+    unless $sort =~ /^(?:|cn|login|ip|place|rt)$/;
+
+
   $self->render_later;
 
   my $db = $self->mysql_inet->db; # we'll use same connection
@@ -56,6 +65,7 @@ sub list {
       page => $page,
       lines_on_page => $lines_on_page,
       view_mode => 'clients',
+      has_pain_clients => $self->stash('has_pain_clients'),
       has_lost_clients => $self->stash('has_lost_clients')
     });
 
@@ -77,20 +87,23 @@ sub list {
 sub clients_count_p {
   my ($self, $db) = @_;
 
-  my $count_lost_p = $db->query_p("SELECT COUNT(*) FROM clients WHERE lost = 1");
+  my $count_lost_p = $db->query_p("SELECT COUNT(*) FROM clients WHERE type = 0 AND lost = 1");
+  my $count_pain_p = $db->query_p("SELECT COUNT(*) FROM clients WHERE type = 0 AND guid = ''");
   my $count_all_p = $db->query_p("SELECT COUNT(*) FROM clients");
 
   # return compound promise
-  Mojo::Promise->all($count_lost_p, $count_all_p);
+  Mojo::Promise->all($count_lost_p, $count_pain_p, $count_all_p);
 }
 
 
 # ''|'error string' = $self->handle_clients_count($all_db_promise_resolve)
 sub handle_clients_count {
-  my ($self, $count_lost_p, $count_all_p) = @_;
+  my ($self, $count_lost_p, $count_pain_p, $count_all_p) = @_;
 
   my $lines_lost = $count_lost_p->[0]->array->[0];
+  my $lines_pain = $count_pain_p->[0]->array->[0];
   my $lines_total_all = $count_all_p->[0]->array->[0];
+
   my $lines_total;
   if ($lines_lost > 0 && $self->stash('lostonlyifexist')) {
     $lines_total = $lines_lost;
@@ -105,6 +118,7 @@ sub handle_clients_count {
   return 'Bad parameter value' if $page < 1 || ($num_pages > 0 && $page > $num_pages);
 
   $self->stash(lines_total_all => $lines_total_all, lines_total => $lines_total, num_pages => $num_pages);
+  $self->stash(has_pain_clients => $lines_pain > 0 ? 1 : 0);
   $self->stash(has_lost_clients => $lines_lost > 0 ? 1 : 0);
 
   # success

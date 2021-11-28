@@ -10,7 +10,7 @@
     <div class="input-field col s5">
       <i class="material-icons prefix">search</i>
       <input id="main-search" type="text" name="s" value="">
-      <label for="main-search">Поиск по ФИО, логину, полному IP</label>
+      <label for="main-search">Поиск по ФИО, логину, полному IP или MAC</label>
     </div>
     <div class="input-field col s4">
       <select name="v">
@@ -19,12 +19,13 @@
 	<option value="lost">Клиенты (удаленные в AD)</option>
 	<option value="pain">Клиенты (созданные вручную)</option>
 	<option value="servers">Серверы</option>
-        <option value="devs">Устройства</option>
-        <option value="flag">Устройства (несинхронизированные)</option>
+        <option value="devices">Устройства</option>
+        <option value="flagged">Устройства (несинхронизированные)</option>
       </select>
       <label>или выберите вариант представления</label>
     </div>
     <div class="input-field col s2">
+      % hidden_field set => 'v'
       <button class="btn waves-effect waves-light" type="submit">Поиск</button>
     </div>
     % end
@@ -36,8 +37,8 @@
     <thead>
       <tr class="tr-client-head">
 	<th style="width:5%">Тип</th>
-	<th><a class="sortlink" href="<%== url_with->query({sort => 'cn'}) %>">Наименование клиента</a>&nbsp;<i class="material-icons tiny">sort</i></th>
-	<th><a class="sortlink" href="<%== url_with->query({sort => 'login'}) %>">Логин</a></th>
+	<th><a class="sortlink" href="<%== url_with->query({sort => 'cn', set => 'sort'}) %>">Наименование клиента</a>&nbsp;<i class="material-icons tiny">sort</i></th>
+	<th><a class="sortlink" href="<%== url_with->query({sort => 'login', set => 'sort'}) %>">Логин</a></th>
 	<th>E-mail</th>
       </tr>
     </thead>
@@ -72,10 +73,10 @@
 	    <thead>
 	      <tr class="tr-device-head">
 		<th style="width:23%">Наименование устройства</th>
-		<th style="width:15%"><a class="sortlink" href="<%== url_with->query({sort => 'place'}) %>">Место</a></th>
-		<th style="width:13%"><a class="sortlink" href="<%== url_with->query({sort => 'ip'}) %>">IP</a></th>
+		<th style="width:15%"><a class="sortlink" href="<%== url_with->query({sort => 'place', set => 'sort'}) %>">Место</a></th>
+		<th style="width:13%"><a class="sortlink" href="<%== url_with->query({sort => 'ip', set => 'sort'}) %>">IP</a></th>
 		<th style="width:15%">MAC</th>
-		<th style="width:10%"><a class="sortlink" href="<%== url_with->query({sort => 'rt'}) %>">Провайдер</a></th>
+		<th style="width:10%"><a class="sortlink" href="<%== url_with->query({sort => 'rt', set => 'sort'}) %>">Провайдер</a></th>
 		<th style="width:12%">Правило</th>
 		<th style="width:12%">Лимит</th>
 	      </tr>

@@ -425,6 +425,26 @@ paths:
             type: integer
             enum: [0, 1]
             example: 1
+        - name: s
+          in: query
+          description: Строка поиска, необязательная, поиск по cn,login-подстрока, ip/mac адресу
+          schema:
+            type: string
+            example: '192.168.1.1'
+        - name: v
+          in: query
+          description: Режим просмотра, необязательный
+          schema:
+            type: string
+            enum: ['','clients','lost','pain','servers','devices','flagged']
+            example: 'lost'
+        - name: sort
+          in: query
+          description: Режим сортировки, необязательный
+          schema:
+            type: string
+            enum: ['','cn','login','ip','place','rt']
+            example: 'ip'
 
       responses:
         '200':
@@ -1728,6 +1748,10 @@ components:
           type: integer
           enum: [0, 1]
           description: Флаг наличия 'потерянных' клиентов (0 или 1)
+        has_pain_clients:
+          type: integer
+          enum: [0, 1]
+          description: Флаг наличия добавленных вручную клиентов (0 или 1)
         d:
           type: array
           description: Массив строк
@@ -1742,6 +1766,7 @@ components:
         - lines_on_page
         - view_mode
         - has_lost_clients
+        - has_pain_clients
         - d
       example:
         lines_total: 1000
@@ -1750,6 +1775,7 @@ components:
         lines_on_page: 20
         view_mode: 'clients'
         has_lost_clients: 0
+        has_pain_clients: 1
         d:
           TODO: 'Массив client_full_record или ...'
 
