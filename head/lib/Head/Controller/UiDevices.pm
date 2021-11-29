@@ -15,7 +15,7 @@ sub deviceget {
   $self->render_later;
 
   $self->mysql_inet->db->query("SELECT d.id, d.name, d.desc, DATE_FORMAT(d.create_time, '%k:%i:%s %e-%m-%y') AS create_time, \
-ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, d.profile, p.name AS profile_name, c.cn AS client_cn, c.login AS client_login \
+ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, d.profile, p.name AS profile_name, d.client_id AS client_id, c.cn AS client_cn, c.login AS client_login \
 FROM devices d INNER JOIN clients c ON d.client_id = c.id LEFT OUTER JOIN profiles p ON d.profile = p.profile \
 WHERE d.id = ? AND d.client_id = ?", $device_id, $client_id =>
     sub {
@@ -43,7 +43,7 @@ sub _build_device_rec {
     die 'Undefined device record attribute' unless exists $h->{$_};
     $r->{$_} = $h->{$_};
   }
-  for (qw/profile_name client_cn client_login/) {
+  for (qw/profile_name client_id client_cn client_login/) {
     $r->{$_} = $h->{$_} if defined $h->{$_};
   }
   return $r;

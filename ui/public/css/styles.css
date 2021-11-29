@@ -106,7 +106,7 @@ tr.tr-client>td, tr.tr-status>td, tr.tr-profile>td {
   padding-bottom:10px;
 }
 
-tr.tr-client-head>th {
+tr.tr-client-head>th, tr.tr-device1-head>th {
   padding-top:5px;
   padding-bottom:10px;
 }
@@ -186,4 +186,12 @@ a.sortlink {
 }
 .tr-devices.lostclient {
   color: #9b9b9b;
+}
+
+.list-warning-panel {
+  padding-top:10px;
+  padding-bottom:10px;
+  margin-top:0px;
+  margin-bottom:0px;
+  background-color:#fff;
 }

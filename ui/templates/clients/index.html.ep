@@ -25,14 +25,24 @@
       <label>или выберите вариант представления</label>
     </div>
     <div class="input-field col s2">
-      % hidden_field set => 'v'
+      %= hidden_field set => 'v'
       <button class="btn waves-effect waves-light" type="submit">Поиск</button>
     </div>
     % end
   </div>
-  % if ($rec->{has_lost_clients}) {
-  <h5 class="red-text">Имеются клиенты, отсутствующие в глобальном каталоге. Выполните замену или удаление.</h5>
+  % if ($rec->{has_lost_clients} && $rec->{has_pain_clients}) {
+  <div class="row"><div class="col s12 m12 l10"><div class="card-panel list-warning-panel">
+    % if ($rec->{has_lost_clients}) {
+    <div class="red-text"><b>ВНИМАНИЕ! Имеются клиенты, отсутствующие в глобальном каталоге. Выполните замену или удаление.</b></div>
+    % }
+    % if ($rec->{has_pain_clients}) {
+    <div><b>ВНИМАНИЕ!</b> Имеются клиенты, созданные вручную. Рекомендуется перейти на использование глобального каталога.</div>
+    % }
+  </div></div></div>
   % }
+  % my $obj_text;
+  % if ($rec->{view_mode} =~ /^clients/) {
+  %   $obj_text = 'клиентов';
   <table>
     <thead>
       <tr class="tr-client-head">
@@ -105,7 +115,8 @@
 		<%= $d->{mac} %>
 	      </td>
 	      <td style="width:10%">
-		% my @x = grep {$_->[1] == $d->{rt}} @{config('rt_names')};
+	        % my $_rt = $d->{rt};
+		% my @x = grep {$_->[1] == $_rt} @{config('rt_names')};
 		<%= $x[0][0] // 'Неизвестно' %>
 	      </td>
 	      <td style="width:12%">
@@ -132,9 +143,68 @@
     % }
     </tbody>
   </table>
+  % } elsif ($rec->{view_mode} =~ /^devices/) {
+  %   $obj_text = 'устройств';
+  <table>
+    <thead>
+      <tr class="tr-device1-head">
+	<th style="width:11%">Наименование</th>
+	<th style="width:15%">Клиент</th>
+	<th style="width:13%"><a class="sortlink" href="<%== url_with->query({sort => 'ip', set => 'sort'}) %>">IP</a></th>
+	<th style="width:15%">MAC</th>
+	<th style="width:10%"><a class="sortlink" href="<%== url_with->query({sort => 'rt', set => 'sort'}) %>">Провайдер</a></th>
+	<th style="width:9%">Правило</th>
+	<th style="width:12%">Лимит</th>
+	<th style="width:15%"><a class="sortlink" href="<%== url_with->query({sort => 'place', set => 'sort'}) %>">Место</a></th>
+      </tr>
+    </thead>
+    <tbody>
+    % for (@{$rec->{d}}) {
+    <tr class="tr-device-edit" data-type="<%== defined $_->{client_login} && $_->{client_login} ne '' ? 0 : 1 %>" data-clientid="<%== $_->{client_id} %>" data-deviceid="<%== $_->{id} %>">
+	<td style="width:11%">
+	  % my $name_tooltip = (defined $_->{desc} && $_->{desc} ne '') ? 'table-tooltips' : '';
+	  %= link_to url_for('deviceedit')->query(clientid => $_->{id}, id => $_->{id}) => (class => "listlink $name_tooltip", 'data-tooltip' => $_->{desc}, 'data-position' => 'bottom') => begin
+	  % if ($_->{name} ne '') {
+	  %= $_->{name}
+	  % } else {
+	  ID:&nbsp;<%= $_->{id} %>
+	  % }
+	  % end
+	</td>
+	<td style="width:15%">
+	  % my $client_tooltip = ($_->{client_login} ne '') ? 'table-tooltips' : '';
+	  %= t span => (class => $client_tooltip, 'data-tooltip' => 'Логин: '.$_->{client_login} // '', 'data-position' => 'bottom') => begin
+	  %= $_->{client_cn}
+	  % end
+	</td>
+	<td style="width:13%">
+	  <%= $_->{ip} %>
+	</td>
+	<td style="width:15%">
+	  <%= $_->{mac} %>
+	</td>
+	<td style="width:10%">
+	  % my $_rt = $_->{rt};
+	  % my @x = grep {$_->[1] == $_rt} @{config('rt_names')};
+	  <%= $x[0][0] // 'Неизвестно' %>
+	</td>
+	<td style="width:9%">
+	  <%= $_->{defjump} %>
+	</td>
+	<td style="width:12%">
+	  <%== $_->{qs} == 0 ? '*Анлим*' : btomb($_->{limit_in}).'&nbsp;Мб' %>
+	</td>
+	<td style="width:15%">
+	  <%= $_->{profile_name} // "Нет данных ($_->{profile})" %>
+	</td>
+      </tr>
+    % }
+    </tbody>
+  </table>
+  % }
   %= m_page_nav($rec->{page}, $rec->{pages}, {round=>3, outer=>1, start=>1, class=>'center-align', param=>'p', query=>'#top'});
   <p>Выбрано <%= $rec->{lines_total} %> объектов.
-  Общее число клиентов: <%= $rec->{lines_total_all} %></p>
+  Общее число <%= $obj_text.': '.$rec->{lines_total_all} %>.</p>
 </div>
 <div class="fixed-action-btn">
   %= link_to 'clientnew' => (class=>'btn-floating yellow darken-1 btn-large btn-tooltip', 'data-position'=>'left', 'data-tooltip'=>'Добавить нового клиента') => begin
@@ -162,7 +232,7 @@
 	else M.toast({html:'Ошибка. Неверный тип.',displayLength:3000});
       }
     });
-    $('.tr-device').click(function(){
+    $('.tr-device, .tr-device-edit').click(function(){
       var r = $(this);
       var clientid = r.attr('data-clientid');
       var deviceid = r.attr('data-deviceid');
@@ -175,6 +245,9 @@
 	else if (t==1) location.assign('<%== url_for('serveredit') %>?id='+clientid);
 	else M.toast({html:'Ошибка. Неверный тип.',displayLength:3000});
       }
+    });
+    $('.list-warning-panel').click(function(){
+      $('.list-warning-panel').parent().parent().hide(300);
     });
   });
 </script>
