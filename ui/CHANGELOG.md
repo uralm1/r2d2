@@ -2,6 +2,8 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+
+## [0.6 unusable] - 2021-11-30
 - Лог аудита.
 - Задача проверки клиентов, запускаемая по расписанию.
 - Рефакторинг cron в head.

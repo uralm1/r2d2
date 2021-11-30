@@ -1,7 +1,7 @@
 package Ui;
 use Mojo::Base 'Mojolicious';
 
-our $VERSION = '0.6';
+our $VERSION = '0.7';
 
 # This method will run once at server start
 sub startup {
@@ -21,6 +21,8 @@ sub startup {
   #$self->mode('production');
   #$self->log->level('info');
   $self->secrets($config->{secrets});
+  $self->sessions->cookie_name('r2d2ui');
+  $self->sessions->default_expiration(0);
 
   exit 1 unless $self->validate_config;
 

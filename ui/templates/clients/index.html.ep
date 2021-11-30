@@ -6,49 +6,47 @@
 % }
 <div class="scont">
   <div class="row main-search-row">
-    %= form_for clients => (method=>'GET') => begin
-    <div class="input-field col s5">
+    %= form_for clients => (method=>'GET', id=>'search-form') => begin
+    %= hidden_field set => 's', id => 'set-field'
+    <div class="input-field col s5 m4">
       <i class="material-icons prefix">search</i>
-      <input id="main-search" type="text" name="s" value="">
-      <label for="main-search">Поиск по ФИО, логину, полному IP или MAC</label>
+      % param s => stash 's' if defined(stash 's');
+      %= text_field 's', id => 'main-search'
+      %= label_for 'main-search' => 'Поиск по ФИО, логину, полному IP или MAC'
     </div>
-    <div class="input-field col s4">
-      <select name="v">
-	<option value="">Все (клиенты+серверы)</option>
-	<option value="clients">Клиенты</option>
-	<option value="lost">Клиенты (удаленные в AD)</option>
-	<option value="pain">Клиенты (созданные вручную)</option>
-	<option value="servers">Серверы</option>
-        <option value="devices">Устройства</option>
-        <option value="flagged">Устройства (несинхронизированные)</option>
-      </select>
+    <div class="input-field col s1">
+      %= submit_button 'Поиск', class => 'btn waves-effect waves-light'
+    </div>
+    <div class="input-field col s5 m4 offset-s1 offset-m1">
+      % param v => stash 'v' if defined(stash 'v');
+      % param v => 'lost' if $rec->{has_lost_clients} && !session('lostfirstshown');
+      % session lostfirstshown => 1;
+      %= select_field v => [['Все (клиенты+серверы)' => ''], ['Клиенты' => 'clients'], ['Клиенты (удалённые или отсутствующие в AD)' => 'lost'], ['Клиенты (созданные вручную)' => 'pain'], ['Серверы' => 'servers'], ['Устройства' => 'devices'], ['Устройства (несинхронизированные)' => 'flagged']], id => 'view-select'
       <label>или выберите вариант представления</label>
-    </div>
-    <div class="input-field col s2">
-      %= hidden_field set => 'v'
-      <button class="btn waves-effect waves-light" type="submit">Поиск</button>
     </div>
     % end
   </div>
   % if ($rec->{has_lost_clients} && $rec->{has_pain_clients}) {
   <div class="row"><div class="col s12 m12 l10"><div class="card-panel list-warning-panel">
     % if ($rec->{has_lost_clients}) {
-    <div class="red-text"><b>ВНИМАНИЕ! Имеются клиенты, отсутствующие в глобальном каталоге. Выполните замену или удаление.</b></div>
+    <div class="red-text"><i class="material-icons tiny">warning</i><span>&nbsp;<b>ВНИМАНИЕ! Имеются клиенты, отсутствующие в глобальном каталоге. Выполните замену или удаление.</b></span></div>
     % }
     % if ($rec->{has_pain_clients}) {
-    <div><b>ВНИМАНИЕ!</b> Имеются клиенты, созданные вручную. Рекомендуется перейти на использование глобального каталога.</div>
+    <div><i class="material-icons tiny">warning</i><span>&nbsp;<b>ВНИМАНИЕ!</b> Имеются клиенты, созданные вручную. Рекомендуется перейти на использование глобального каталога.</span></div>
     % }
   </div></div></div>
   % }
   % my $obj_text;
+  % my $sorton = sub { my $s = stash('sort'); $s =~ /$_[0]/ ? '&nbsp;<i class="material-icons tiny">sort</i>' : '' };
   % if ($rec->{view_mode} =~ /^clients/) {
-  %   $obj_text = 'клиентов';
+  %   $obj_text = 'клиентов и серверов';
+  %   if (@{$rec->{d}}) { # data exist?
   <table>
     <thead>
       <tr class="tr-client-head">
 	<th style="width:5%">Тип</th>
-	<th><a class="sortlink" href="<%== url_with->query({sort => 'cn', set => 'sort'}) %>">Наименование клиента</a>&nbsp;<i class="material-icons tiny">sort</i></th>
-	<th><a class="sortlink" href="<%== url_with->query({sort => 'login', set => 'sort'}) %>">Логин</a></th>
+	<th><a class="sortlink" href="<%== url_with->query({sort => 'cn', set => 'sort'}) %>">Наименование клиента</a><%== $sorton->(qr/^cn$/) %></th>
+	<th><a class="sortlink" href="<%== url_with->query({sort => 'login', set => 'sort'}) %>">Логин</a><%== $sorton->(qr/^login$/) %></th>
 	<th>E-mail</th>
       </tr>
     </thead>
@@ -82,11 +80,11 @@
 	    % unless ($th) {
 	    <thead>
 	      <tr class="tr-device-head">
-		<th style="width:23%">Наименование устройства</th>
-		<th style="width:15%"><a class="sortlink" href="<%== url_with->query({sort => 'place', set => 'sort'}) %>">Место</a></th>
-		<th style="width:13%"><a class="sortlink" href="<%== url_with->query({sort => 'ip', set => 'sort'}) %>">IP</a></th>
-		<th style="width:15%">MAC</th>
-		<th style="width:10%"><a class="sortlink" href="<%== url_with->query({sort => 'rt', set => 'sort'}) %>">Провайдер</a></th>
+		<th style="width:23%">Устройство</th>
+		<th style="width:15%"><a class="sortlink" href="<%== url_with->query({sort => 'place', set => 'sort'}) %>">Место</a><%== $sorton->(qr/^place$/) %></th>
+		<th style="width:13%"><a class="sortlink" href="<%== url_with->query({sort => 'ip', set => 'sort'}) %>">IP</a><%== $sorton->(qr/^ip$/) %></th>
+		<th style="width:15%"><a class="sortlink" href="<%== url_with->query({sort => 'mac', set => 'sort'}) %>">MAC</a><%== $sorton->(qr/^mac$/) %></th>
+		<th style="width:10%"><a class="sortlink" href="<%== url_with->query({sort => 'rt', set => 'sort'}) %>">Провайдер</a><%== $sorton->(qr/^rt$/) %></th>
 		<th style="width:12%">Правило</th>
 		<th style="width:12%">Лимит</th>
 	      </tr>
@@ -142,20 +140,26 @@
       </tr>
     % }
     </tbody>
+  %   } else {
+  <div class="row"><div class="col s12">
+    <p class="head-text"><b>Объектов не найдено. Попробуйте другие параметры поиска.</b></p>
+  </div></div>
+  %   }
   </table>
   % } elsif ($rec->{view_mode} =~ /^devices/) {
   %   $obj_text = 'устройств';
+  %   if (@{$rec->{d}}) { # data exist?
   <table>
     <thead>
       <tr class="tr-device1-head">
-	<th style="width:11%">Наименование</th>
-	<th style="width:15%">Клиент</th>
-	<th style="width:13%"><a class="sortlink" href="<%== url_with->query({sort => 'ip', set => 'sort'}) %>">IP</a></th>
-	<th style="width:15%">MAC</th>
-	<th style="width:10%"><a class="sortlink" href="<%== url_with->query({sort => 'rt', set => 'sort'}) %>">Провайдер</a></th>
+	<th style="width:11%">Устройство</th>
+	<th style="width:15%"><a class="sortlink" href="<%== url_with->query({sort => 'cn', set => 'sort'}) %>">Клиент</a><%== $sorton->(qr/^cn$/) %></th>
+	<th style="width:13%"><a class="sortlink" href="<%== url_with->query({sort => 'ip', set => 'sort'}) %>">IP</a><%== $sorton->(qr/^ip$/) %></th>
+	<th style="width:15%"><a class="sortlink" href="<%== url_with->query({sort => 'mac', set => 'sort'}) %>">MAC</a><%== $sorton->(qr/^mac$/) %></th>
+	<th style="width:10%"><a class="sortlink" href="<%== url_with->query({sort => 'rt', set => 'sort'}) %>">Провайдер</a><%== $sorton->(qr/^rt$/) %></th>
 	<th style="width:9%">Правило</th>
 	<th style="width:12%">Лимит</th>
-	<th style="width:15%"><a class="sortlink" href="<%== url_with->query({sort => 'place', set => 'sort'}) %>">Место</a></th>
+	<th style="width:15%"><a class="sortlink" href="<%== url_with->query({sort => 'place', set => 'sort'}) %>">Место</a><%== $sorton->(qr/^place$/) %></th>
       </tr>
     </thead>
     <tbody>
@@ -201,6 +205,11 @@
     % }
     </tbody>
   </table>
+  %   } else {
+  <div class="row"><div class="col s12">
+    <p class="head-text"><b>Объектов не найдено. Попробуйте другие параметры поиска.</b></p>
+  </div></div>
+  %   }
   % }
   %= m_page_nav($rec->{page}, $rec->{pages}, {round=>3, outer=>1, start=>1, class=>'center-align', param=>'p', query=>'#top'});
   <p>Выбрано <%= $rec->{lines_total} %> объектов.
@@ -248,6 +257,10 @@
     });
     $('.list-warning-panel').click(function(){
       $('.list-warning-panel').parent().parent().hide(300);
+    });
+    $('#view-select').change(function(){
+      $('#set-field').val('v');
+      $('#search-form').submit();
     });
   });
 </script>

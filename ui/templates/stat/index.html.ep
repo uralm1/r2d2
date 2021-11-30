@@ -63,7 +63,7 @@
 <script>
 $(document).ready(function(){
   $('.collapsible').collapsible({accordion:false});
-  $('#enotify').on('change',function(){$('#enotifyform').submit()});
+  $('#enotify').change(function(){$('#enotifyform').submit()});
 });
 </script>
 % end

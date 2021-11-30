@@ -15,13 +15,12 @@ sub searchclient {
   $self->render_later;
 
   my $db = $self->mysql_inet->db;
-  my @apnd;
+  my $apnd;
   if ($search ne '') {
-    push @apnd, 'cn LIKE '.$db->quote("$search%");
-    push @apnd, 'login LIKE '.$db->quote("$search%");
+    my $_qs = $db->quote("$search%");
+    $apnd = "(cn LIKE $_qs OR login LIKE $_qs)";
   }
-  my $apnd = join ' OR ', @apnd;
-  $apnd = (defined $apnd && $apnd ne '') ? " AND ($apnd)" : '';
+  $apnd = (defined $apnd && $apnd ne '') ? " AND $apnd" : '';
   #say $apnd;
 
   $db->query("SELECT id, type, guid, login, c.desc, DATE_FORMAT(create_time, '%k:%i:%s %e-%m-%y') AS create_time, cn, email, email_notify \

@@ -14,35 +14,35 @@ sub index {
   my $set = $self->param('set') // 'v';
 
   # consistency
-  # (1)
-  if (_isip($search)) {
-    $view_mode = 'devices' if $view_mode !~ /^(?:devices|flagged)$/;
-    $sort_mode = '' if $sort_mode !~ /^(?:|ip|place|rt)$/;
-
-  } elsif (_istext($search)) {
-    $view_mode = '' if $view_mode !~ /^(?:|clients|lost|pain|servers)$/;
-    $sort_mode = '' if $sort_mode !~ /^(?:|cn|login)$/;
-
-  }
   if ($set =~ /^v$/) {
-    # (2)
     if ($view_mode =~ /^(?:|clients|lost|pain|servers)$/) {
       $sort_mode = '' if $sort_mode !~ /^(?:|cn|login)$/;
+      $search = '';
 
     } elsif ($view_mode =~ /^(?:devices|flagged)$/) {
-      $sort_mode = '' if $sort_mode !~ /^(?:|ip|place|rt)$/;
+      $sort_mode = '' if $sort_mode !~ /^(?:|ip|mac|place|rt)$/;
+      $search = '';
 
     }
-
   } elsif ($set =~ /^sort$/) {
-    # (3)
     if ($sort_mode =~ /^(?:cn|login)$/) {
       $view_mode = '' if $view_mode !~ /^(?:|clients|lost|pain|servers)$/;
-      $search = '' if _isip($search);
+      $search = '' if _isipmac($search);
 
-    } elsif ($sort_mode =~ /^(?:ip|place|rt)$/) {
+    } elsif ($sort_mode =~ /^(?:ip|mac|place|rt)$/) {
       $view_mode = 'devices' if $view_mode !~ /^(?:devices|flagged)$/;
       $search = '' if _istext($search);
+
+    }
+  } else {
+    # searching
+    if (_isipmac($search)) {
+      $view_mode = 'devices';
+      $sort_mode = '' if $sort_mode !~ /^(?:|ip|mac|place|rt)$/;
+
+    } elsif (_istext($search)) {
+      $view_mode = '';
+      $sort_mode = '' if $sort_mode !~ /^(?:|cn|login)$/;
 
     }
   }
@@ -50,7 +50,7 @@ sub index {
   my $active_page = $self->param('p') || 1;
   return unless $self->exists_and_number($active_page);
 
-  my $lostonlyifexist_mode = (defined $search && $search ne '') || $view_mode ne '' ? 0 : 1;
+  my $lostonlyifexist_mode = $self->session('lostfirstshown') || (defined $search && $search ne '') || $view_mode ne '' ? 0 : 1;
 
   $self->render_later;
 
@@ -67,6 +67,7 @@ sub index {
       return unless $self->request_success($res);
       return unless my $v = $self->request_json($res);
 
+      $self->stash(s => $search, v => $view_mode, sort => $sort_mode);
       return $self->render(rec => $v);
     } # get closure
   );
@@ -74,7 +75,7 @@ sub index {
 
 
 # internal
-sub _isip {
+sub _isipmac {
   my $s = shift;
   defined $s && ($s =~ /^$RE{net}{IPv4}$/ || $s =~ /^$RE{net}{MAC}$/);
 }
@@ -82,7 +83,7 @@ sub _isip {
 # internal
 sub _istext {
   my $s = shift;
-  defined $s && $s ne '';
+  defined $s && $s ne '' && $s !~ /^$RE{net}{IPv4}$/ && $s !~ /^$RE{net}{MAC}$/;
 }
 
 
