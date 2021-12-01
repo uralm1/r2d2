@@ -334,7 +334,7 @@ paths:
   /blocked:
     post:
       summary: Извещение о выполненной операции блокирования/разблокирования
-      description: Агенты вызывают данную функцию после удачного завершения блокирования/разблокирования клиента. Используется для сброса флага блокирования в БД.
+      description: Агенты вызывают данную функцию после удачного завершения блокирования/разблокирования клиентского устройства. Используется для сброса флага блокирования в БД.
       tags: ['Agent operations']
 
       parameters:
@@ -443,7 +443,7 @@ paths:
           description: Режим сортировки, необязательный
           schema:
             type: string
-            enum: ['','cn','login','ip','place','rt']
+            enum: ['','cn','login','ip','mac','place','rt']
             example: 'ip'
 
       responses:
@@ -1601,7 +1601,7 @@ components:
           example: agent@host
         id:
           type: integer
-          description: client id
+          description: client device id
           example: 11
         qs:
           type: integer

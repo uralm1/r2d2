@@ -74,8 +74,9 @@ WHERE $rule id = ?", $inb, $outb, $inb, $inb, $id) };
 
     # run block check after update
     for my $jid (keys %$j) {
-      my $block_results = eval { $db->query("SELECT id, qs, email_notify, notified, profile FROM devices \
-WHERE $rule id = ? AND blocked = 0 AND sum_limit_in <= 0 AND qs > 0", $jid) };
+      my $block_results = eval { $db->query("SELECT d.id, qs, c.email_notify, notified, profile \
+FROM devices d INNER JOIN clients c ON d.client_id = c.id \
+WHERE $rule d.id = ? AND blocked = 0 AND sum_limit_in <= 0 AND qs > 0", $jid) };
       unless ($block_results) {
         $app->log->error("Block: database operation error: $@");
       } else {

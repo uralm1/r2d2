@@ -33,7 +33,8 @@ sub enqueue_notification {
   croak 'Bad argument' unless $id;
 
   # retrieve email_notify from db
-  $self->mysql_inet->db->query("SELECT email_notify FROM devices WHERE id = ?", $id
+  $self->mysql_inet->db->query("SELECT c.email_notify \
+FROM devices d INNER JOIN clients c ON d.client_id = c.id WHERE d.id = ?", $id
     => sub {
       my ($db, $err, $results) = @_;
       if ($err) {

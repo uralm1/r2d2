@@ -128,10 +128,9 @@ VALUES (NOW(), 1, '', '', ?, ?, ?, ?, 0)",
 
   my $last_id = $results->last_insert_id;
 
-  ## email_notify field in devices is deprecated
   $results = eval { $db->query("INSERT INTO devices \
-(name, devices.desc, create_time, ip, mac, no_dhcp, rt, defjump, speed_in, speed_out, qs, limit_in, sum_limit_in, profile, notified, blocked, bot, email_notify, client_id) \
-VALUES ('Подключение сервера', '', NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 1, 0, ?)",
+(name, devices.desc, create_time, ip, mac, no_dhcp, rt, defjump, speed_in, speed_out, qs, limit_in, sum_limit_in, profile, notified, blocked, bot, client_id) \
+VALUES ('Подключение сервера', '', NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 1, ?)",
     scalar($ipo->numeric),
     $j->{mac},
     $j->{no_dhcp},

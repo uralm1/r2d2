@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+- Уведомления - использование email-ов из БД приложения, а не напрямую ldap.
+- Уведомления - флаг email-notify из БД клиентов, убраны email-notify из устройств.
+- Сжаты все версии db migrations.
 
 ## [0.6 unusable] - 2021-11-30
 - Лог аудита.

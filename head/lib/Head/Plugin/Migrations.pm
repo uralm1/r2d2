@@ -184,6 +184,7 @@ ALTER TABLE `devices` CHANGE `login` `login` VARCHAR(30) NULL;
 ALTER TABLE `devices` CHANGE `desc` `desc` VARCHAR(255) NULL;
 ALTER TABLE `devices` ADD `name` VARCHAR(255) NOT NULL AFTER `login`;
 ALTER TABLE `devices` ADD `client_id` INT(11) UNSIGNED NULL AFTER `profile`;
+ALTER TABLE `devices` DROP `email_notify`;
 ALTER TABLE `devices` ADD INDEX (`client_id`);
 
 DROP TABLE IF EXISTS `profiles`;
@@ -231,6 +232,7 @@ ALTER TABLE `devices` CHANGE `login` `login` VARCHAR(30) NOT NULL;
 ALTER TABLE `devices` CHANGE `desc` `desc` VARCHAR(255) NOT NULL;
 ALTER TABLE `devices` DROP `name`;
 ALTER TABLE `devices` DROP `client_id`;
+ALTER TABLE `devices` ADD `email_notify` tinyint(1) NOT NULL AFTER `desc`;
 
 ALTER TABLE `adaily` CHANGE `device_id` `client_id` INT(11) UNSIGNED NOT NULL;
 ALTER TABLE `amonthly` CHANGE `device_id` `client_id` INT(11) UNSIGNED NOT NULL;

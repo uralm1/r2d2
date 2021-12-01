@@ -19,7 +19,8 @@ sub run {
 
   my ($selected, $notified, $blocked) = (0, 0, 0); # counters
 
-  my $block_results = eval { $db->query("SELECT id, qs, email_notify, notified, profile FROM devices \
+  my $block_results = eval { $db->query("SELECT d.id, qs, c.email_notify, notified, profile \
+FROM devices d INNER JOIN clients c ON d.client_id = c.id \
 WHERE blocked = 0 AND sum_limit_in <= 0 AND qs > 0") };
   unless ($block_results) {
     $app->log->error("Block: database operation error: $@");
