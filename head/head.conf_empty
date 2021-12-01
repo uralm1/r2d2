@@ -82,7 +82,6 @@
   ldap_servers => ['ldap://dcsrv1', 'ldap://dcsrv2'],
   ldap_user => 'ldapuser',
   ldap_pass => 'ldappass',
-  personnel_ldap_base => 'DC=contoso,DC=local',
 
   smtp_host => 'mail.testdomain',
   mail_from => 'r2d2@testdomain',

@@ -2,7 +2,7 @@ package Head::Task::NotifyClient;
 use Mojo::Base 'Mojolicious::Plugin';
 
 use Mojo::mysql;
-use Head::Ural::NotifyClient qw(send_mail_notification retrive_login_db_attr retrive_ad_fullname_email);
+use Head::Ural::NotifyClient qw(send_mail_notification retrive_db_attr);
 
 sub register {
   my ($self, $app) = @_;
@@ -13,7 +13,7 @@ sub register {
     my $app = $job->app;
 
     #$app->dblog->info("notify_client id=$id task is called!", sync=>1);
-    my $str = eval { retrive_login_db_attr($app, $id) };
+    my $str = eval { retrive_db_attr($app, $id) };
     unless ($str) {
       chomp $@;
       $app->dblog->error("Notify device id $id: $@", sync=>1);
@@ -22,22 +22,18 @@ sub register {
     }
     # $str->{notified}; # don't check this flag here, the task is always notify device
 
-    my $str1 = eval { retrive_ad_fullname_email($app, $str->{login}) };
-    unless ($str1) {
-      chomp $@;
-      $app->dblog->error("Notify device id $id $str->{login}: $@", sync=>1);
-      _set_notified_flag($app, $id) if $@ =~ /^No data from/; # stop notifications for this device
-      $job->finish;
-      return 0;
-    }
-    unless ($str1->{email}) {
+    $str->{login} //= 'n/a';
+    my $dname = $str->{device_name};
+    $dname = 'н/д' if !defined $dname || $dname eq '';
+
+    unless ($str->{email}) {
       $app->dblog->error("Notify device id $id $str->{login}: client e-mail is not available", sync=>1);
       _set_notified_flag($app, $id); # stop notifications for this device
       $job->finish;
       return 0;
     }
     my $qs_op = ($doing_unblock) ? 0 : $str->{qs};
-    my $r = eval { send_mail_notification($app, $str1->{email}, $str1->{fullname}, $qs_op, $str->{limit_in_mb}) };
+    my $r = eval { send_mail_notification($app, $str->{email}, $str->{cn}, $dname, $qs_op, $str->{limit_in_mb}) };
     unless ($r) {
       chomp $@;
       $app->dblog->error("Send email error, device id $id: $@", sync=>1);
