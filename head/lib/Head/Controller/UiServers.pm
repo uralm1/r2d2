@@ -148,6 +148,12 @@ VALUES ('Подключение сервера', '', NOW(), ?, ?, ?, ?, ?, ?, ?,
   ) };
   return $self->render(text => "Database error, inserting devices: $@", status => 503) unless $results;
 
+  my $last_device_id = $results->last_insert_id;
+
+  $results = eval { $db->query("INSERT INTO amonthly (device_id, date, m_in, m_out) \
+VALUES (?, CURDATE(), 0, 0)", $last_device_id) };
+  return $self->render(text => "Database error, inserting amonthly: $@", status => 503) unless $results;
+
   eval { $tx->commit };
   return $self->render(text => "Database error, transaction commit failure: $@", status => 503) if $@;
 

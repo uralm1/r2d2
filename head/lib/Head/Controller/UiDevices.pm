@@ -117,45 +117,52 @@ sub devicepost {
   return $self->render(text=>'Bad ip', status => 503) unless $ipo;
 
   $self->log->debug($self->dumper($j));
-  $self->render_later;
 
-  $self->mysql_inet->db->query("SELECT 1 FROM clients WHERE id = ? AND type = 0",
-    $client_id =>
-    sub {
-      my ($db, $err, $results) = @_;
-      return $self->render(text => "Database error, searching client: $err", status => 503) if $err;
-      return $self->render(text => 'Client not found', status => 404) if ($results->rows < 1);
+  my $db = $self->mysql_inet->db;
 
-      $results->finish;
+  my $results = eval { $db->query("SELECT 1 FROM clients \
+WHERE id = ? AND type = 0", $client_id) };
+  return $self->render(text => "Database error, searching client: $@", status => 503) unless $results;
+  return $self->render(text => 'Client not found', status => 404) if ($results->rows < 1);
 
-      $db->query("INSERT INTO devices \
+  $results->finish;
+
+  # start transaction
+  my $tx = eval { $db->begin };
+  return $self->render(text => "Database error, transaction failure: $@", status => 503) unless $tx;
+
+  $results = eval { $db->query("INSERT INTO devices \
 (name, devices.desc, create_time, ip, mac, no_dhcp, rt, defjump, speed_in, speed_out, qs, limit_in, sum_limit_in, profile, notified, blocked, bot, client_id) \
 VALUES (?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, ?)",
-        $j->{name},
-        $j->{desc} // '',
-        scalar($ipo->numeric),
-        $j->{mac},
-        $j->{no_dhcp},
-        $j->{rt},
-        $j->{defjump},
-        $j->{speed_in},
-        $j->{speed_out},
-        $j->{qs},
-        $j->{limit_in},
-        $j->{limit_in},
-        $j->{profile},
-        $client_id =>
-        sub {
-          my ($db, $err, $results) = @_;
-          return $self->render(text => "Database error, inserting device: $err", status => 503) if $err;
+    $j->{name},
+    $j->{desc} // '',
+    scalar($ipo->numeric),
+    $j->{mac},
+    $j->{no_dhcp},
+    $j->{rt},
+    $j->{defjump},
+    $j->{speed_in},
+    $j->{speed_out},
+    $j->{qs},
+    $j->{limit_in},
+    $j->{limit_in},
+    $j->{profile},
+    $client_id
+  ) };
+  return $self->render(text => "Database error, inserting device: $@", status => 503) unless $results;
 
-          my $last_id = $results->last_insert_id;
-          $self->dblog->info("UI: Device id $last_id added successfully");
-          $self->render(text => $last_id);
-        }
-      ); # inner query
-    }
-  ); # outer query
+  my $last_id = $results->last_insert_id;
+
+  $results = eval { $db->query("INSERT INTO amonthly (device_id, date, m_in, m_out) \
+VALUES (?, CURDATE(), 0, 0)", $last_id) };
+  return $self->render(text => "Database error, inserting amonthly: $@", status => 503) unless $results;
+
+  eval { $tx->commit };
+  return $self->render(text => "Database error, transaction commit failure: $@", status => 503) if $@;
+
+  # finished
+  $self->dblog->info("UI: Device id $last_id added successfully");
+  $self->render(text => $last_id);
 }
 
 

@@ -1894,6 +1894,7 @@ components:
         blocked:
           type: integer
           description: blocked flag (0-unblocked, 1-blocked)
+          enum: [0, 1]
           example: 0
         flagged:
           type: integer
@@ -1919,7 +1920,6 @@ components:
         - speed_out
         - qs
         - limit_in
-        - flagged
         - profile
 
 
@@ -2083,6 +2083,7 @@ components:
         blocked:
           type: integer
           description: blocked flag (0-unblocked, 1-blocked)
+          enum: [0, 1]
           example: 0
         flagged:
           type: integer
@@ -2120,7 +2121,6 @@ components:
         - speed_out
         - qs
         - limit_in
-        - flagged
         - profile
 
 

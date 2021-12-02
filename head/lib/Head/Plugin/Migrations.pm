@@ -58,25 +58,23 @@ CREATE TABLE IF NOT EXISTS `devices` (
 
 CREATE TABLE IF NOT EXISTS `adaily` (
   `device_id` int(11) UNSIGNED NOT NULL,
-  `login` varchar(30) NOT NULL,
+  `login` varchar(30) DEFAULT NULL,
   `date` date NOT NULL,
   `d_in` bigint(20) UNSIGNED NOT NULL,
   `d_out` bigint(20) UNSIGNED NOT NULL,
-  PRIMARY KEY (`login`,`date`),
+  PRIMARY KEY (`date`,`device_id`),
   KEY `date` (`date`),
-  KEY `login` (`login`),
   KEY `device_id` (`device_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `amonthly` (
   `device_id` int(11) UNSIGNED NOT NULL,
-  `login` varchar(30) NOT NULL,
+  `login` varchar(30) DEFAULT NULL,
   `date` date NOT NULL,
   `m_in` bigint(20) UNSIGNED NOT NULL,
   `m_out` bigint(20) UNSIGNED NOT NULL,
-  PRIMARY KEY (`date`,`login`),
+  PRIMARY KEY (`date`,`device_id`),
   KEY `date` (`date`),
-  KEY `login` (`login`),
   KEY `device_id` (`device_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

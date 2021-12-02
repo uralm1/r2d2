@@ -20,8 +20,8 @@ sub register {
     my $db = $app->mysql_inet->db;
 
     # archive traffic statistics
-    my $r = eval { $db->query("INSERT INTO amonthly (device_id, login, date, m_in, m_out) \
-SELECT id, login, CURDATE(), sum_in, sum_out \
+    my $r = eval { $db->query("INSERT INTO amonthly (device_id, date, m_in, m_out) \
+SELECT id, CURDATE(), sum_in, sum_out \
 FROM devices \
 ON DUPLICATE KEY UPDATE m_in = sum_in, m_out = sum_out") };
     unless ($r) {

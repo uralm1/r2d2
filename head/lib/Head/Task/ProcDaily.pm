@@ -15,8 +15,8 @@ sub register {
     $app->dblog->info($m, sync=>1);
 
     # archive traffic statistics
-    my $r = eval { $app->mysql_inet->db->query("INSERT INTO adaily (device_id, login, date, d_in, d_out) \
-SELECT id, login, CURDATE(), sum_in, sum_out \
+    my $r = eval { $app->mysql_inet->db->query("INSERT INTO adaily (device_id, date, d_in, d_out) \
+SELECT id, CURDATE(), sum_in, sum_out \
 FROM devices \
 ON DUPLICATE KEY UPDATE d_in = sum_in, d_out = sum_out") };
     unless ($r) {
