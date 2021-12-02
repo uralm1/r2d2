@@ -251,7 +251,7 @@ sub _build_device_where {
 
   my $where;
   #$where = '' if $view =~ /^devices$/;
-  $where = '' if $view =~ /^flagged$/; #FIXME TODO
+  $where = 'sync_flags > 0' if $view =~ /^flagged$/; #FIXME
 
   if (_isip($search)) {
     if (my $ipo = NetAddr::IP::Lite->new($search)) {
@@ -313,8 +313,9 @@ sub client_devices_p {
     Mojo::Promise->map(
       {concurrency => 1},
       sub {
+        # FIXME sync_flags field is deprecated
         $db->query_p("SELECT d.id, d.name, d.desc, DATE_FORMAT(create_time, '%k:%i:%s %e-%m-%y') AS create_time, \
-ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, d.profile, p.name AS profile_name, d.client_id AS client_id \
+ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, IF(sync_flags > 0, 1, 0) AS flagged, d.profile, p.name AS profile_name, d.client_id AS client_id \
 FROM devices d LEFT OUTER JOIN profiles p ON d.profile = p.profile WHERE d.client_id = ? \
 ORDER BY ip ASC LIMIT 20", $_->{id})
       },
@@ -388,8 +389,9 @@ sub devices_p {
 
   my $where = $self->_build_device_where;
   my $order = $self->_build_device_order;
+  # FIXME sync_flags field is deprecated
   $db->query_p("SELECT d.id, d.name, d.desc, DATE_FORMAT(d.create_time, '%k:%i:%s %e-%m-%y') AS create_time, \
-ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, d.profile, p.name AS profile_name, d.client_id AS client_id, c.cn AS client_cn, c.login AS client_login \
+ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, IF(sync_flags > 0, 1, 0) AS flagged, d.profile, p.name AS profile_name, d.client_id AS client_id, c.cn AS client_cn, c.login AS client_login \
 FROM devices d INNER JOIN clients c ON d.client_id = c.id LEFT OUTER JOIN profiles p ON d.profile = p.profile \
 $where $order LIMIT ? OFFSET ?",
     $lines_on_page,

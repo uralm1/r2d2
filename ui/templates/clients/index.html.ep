@@ -26,7 +26,7 @@
     </div>
     % end
   </div>
-  % if ($rec->{has_lost_clients} && $rec->{has_pain_clients}) {
+  % if ($rec->{has_lost_clients} || $rec->{has_pain_clients}) {
   <div class="row"><div class="col s12 m12 l10"><div class="card-panel list-warning-panel">
     % if ($rec->{has_lost_clients}) {
     <div class="red-text"><i class="material-icons tiny">warning</i><span>&nbsp;<b>ВНИМАНИЕ! Имеются клиенты, отсутствующие в глобальном каталоге. Выполните замену или удаление.</b></span></div>
@@ -92,8 +92,14 @@
 	    % $th = 1; }
 	    <tbody>
 	    % for my $d (@{$_->{devices}}) {
-	    <tr class="tr-device" data-type="<%= $_->{type} %>" data-clientid="<%== $_->{id} %>" data-deviceid="<%== $d->{id} %>">
+	    %   my ($flagged_class, $flagged_img) = ('','');
+	    %   if ($d->{flagged}) {
+	    %     $flagged_class = 'flaggeddevice';
+	    %     $flagged_img = '<i class="material-icons tiny green-text table-tooltips" data-position="bottom" data-tooltip="Устройство не синхронизировано">sync</i>';
+	    %   }
+	    <tr class="tr-device <%== $flagged_class %>" data-type="<%= $_->{type} %>" data-clientid="<%== $_->{id} %>" data-deviceid="<%== $d->{id} %>">
 	      <td style="width:23%">
+		%== $flagged_img
 		<i class="material-icons tiny"><%== $_->{type} == 1 ? 'dns':'computer' %></i>
 		%= link_to $_->{type} == 1 ? url_for('serveredit')->query(id => $_->{id}) : url_for('deviceedit')->query(clientid => $_->{id}, id => $d->{id}) => (class => 'listlink') => begin
 		% if ($d->{name} ne '') {
@@ -132,7 +138,6 @@
 		<span>Устройства отсутствуют</span>
 	      </td>
 	    </tr>
-
 	    % }
 	    </tbody>
 	  </table>
@@ -164,8 +169,14 @@
     </thead>
     <tbody>
     % for (@{$rec->{d}}) {
-    <tr class="tr-device-edit" data-type="<%== defined $_->{client_login} && $_->{client_login} ne '' ? 0 : 1 %>" data-clientid="<%== $_->{client_id} %>" data-deviceid="<%== $_->{id} %>">
+    %   my ($flagged_class, $flagged_img) = ('','');
+    %   if ($_->{flagged}) {
+    %     $flagged_class = 'flaggeddevice';
+    %     $flagged_img = '<i class="material-icons tiny green-text table-tooltips" data-position="bottom" data-tooltip="Устройство не синхронизировано">sync</i>';
+    %   }
+    <tr class="tr-device-edit <%== $flagged_class %>" data-type="<%== defined $_->{client_login} && $_->{client_login} ne '' ? 0 : 1 %>" data-clientid="<%== $_->{client_id} %>" data-deviceid="<%== $_->{id} %>">
 	<td style="width:11%">
+	  %== $flagged_img
 	  % my $name_tooltip = (defined $_->{desc} && $_->{desc} ne '') ? 'table-tooltips' : '';
 	  %= link_to url_for('deviceedit')->query(clientid => $_->{id}, id => $_->{id}) => (class => "listlink $name_tooltip", 'data-tooltip' => $_->{desc}, 'data-position' => 'bottom') => begin
 	  % if ($_->{name} ne '') {
@@ -255,9 +266,7 @@
 	else M.toast({html:'Ошибка. Неверный тип.',displayLength:3000});
       }
     });
-    $('.list-warning-panel').click(function(){
-      $('.list-warning-panel').parent().parent().hide(300);
-    });
+    $('.list-warning-panel').click(function(){$('.list-warning-panel').parent().parent().hide(300)});
     $('#view-select').change(function(){
       $('#set-field').val('v');
       $('#search-form').submit();

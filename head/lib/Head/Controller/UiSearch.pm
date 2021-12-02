@@ -23,7 +23,7 @@ sub searchclient {
   $apnd = (defined $apnd && $apnd ne '') ? " AND $apnd" : '';
   #say $apnd;
 
-  $db->query("SELECT id, type, guid, login, c.desc, DATE_FORMAT(create_time, '%k:%i:%s %e-%m-%y') AS create_time, cn, email, email_notify \
+  $db->query("SELECT id, type, guid, login, c.desc, DATE_FORMAT(create_time, '%k:%i:%s %e-%m-%y') AS create_time, cn, email, email_notify, lost \
 FROM clients c \
 WHERE type = 0 $apnd \
 ORDER BY id ASC LIMIT ?",
@@ -40,6 +40,7 @@ ORDER BY id ASC LIMIT ?",
         return $self->render(text => 'Database error, bad result', status => 503);
       }
 
+      #say $self->dumper($cl);
       $self->render(json => $cl);
     }
   );

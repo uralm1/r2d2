@@ -44,18 +44,6 @@ ON DUPLICATE KEY UPDATE m_in = sum_in, m_out = sum_out") };
       $error = 1;
     }
 
-    # reset notification flags
-    $m = 'Resetting notification flags (oldcompat)';
-    $app->log->info($m);
-    $app->dblog->info($m, sync=>1);
-
-    $r = eval { $db->query("UPDATE devices_sync SET email_notified = 0") };
-    unless ($r) {
-      $m = 'Resetting notification flags failed';
-      $app->log->error($m.": $@");
-      $app->dblog->error($m, sync=>1);
-    }
-
     # send RELOAD to all block agents to unblock devices in one request
     $app->profiles(dont_copy_config_to_db => 1)->eachagent(sub {
       my ($profile_key, $agent_key, $agent) = @_;

@@ -16,6 +16,11 @@
 	%= hidden_field clientid => $client_id
 	%= hidden_field client_cn_a => $rec->{client_cn}
 	%= hidden_field client_login_a => $rec->{client_login}
+        % if ($rec->{flagged}) {
+	<div class="row"><div class="col s12 m12 l10"><div class="card-panel list-warning-panel">
+          <div class="green-text"><i class="material-icons tiny">warning</i><span>&nbsp;<b>ВНИМАНИЕ!</b> Данное устройство не синхронизировано. Ожидайте синхронизации...</span></div>
+	</div></div></div>
+	% }
 	<div class="row">
 	  <div class="input-field col s12 m8 l5">
 	    % param name => $rec->{name} unless defined param 'name';
@@ -192,12 +197,14 @@
 </div>
 % content_for script0 => begin
 <script>
-  $(document).ready(function(){
-    $('.scrollspy').scrollSpy();
-    $('.btn-tooltip').tooltip({enterDelay:500});
-    $('select').formSelect();
+$(document).ready(function(){
+  $('.scrollspy').scrollSpy();
+  $('.btn-tooltip').tooltip({enterDelay:500});
+  $('select').formSelect();
 
-    $('input.field-with-error,textarea.field-with-error').removeClass('valid').addClass('invalid');
-  });
+  $('input.field-with-error,textarea.field-with-error').removeClass('valid').addClass('invalid');
+
+  $('.list-warning-panel').click(function(){$('.list-warning-panel').parent().parent().hide(300)});
+});
 </script>
 % end

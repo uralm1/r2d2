@@ -2,6 +2,8 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+- Отображение флагов изменений в интерфейсе управления.
+- Небольшой рефакторинг флагов изменений.
 - Уведомления - использование email-ов из БД приложения, а не напрямую ldap.
 - Уведомления - флаг email-notify из БД клиентов, убраны email-notify из устройств.
 - Сжаты все версии db migrations.

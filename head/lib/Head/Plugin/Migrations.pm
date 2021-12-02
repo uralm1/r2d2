@@ -46,26 +46,14 @@ CREATE TABLE IF NOT EXISTS `devices` (
   `blocked` tinyint(1) NOT NULL,
   `profile` varchar(30) NOT NULL,
   `client_id` INT(11) UNSIGNED DEFAULT NULL,
+  `sync_flags` tinyint(3) NOT NULL DEFAULT '15',
   PRIMARY KEY (`id`),
   UNIQUE KEY `ip` (`ip`),
   KEY `no_dhcp` (`no_dhcp`),
   KEY `profile` (`profile`),
-  KEY `login` (`login`) USING BTREE,
-  KEY `client_id` (`client_id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS `devices_sync` (
-  `device_id` int(11) UNSIGNED NOT NULL,
-  `login` varchar(30) NOT NULL,
-  `sync_rt` tinyint(1) NOT NULL,
-  `sync_fw` tinyint(1) NOT NULL,
-  `sync_dhcp` tinyint(1) NOT NULL,
-  `email_notified` tinyint(1) NOT NULL,
-  PRIMARY KEY (`login`),
-  KEY `sync_rt` (`sync_rt`),
-  KEY `sync_fw` (`sync_fw`),
-  KEY `sync_dhcp` (`sync_dhcp`),
-  KEY `id` (`device_id`)
+  KEY `login` (`login`),
+  KEY `client_id` (`client_id`),
+  KEY `sync_flags` (`sync_flags`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `adaily` (
@@ -152,7 +140,6 @@ CREATE TABLE IF NOT EXISTS `profiles_agents` (
 -- 1 down
 DROP TABLE IF EXISTS `clients`;
 DROP TABLE IF EXISTS `devices`;
-DROP TABLE IF EXISTS `devices_sync`;
 DROP TABLE IF EXISTS `adaily`;
 DROP TABLE IF EXISTS `amonthly`;
 DROP TABLE IF EXISTS `op_log`;

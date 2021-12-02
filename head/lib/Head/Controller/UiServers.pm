@@ -11,8 +11,9 @@ sub serverget {
   return unless $self->exists_and_number404($id);
 
   $self->render_later;
+  # FIXME sync_flags field is deprecated
   $self->mysql_inet->db->query("SELECT c.id, cn, c.desc, DATE_FORMAT(c.create_time, '%k:%i:%s %e-%m-%y') AS create_time, email, c.email_notify, \
-ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, d.profile, p.name AS profile_name \
+ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, IF(sync_flags > 0, 1, 0) AS flagged, d.profile, p.name AS profile_name \
 FROM clients c INNER JOIN devices d ON d.client_id = c.id \
 LEFT OUTER JOIN profiles p ON d.profile = p.profile \
 WHERE type = 1 AND c.id = ?", $id =>
@@ -37,7 +38,7 @@ sub _build_server_rec {
   my $h = shift;
   my $ipo = NetAddr::IP::Lite->new($h->{ip}) || die 'IP address failure';
   my $sr = { ip => $ipo->addr };
-  for (qw/id cn desc create_time email email_notify mac rt defjump speed_in speed_out no_dhcp qs limit_in blocked profile/) {
+  for (qw/id cn desc create_time email email_notify mac rt defjump speed_in speed_out no_dhcp qs limit_in blocked flagged profile/) {
     die 'Undefined server record attribute' unless exists $h->{$_};
     $sr->{$_} = $h->{$_};
   }
@@ -65,8 +66,9 @@ sub serverput {
   $self->log->debug($self->dumper($j));
   $self->render_later;
 
+  # FIXME sync_flags field is deprecated
   $self->mysql_inet->db->query("UPDATE clients c INNER JOIN devices d ON d.client_id = c.id \
-SET cn = ?, c.desc = ?, name = 'Подключение сервера', d.desc = '', email = ?, c.email_notify = ?, ip = ?, mac = ?, no_dhcp = ?, rt = ?, defjump = ?, speed_in = ?, speed_out = ?, qs = ?, limit_in = ? \
+SET cn = ?, c.desc = ?, name = 'Подключение сервера', d.desc = '', email = ?, c.email_notify = ?, ip = ?, mac = ?, no_dhcp = ?, rt = ?, defjump = ?, speed_in = ?, speed_out = ?, qs = ?, limit_in = ?, sync_flags = 15 \
 WHERE c.type = 1 AND c.id = ?",
     $j->{cn},
     $j->{desc} // '',

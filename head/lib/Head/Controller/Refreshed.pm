@@ -66,45 +66,46 @@ sub update_db_flags {
   # start database operation that continue in callback
   # RTSYN
   if ($agent_type eq 'rtsyn') {
-    $db->query("UPDATE devices, devices_sync s \
-SET s.sync_rt = 0 WHERE $rule devices.id = ? AND devices.login = s.login", $id
+    $db->query("UPDATE devices \
+SET sync_flags = sync_flags & 0b11110111 WHERE $rule id = ?", $id
       => $_cb
     );
 
   # DHCPSYN
   } elsif ($agent_type eq 'dhcpsyn') {
+    # FIXME FIXME
     # this is BAD WORKAROUND to ensure compatibility bitween old flags scheme
     # and multiple agents of the same type in one profile
     if ($subsys =~ /\@plksrv1$/i) {
-      $db->query("UPDATE devices, devices_sync s \
-SET s.sync_dhcp = s.sync_dhcp & 2 WHERE $rule devices.id = ? AND devices.login = s.login", $id
+      $db->query("UPDATE devices \
+SET sync_flags = sync_flags & 0b11111110 WHERE $rule id = ?", $id
         => $_cb
       );
     } elsif ($subsys =~ /\@plksrv4$/i) {
-      $db->query("UPDATE devices, devices_sync s \
-SET s.sync_dhcp = s.sync_dhcp & 1 WHERE $rule devices.id = ? AND devices.login = s.login", $id
+      $db->query("UPDATE devices \
+SET sync_flags = sync_flags & 0b11111101 WHERE $rule id = ?", $id
         => $_cb
       );
     } else {
       # UNKNOWN? issue warning
       $self->dblog->info("Device id $id dhcpsyn unknown subsys $subsys. Check this.");
-      $db->query("UPDATE devices, devices_sync s \
-SET s.sync_dhcp = 0 WHERE $rule devices.id = ? AND devices.login = s.login", $id
+      $db->query("UPDATE devices \
+SET sync_flags = sync_flags & 0b11111100 WHERE $rule id = ?", $id
         => $_cb
       );
     }
 
   # FWSYN
   } elsif ($agent_type eq 'fwsyn') {
-    $db->query("UPDATE devices, devices_sync s \
-SET s.sync_fw = 0 WHERE $rule devices.id = ? AND devices.login = s.login", $id
+    $db->query("UPDATE devices \
+SET sync_flags = sync_flags & 0b11111011 WHERE $rule id = ?", $id
       => $_cb
     );
 
   # GWSYN
   } elsif ($agent_type eq 'gwsyn') {
-    $db->query("UPDATE devices, devices_sync s \
-SET s.sync_rt = 0, s.sync_dhcp = 0, s.sync_fw = 0 WHERE $rule devices.id = ? AND devices.login = s.login", $id
+    $db->query("UPDATE devices \
+SET sync_flags = 0 WHERE $rule id = ?", $id
       => $_cb
     );
 

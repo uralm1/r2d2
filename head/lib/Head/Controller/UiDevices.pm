@@ -14,8 +14,9 @@ sub deviceget {
 
   $self->render_later;
 
+  # FIXME sync_flags field is deprecated
   $self->mysql_inet->db->query("SELECT d.id, d.name, d.desc, DATE_FORMAT(d.create_time, '%k:%i:%s %e-%m-%y') AS create_time, \
-ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, d.profile, p.name AS profile_name, d.client_id AS client_id, c.cn AS client_cn, c.login AS client_login \
+ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, IF(sync_flags > 0, 1, 0) AS flagged, d.profile, p.name AS profile_name, d.client_id AS client_id, c.cn AS client_cn, c.login AS client_login \
 FROM devices d INNER JOIN clients c ON d.client_id = c.id LEFT OUTER JOIN profiles p ON d.profile = p.profile \
 WHERE d.id = ? AND d.client_id = ?", $device_id, $client_id =>
     sub {
@@ -39,7 +40,7 @@ sub _build_device_rec {
   my $h = shift;
   my $ipo = NetAddr::IP::Lite->new($h->{ip}) || die 'IP address failure';
   my $r = { ip => $ipo->addr };
-  for (qw/id name desc create_time mac rt defjump speed_in speed_out no_dhcp qs limit_in blocked profile/) {
+  for (qw/id name desc create_time mac rt defjump speed_in speed_out no_dhcp qs limit_in blocked flagged profile/) {
     die 'Undefined device record attribute' unless exists $h->{$_};
     $r->{$_} = $h->{$_};
   }
@@ -69,8 +70,9 @@ sub deviceput {
   $self->log->debug($self->dumper($j));
   $self->render_later;
 
+  # FIXME sync_flags field is deprecated
   $self->mysql_inet->db->query("UPDATE devices \
-SET name = ?, devices.desc = ?, ip = ?, mac = ?, no_dhcp = ?, rt = ?, defjump = ?, speed_in = ?, speed_out = ?, qs = ?, limit_in = ? \
+SET name = ?, devices.desc = ?, ip = ?, mac = ?, no_dhcp = ?, rt = ?, defjump = ?, speed_in = ?, speed_out = ?, qs = ?, limit_in = ?, sync_flags = 15 \
 WHERE id = ? AND client_id = ? AND EXISTS (SELECT 1 FROM clients WHERE clients.id = ? AND type = 0)",
     $j->{name},
     $j->{desc} // '',

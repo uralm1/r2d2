@@ -1895,6 +1895,11 @@ components:
           type: integer
           description: blocked flag (0-unblocked, 1-blocked)
           example: 0
+        flagged:
+          type: integer
+          description: sync flag (0-not set, 1-set)
+          enum: [0, 1]
+          example: 0
         profile:
           type: string
           description: server profile (key)
@@ -1914,6 +1919,7 @@ components:
         - speed_out
         - qs
         - limit_in
+        - flagged
         - profile
 
 
@@ -2078,6 +2084,11 @@ components:
           type: integer
           description: blocked flag (0-unblocked, 1-blocked)
           example: 0
+        flagged:
+          type: integer
+          description: sync flag (0-not set, 1-set)
+          enum: [0, 1]
+          example: 0
         profile:
           type: string
           description: device profile (key)
@@ -2109,6 +2120,7 @@ components:
         - speed_out
         - qs
         - limit_in
+        - flagged
         - profile
 
 

@@ -13,15 +13,18 @@ sub run {
   my $profiles = $app->profiles(dont_copy_config_to_db => 1);
   my $db = $app->mysql_inet->db;
   $app->log->info('Asyncronious update - checking db for changes');
-  $db->query("SELECT devices.id, profile, s.sync_rt, s.sync_fw, s.sync_dhcp FROM devices, devices_sync s\
-WHERE (s.sync_rt > 0 OR s.sync_fw > 0 OR s.sync_dhcp > 0) AND devices.login = s.login" =>
+  $db->query("SELECT id, profile, sync_flags FROM devices WHERE sync_flags > 0" =>
     sub {
       my ($db, $err, $results) = @_;
       unless ($err) {
         # loop by devices
         while (my $n = $results->hash) {
           my $id = $n->{id};
-          my %oldflags = (rtsyn=>$n->{sync_rt}, dhcpsyn=>$n->{sync_dhcp}, fwsyn=>$n->{sync_fw});
+          my $sync_flags = $n->{sync_flags};
+          my $sync_rt = ($sync_flags & 0b1000) >> 3;
+          my $sync_fw = ($sync_flags & 0b0100) >> 2;
+          my $sync_dhcp = $sync_flags & 0b0011;
+          my %oldflags = (rtsyn=>$sync_rt, dhcpsyn=>$sync_dhcp, fwsyn=>$sync_fw);
 
           #say "id: $id, profile: $n->{profile}";
           # loop by agents
