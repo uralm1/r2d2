@@ -189,6 +189,58 @@ sub register {
       Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
     }
   });
+
+
+  # 'text' = trans_rt_name($rt)
+  $app->helper(trans_rt_name => sub {
+    my ($c, $selector) = @_;
+    state %trans = map { $_->[1] => $_->[0] } @{$c->config('rt_names')};
+    return $trans{$selector} // 'Неизвестно';
+  });
+
+
+  # 'text' = trans_qs_name($qs)
+  $app->helper(trans_qs_name => sub {
+    my ($c, $selector) = @_;
+    state %trans = map { $_->[1] => $_->[0] } @{$c->config('qs_names')};
+    return $trans{$selector} // 'Неизвестно';
+  });
+
+
+  # 'text' = trans_defjump_name($defjump)
+  $app->helper(trans_defjump_name => sub {
+    my ($c, $selector) = @_;
+    state %trans = map { $_->[1] => $_->[0] } @{$c->config('defjump_names')};
+    return $trans{$selector} // 'Неизвестно';
+  });
+
+
+  # 'text' = trans_speed_plan($speed_key)
+  $app->helper(trans_speed_plan => sub {
+    my ($c, $selector) = @_;
+    state %trans = map { $_->{key} => $_->{name} } @{$c->config('speed_plans')};
+    return $trans{$selector} // 'Неизвестно';
+  });
+
+  # 'speed_key'|'userdef' = get_speed_key($speed_in, $speed_out)
+  $app->helper(get_speed_key => sub {
+    my ($c, $speed_in, $speed_out) = @_;
+    state %trans = map { 
+      my $in = $_->{in};
+      my $out = $_->{out};
+      defined $in && defined $out && $in ne '' && $out ne '' ? ("$in$out" => $_->{key}) : ()
+    } @{$c->config('speed_plans')};
+
+    return $trans{"$speed_in$speed_out"} // 'userdef';
+  });
+
+  # ['name' => 'speed_key', 'data-icon' => 'img'] = array_for_speed_select;
+  $app->helper(array_for_speed_select => sub {
+    my $c = shift;
+    state @arr = map { [$_->{name} => $_->{key}, 'data-icon' => $_->{img}] } @{$c->config('speed_plans')};
+    return \@arr;
+  });
+
 }
 
 1;

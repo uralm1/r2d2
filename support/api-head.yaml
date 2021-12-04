@@ -436,7 +436,7 @@ paths:
           description: Режим просмотра, необязательный
           schema:
             type: string
-            enum: ['','clients','lost','pain','servers','devices','flagged']
+            enum: ['','clients','lost','pain','servers','devices','flagged','blocked']
             example: 'lost'
         - name: sort
           in: query
@@ -1891,6 +1891,10 @@ components:
           type: integer
           description: quota limit in bytes
           example: 1073741824
+        sum_limit_in:
+          type: integer
+          description: remaining limit in bytes (not required on new)
+          example: 1073741824
         blocked:
           type: integer
           description: blocked flag (0-unblocked, 1-blocked)
@@ -2079,6 +2083,10 @@ components:
         limit_in:
           type: integer
           description: quota limit in bytes
+          example: 1073741824
+        sum_limit_in:
+          type: integer
+          description: remaining limit in bytes (not required on new)
           example: 1073741824
         blocked:
           type: integer

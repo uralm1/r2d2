@@ -19,7 +19,7 @@ sub index {
       $sort_mode = '' if $sort_mode !~ /^(?:|cn|login)$/;
       $search = '';
 
-    } elsif ($view_mode =~ /^(?:devices|flagged)$/) {
+    } elsif ($view_mode =~ /^(?:devices|flagged|blocked)$/) {
       $sort_mode = '' if $sort_mode !~ /^(?:|ip|mac|place|rt)$/;
       $search = '';
 
@@ -30,7 +30,7 @@ sub index {
       $search = '' if _isipmac($search);
 
     } elsif ($sort_mode =~ /^(?:ip|mac|place|rt)$/) {
-      $view_mode = 'devices' if $view_mode !~ /^(?:devices|flagged)$/;
+      $view_mode = 'devices' if $view_mode !~ /^(?:devices|flagged|blocked)$/;
       $search = '' if _istext($search);
 
     }

@@ -22,7 +22,7 @@ sub list {
   my $search = $self->param('s');
   my $view = $self->param('v') // '';
   return $self->render(text => 'Invalid view option', status => 400)
-    unless $view =~ /^(?:|clients|lost|pain|servers|devices|flagged)$/;
+    unless $view =~ /^(?:|clients|lost|pain|servers|devices|flagged|blocked)$/;
 
   my $sort = $self->param('sort') // '';
   return $self->render(text => 'Invalid sort option', status => 400)
@@ -30,7 +30,7 @@ sub list {
 
   my $view_mode; # 'clients' or 'devices' for json output
   my $_view_mode_clients = $view =~ /^(?:|clients|lost|pain|servers)$/;
-  my $_view_mode_devices = $view =~ /^(?:devices|flagged)$/;
+  my $_view_mode_devices = $view =~ /^(?:devices|flagged|blocked)$/;
   if (_istext($search)) {
     $_view_mode_clients = 1; $_view_mode_devices = 0;
   } elsif (_isip($search) || _ismac($search)) {
@@ -252,6 +252,7 @@ sub _build_device_where {
   my $where;
   #$where = '' if $view =~ /^devices$/;
   $where = 'sync_flags > 0' if $view =~ /^flagged$/; #FIXME
+  $where = 'blocked > 0' if $view =~ /^blocked$/;
 
   if (_isip($search)) {
     if (my $ipo = NetAddr::IP::Lite->new($search)) {
@@ -315,7 +316,7 @@ sub client_devices_p {
       sub {
         # FIXME sync_flags field is deprecated
         $db->query_p("SELECT d.id, d.name, d.desc, DATE_FORMAT(create_time, '%k:%i:%s %e-%m-%y') AS create_time, \
-ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, IF(sync_flags > 0, 1, 0) AS flagged, d.profile, p.name AS profile_name, d.client_id AS client_id \
+ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, sum_limit_in, blocked, IF(sync_flags > 0, 1, 0) AS flagged, d.profile, p.name AS profile_name, d.client_id AS client_id \
 FROM devices d LEFT OUTER JOIN profiles p ON d.profile = p.profile WHERE d.client_id = ? \
 ORDER BY ip ASC LIMIT 20", $_->{id})
       },
@@ -391,7 +392,7 @@ sub devices_p {
   my $order = $self->_build_device_order;
   # FIXME sync_flags field is deprecated
   $db->query_p("SELECT d.id, d.name, d.desc, DATE_FORMAT(d.create_time, '%k:%i:%s %e-%m-%y') AS create_time, \
-ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, blocked, IF(sync_flags > 0, 1, 0) AS flagged, d.profile, p.name AS profile_name, d.client_id AS client_id, c.cn AS client_cn, c.login AS client_login \
+ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, sum_limit_in, blocked, IF(sync_flags > 0, 1, 0) AS flagged, d.profile, p.name AS profile_name, d.client_id AS client_id, c.cn AS client_cn, c.login AS client_login \
 FROM devices d INNER JOIN clients c ON d.client_id = c.id LEFT OUTER JOIN profiles p ON d.profile = p.profile \
 $where $order LIMIT ? OFFSET ?",
     $lines_on_page,

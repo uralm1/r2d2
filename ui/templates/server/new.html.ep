@@ -86,8 +86,7 @@
 	  <div class="input-field col s12 m8 l4">
 	    % my $sp = config 'speed_plans';
 	    % param 'speed_key' => $sp->[0]{key} unless param 'speed_key';
-	    % my @sl = map {[$_->{name} => $_->{key}, 'data-icon' => $_->{img}]} @$sp;
-	    %= select_field speed_key => \@sl, id => 'speed';
+	    %= select_field speed_key => array_for_speed_select, id => 'speed';
 	    %= label_for speed => 'Скорость доступа'
 	    %= t 'span', class => 'helper-text', 'При выборе индивидуала, настройте скорости вручную'
 	  </div>

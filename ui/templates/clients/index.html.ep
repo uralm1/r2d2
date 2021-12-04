@@ -21,23 +21,22 @@
       % param v => stash 'v' if defined(stash 'v');
       % param v => 'lost' if $rec->{has_lost_clients} && !session('lostfirstshown');
       % session lostfirstshown => 1;
-      %= select_field v => [['Все (клиенты+серверы)' => ''], ['Клиенты' => 'clients'], ['Клиенты (удалённые или отсутствующие в AD)' => 'lost'], ['Клиенты (созданные вручную)' => 'pain'], ['Серверы' => 'servers'], ['Устройства' => 'devices'], ['Устройства (несинхронизированные)' => 'flagged']], id => 'view-select'
+      %= select_field v => [['Все (клиенты+серверы)' => ''], ['Клиенты' => 'clients'], ['Клиенты (удалённые или отсутствующие в AD)' => 'lost'], ['Клиенты (созданные вручную)' => 'pain'], ['Серверы' => 'servers'], ['Устройства' => 'devices'], ['Устройства (несинхронизированные)' => 'flagged'], ['Устройства (заблокированные)' => 'blocked']], id => 'view-select'
       <label>или выберите вариант представления</label>
     </div>
     % end
   </div>
+
   % if ($rec->{has_lost_clients} || $rec->{has_pain_clients}) {
-  <div class="row"><div class="col s12 m12 l10"><div class="card-panel list-warning-panel">
-    % if ($rec->{has_lost_clients}) {
-    <div class="red-text"><i class="material-icons tiny">warning</i><span>&nbsp;<b>ВНИМАНИЕ! Имеются клиенты, отсутствующие в глобальном каталоге. Выполните замену или удаление.</b></span></div>
-    % }
-    % if ($rec->{has_pain_clients}) {
-    <div><i class="material-icons tiny">warning</i><span>&nbsp;<b>ВНИМАНИЕ!</b> Имеются клиенты, созданные вручную. Рекомендуется перейти на использование глобального каталога.</span></div>
-    % }
-  </div></div></div>
+  %= panel_html 'start'
+  %= $rec->{has_lost_clients} ? panel_html 'lostlist' : ''
+  %= $rec->{has_pain_clients} ? panel_html 'painlist' : ''
+  %= panel_html 'end'
   % }
+
   % my $obj_text;
   % my $sorton = sub { my $s = stash('sort'); $s =~ /$_[0]/ ? '&nbsp;<i class="material-icons tiny">sort</i>' : '' };
+
   % if ($rec->{view_mode} =~ /^clients/) {
   %   $obj_text = 'клиентов и серверов';
   %   if (@{$rec->{d}}) { # data exist?
@@ -52,27 +51,27 @@
     </thead>
     <tbody>
     % my $th;
-    % for (@{$rec->{d}}) {
+    % for my $c (@{$rec->{d}}) {
       % my ($lost_class, $lost_tooltip_class, $lost_tooltip_data) = ('','','');
-      % if ($_->{lost} == 1) {
+      % if ($c->{lost} == 1) {
       %   $lost_class = 'lostclient';
       %   $lost_tooltip_class = 'table-tooltips';
       %   $lost_tooltip_data = 'data-tooltip="Данный клиент отсутствует в глобальном каталоге. Выполните замену или удаление клиента.", data-position="bottom"';
       % }
-      <tr class="tr-client <%== $lost_class %>" data-type="<%= $_->{type} %>" data-clientid="<%== $_->{id} %>">
+      <tr class="tr-client <%== $lost_class %>" data-type="<%= $c->{type} %>" data-clientid="<%== $c->{id} %>">
 	<td style="width:5%">
-	  <span class="<%== $_->{type} == 1 ? 'listservertype':'listclienttype' %> <%== $lost_tooltip_class %>" <%== $lost_tooltip_data %>>
-	    <%== $_->{type} == 0 ? 'Клиент':$_->{type} == 1 ? 'Сервер':'Неизв.' %>
+	  <span class="<%== $c->{type} == 1 ? 'listservertype':'listclienttype' %> <%== $lost_tooltip_class %>" <%== $lost_tooltip_data %>>
+	    <%== $c->{type} == 0 ? 'Клиент':$c->{type} == 1 ? 'Сервер':'Неизв.' %>
 	  </span>
 	</td>
 	<td>
-	  % my $cn_tooltip = ($_->{desc} ne '') ? 'table-tooltips' : '';
-	  %= link_to $_->{type} == 1 ? url_for('serveredit')->query(id => $_->{id}) : url_for('clientedit')->query(id => $_->{id}) => (class => "listlink $cn_tooltip", 'data-tooltip' => $_->{desc}, 'data-position' => 'bottom') => begin
-	  <%= $_->{cn} %>
+	  % my $cn_tooltip = ($c->{desc} ne '') ? 'table-tooltips' : '';
+	  %= link_to $c->{type} == 1 ? url_for('serveredit')->query(id => $c->{id}) : url_for('clientedit')->query(id => $c->{id}) => (class => "listlink $cn_tooltip", 'data-tooltip' => $c->{desc}, 'data-position' => 'bottom') => begin
+	  <%= $c->{cn} %>
 	  % end
 	</td>
-	<td><%= $_->{login} %></td>
-	<td><%= $_->{email} %></td>
+	<td><%= $c->{login} %></td>
+	<td><%= $c->{email} %></td>
       </tr>
       <tr class="tr-devices <%== $lost_class %>">
 	<td class="listdevicerow" colspan="4">
@@ -81,62 +80,62 @@
 	    <thead>
 	      <tr class="tr-device-head">
 		<th style="width:23%">Устройство</th>
-		<th style="width:15%"><a class="sortlink" href="<%== url_with->query({sort => 'place', set => 'sort'}) %>">Место</a><%== $sorton->(qr/^place$/) %></th>
 		<th style="width:13%"><a class="sortlink" href="<%== url_with->query({sort => 'ip', set => 'sort'}) %>">IP</a><%== $sorton->(qr/^ip$/) %></th>
 		<th style="width:15%"><a class="sortlink" href="<%== url_with->query({sort => 'mac', set => 'sort'}) %>">MAC</a><%== $sorton->(qr/^mac$/) %></th>
 		<th style="width:10%"><a class="sortlink" href="<%== url_with->query({sort => 'rt', set => 'sort'}) %>">Провайдер</a><%== $sorton->(qr/^rt$/) %></th>
 		<th style="width:12%">Правило</th>
 		<th style="width:12%">Лимит</th>
+		<th style="width:15%"><a class="sortlink" href="<%== url_with->query({sort => 'place', set => 'sort'}) %>">Место</a><%== $sorton->(qr/^place$/) %></th>
 	      </tr>
 	    <thead>
 	    % $th = 1; }
 	    <tbody>
-	    % for my $d (@{$_->{devices}}) {
-	    %   my ($flagged_class, $flagged_img) = ('','');
-	    %   if ($d->{flagged}) {
-	    %     $flagged_class = 'flaggeddevice';
-	    %     $flagged_img = '<i class="material-icons tiny green-text table-tooltips" data-position="bottom" data-tooltip="Устройство не синхронизировано">sync</i>';
-	    %   }
-	    <tr class="tr-device <%== $flagged_class %>" data-type="<%= $_->{type} %>" data-clientid="<%== $_->{id} %>" data-deviceid="<%== $d->{id} %>">
+	    % for (@{$c->{devices}}) {
+	    <tr class="tr-device" data-type="<%= $c->{type} %>" data-clientid="<%== $c->{id} %>" data-deviceid="<%== $_->{id} %>">
 	      <td style="width:23%">
-		%== $flagged_img
-		<i class="material-icons tiny"><%== $_->{type} == 1 ? 'dns':'computer' %></i>
-		%= link_to $_->{type} == 1 ? url_for('serveredit')->query(id => $_->{id}) : url_for('deviceedit')->query(clientid => $_->{id}, id => $d->{id}) => (class => 'listlink') => begin
-		% if ($d->{name} ne '') {
-		%= $d->{name}
+		%= $_->{flagged} ? img_html 'flagged' : ''
+		<i class="material-icons tiny"><%== $c->{type} == 1 ? 'dns':'computer' %></i>
+		%= link_to $c->{type} == 1 ? url_for('serveredit')->query(id => $c->{id}) : url_for('deviceedit')->query(clientid => $c->{id}, id => $_->{id}) => (class => 'listlink') => begin
+		% if ($_->{name} ne '') {
+		%= $_->{name}
 		% } else {
-		ID:&nbsp;<%= $d->{id} %>
+		ID:&nbsp;<%= $_->{id} %>
 		% }
 		% end
 	      </td>
-	      <td style="width:15%">
-		<%= $d->{profile_name} // "Нет данных ($d->{profile})" %>
-	      </td>
 	      <td style="width:13%">
-		<%= $d->{ip} %>
+		<%= $_->{ip} %>
 	      </td>
 	      <td style="width:15%">
-		<%= $d->{mac} %>
+	        %= $_->{no_dhcp} ? img_html 'no_dhcp' : ''
+		%= $_->{mac}
 	      </td>
 	      <td style="width:10%">
-	        % my $_rt = $d->{rt};
-		% my @x = grep {$_->[1] == $_rt} @{config('rt_names')};
-		<%= $x[0][0] // 'Неизвестно' %>
+	        %= trans_rt_name $_->{rt}
 	      </td>
 	      <td style="width:12%">
-		<%= $d->{defjump} %>
+	        %= t span => (class => 'table-tooltips', 'data-tooltip' => trans_defjump_name($_->{defjump}), 'data-position' => 'bottom') => begin
+	        %= $_->{defjump}
+	        % end
 	      </td>
 	      <td style="width:12%">
-		<%== $d->{qs} == 0 ? '*Анлим*' : btomb($d->{limit_in}).'&nbsp;Мб' %>
+	        %= $_->{blocked} ? img_html(blocked => $_->{qs}) : ''
+		% my $speed_key = get_speed_key($_->{speed_in}, $_->{speed_out});
+		% my $speed = 'Скорость: '.trans_speed_plan($speed_key);
+		% $speed .= "\nВходящая: $_->{speed_in}\nИсходящая: $_->{speed_out}" if $speed_key eq 'userdef';
+		% my $t = "$speed\nРежим квоты: ".trans_qs_name($_->{qs})."\nОсталось: ".btomb($_->{sum_limit_in}).' Мб из '.btomb($_->{limit_in}).' Мб';
+		%= t span => (class => 'table-tooltips', 'data-tooltip' => $t, 'data-position' => 'bottom') => begin
+		%== $_->{qs} == 0 ? '*Анлим*' : btomb($_->{limit_in}).'&nbsp;Мб'
+	        % end
+	      </td>
+	      <td style="width:15%">
+		<%= $_->{profile_name} // "Нет данных ($_->{profile})" %>
 	      </td>
 	    </tr>
 	    % }
-	    % unless (@{$_->{devices}}) {
+	    % unless (@{$c->{devices}}) {
 	    <tr class="tr-device">
-	      <td colspan="7">
-		<i class="material-icons tiny">report</i>
-		<span>Устройства отсутствуют</span>
-	      </td>
+	      <td colspan="7">Клиентские устройства отсутствуют</td>
 	    </tr>
 	    % }
 	    </tbody>
@@ -151,14 +150,15 @@
   </div></div>
   %   }
   </table>
+
   % } elsif ($rec->{view_mode} =~ /^devices/) {
   %   $obj_text = 'устройств';
   %   if (@{$rec->{d}}) { # data exist?
   <table>
     <thead>
       <tr class="tr-device1-head">
-	<th style="width:11%">Устройство</th>
-	<th style="width:15%"><a class="sortlink" href="<%== url_with->query({sort => 'cn', set => 'sort'}) %>">Клиент</a><%== $sorton->(qr/^cn$/) %></th>
+	<th style="width:13%">Устройство</th>
+	<th style="width:13%"><a class="sortlink" href="<%== url_with->query({sort => 'cn', set => 'sort'}) %>">Клиент</a><%== $sorton->(qr/^cn$/) %></th>
 	<th style="width:13%"><a class="sortlink" href="<%== url_with->query({sort => 'ip', set => 'sort'}) %>">IP</a><%== $sorton->(qr/^ip$/) %></th>
 	<th style="width:15%"><a class="sortlink" href="<%== url_with->query({sort => 'mac', set => 'sort'}) %>">MAC</a><%== $sorton->(qr/^mac$/) %></th>
 	<th style="width:10%"><a class="sortlink" href="<%== url_with->query({sort => 'rt', set => 'sort'}) %>">Провайдер</a><%== $sorton->(qr/^rt$/) %></th>
@@ -169,14 +169,9 @@
     </thead>
     <tbody>
     % for (@{$rec->{d}}) {
-    %   my ($flagged_class, $flagged_img) = ('','');
-    %   if ($_->{flagged}) {
-    %     $flagged_class = 'flaggeddevice';
-    %     $flagged_img = '<i class="material-icons tiny green-text table-tooltips" data-position="bottom" data-tooltip="Устройство не синхронизировано">sync</i>';
-    %   }
-    <tr class="tr-device-edit <%== $flagged_class %>" data-type="<%== defined $_->{client_login} && $_->{client_login} ne '' ? 0 : 1 %>" data-clientid="<%== $_->{client_id} %>" data-deviceid="<%== $_->{id} %>">
-	<td style="width:11%">
-	  %== $flagged_img
+    <tr class="tr-device-edit" data-type="<%== defined $_->{client_login} && $_->{client_login} ne '' ? 0 : 1 %>" data-clientid="<%== $_->{client_id} %>" data-deviceid="<%== $_->{id} %>">
+	<td style="width:13%">
+	  %= $_->{flagged} ? img_html 'flagged' : ''
 	  % my $name_tooltip = (defined $_->{desc} && $_->{desc} ne '') ? 'table-tooltips' : '';
 	  %= link_to url_for('deviceedit')->query(clientid => $_->{id}, id => $_->{id}) => (class => "listlink $name_tooltip", 'data-tooltip' => $_->{desc}, 'data-position' => 'bottom') => begin
 	  % if ($_->{name} ne '') {
@@ -186,7 +181,7 @@
 	  % }
 	  % end
 	</td>
-	<td style="width:15%">
+	<td style="width:13%">
 	  % my $client_tooltip = ($_->{client_login} ne '') ? 'table-tooltips' : '';
 	  %= t span => (class => $client_tooltip, 'data-tooltip' => 'Логин: '.$_->{client_login} // '', 'data-position' => 'bottom') => begin
 	  %= $_->{client_cn}
@@ -196,18 +191,26 @@
 	  <%= $_->{ip} %>
 	</td>
 	<td style="width:15%">
-	  <%= $_->{mac} %>
+          %= $_->{no_dhcp} ? img_html 'no_dhcp' : ''
+	  %= $_->{mac}
 	</td>
 	<td style="width:10%">
-	  % my $_rt = $_->{rt};
-	  % my @x = grep {$_->[1] == $_rt} @{config('rt_names')};
-	  <%= $x[0][0] // 'Неизвестно' %>
+	  %= trans_rt_name $_->{rt}
 	</td>
 	<td style="width:9%">
-	  <%= $_->{defjump} %>
+	  %= t span => (class => 'table-tooltips', 'data-tooltip' => trans_defjump_name($_->{defjump}), 'data-position' => 'bottom') => begin
+	  %= $_->{defjump}
+	  % end
 	</td>
 	<td style="width:12%">
-	  <%== $_->{qs} == 0 ? '*Анлим*' : btomb($_->{limit_in}).'&nbsp;Мб' %>
+          %= $_->{blocked} ? img_html(blocked => $_->{qs}) : ''
+	  % my $speed_key = get_speed_key($_->{speed_in}, $_->{speed_out});
+	  % my $speed = 'Скорость: '.trans_speed_plan($speed_key);
+	  % $speed .= "\nВходящая: $_->{speed_in}\nИсходящая: $_->{speed_out}" if $speed_key eq 'userdef';
+	  % my $t = "$speed\nРежим квоты: ".trans_qs_name($_->{qs})."\nОсталось: ".btomb($_->{sum_limit_in}).' Мб из '.btomb($_->{limit_in}).' Мб';
+	  %= t span => (class => 'table-tooltips', 'data-tooltip' => $t, 'data-position' => 'bottom') => begin
+	  %== $_->{qs} == 0 ? '*Анлим*' : btomb($_->{limit_in}).'&nbsp;Мб'
+	  % end
 	</td>
 	<td style="width:15%">
 	  <%= $_->{profile_name} // "Нет данных ($_->{profile})" %>
@@ -240,7 +243,7 @@
     $('select').formSelect();
     $('.fixed-action-btn').floatingActionButton();
     $('.btn-tooltip').tooltip();
-    $('.table-tooltips').tooltip({enterDelay:700});
+    $('.table-tooltips').tooltip({enterDelay:500});
     $('.tr-client').click(function(){
       var id = $(this).attr('data-clientid');
       if (id==undefined)

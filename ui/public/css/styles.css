@@ -195,3 +195,8 @@ a.sortlink {
   margin-bottom:0px;
   background-color:#fff;
 }
+
+.material-tooltip {
+  white-space: pre-wrap;
+  text-align: left;
+}

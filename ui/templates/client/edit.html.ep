@@ -24,15 +24,12 @@
 	%= hidden_field email_a => $rec->{email}
 
 	% if ($rec->{lost} || !$rec->{guid}) {
-	<div class="row"><div class="col s12 m12 l10"><div class="card-panel list-warning-panel">
-          % if ($rec->{lost}) {
-	  <div class="red-text"><i class="material-icons tiny">warning</i><span>&nbsp;<b>ВНИМАНИЕ! Данный клиент отсутствует в глобальном каталоге. Выполните замену или удаление.</b></span></div>
-	  % }
-          % if (!$rec->{guid}) {
-	  <div><i class="material-icons tiny">warning</i><span>&nbsp;<b>ВНИМАНИЕ!</b> Данный клиент создан вручную. Рекомендуется перейти на использование глобального каталога.</span></div>
-	  % }
-	</div></div></div>
+	%= panel_html 'start'
+	%= $rec->{lost} ? panel_html 'lost' : ''
+	%= !$rec->{guid} ? panel_html 'manual' : ''
+	%= panel_html 'end'
 	% }
+
         % if ($rec->{guid}) {
 	<div class="row">
 	  <div class="input-field col s12 m8 l5">
@@ -69,7 +66,7 @@
 	  <div class="col s12 m8 l5 offset-l1">
 	    <br><br>
 	    <label>
-	      % param email_notify => $rec->{email_notify} unless defined param 'email_notify';
+	      % param email_notify => $rec->{email_notify} // 0 unless defined param 'email_notify';
 	      %= check_box email_notify => 1, id => 'enotify', class => 'filled-in'
 	      %= t 'span', 'Уведомление по e-mail об окончании лимитов'
 	    </label>
@@ -160,15 +157,10 @@
 	    <tbody>
 	      % my $line_num = 1;
 	      % for (@{$rec->{devices}}) {
-	      %   my ($flagged_class, $flagged_img) = ('','');
-	      %   if ($_->{flagged}) {
-	      %     $flagged_class = 'flaggeddevice';
-	      %     $flagged_img = '<i class="material-icons tiny green-text table-tooltips" data-position="bottom" data-tooltip="Устройство не синхронизировано">sync</i>';
-	      %   }
-	      <tr class="tr-device-edit <%== $flagged_class %>" data-deviceid="<%== $_->{id} %>">
+	      <tr class="tr-device-edit" data-deviceid="<%== $_->{id} %>">
 		<td><%== $line_num++ %></td>
 		<td>
-	          %== $flagged_img
+		  %= $_->{flagged} ? img_html 'flagged' : ''
 		  %= link_to url_for('deviceedit')->query(back => 1, clientid => $client_id, id => $_->{id}) => (class => 'listlink') => begin
 		  % if ($_->{name} ne '') {
 		  %= $_->{name}
@@ -178,14 +170,28 @@
 		  % end
 		</td>
 		<td><%= $_->{ip} %></td>
-		<td><%= $_->{mac} %></td>
 		<td>
-	          % my $_rt = $_->{rt};
-	          % my @x = grep {$_->[1] == $_rt} @{config('rt_names')};
-	          <%= $x[0][0] // 'Неизвестно' %>
+	          %= $_->{no_dhcp} ? img_html 'no_dhcp' : ''
+		  %= $_->{mac}
 		</td>
-		<td><%= $_->{defjump} %></td>
-		<td><%== $_->{qs} == 0 ? '*Анлим*' : btomb($_->{limit_in}).'&nbsp;Мб' %></td>
+		<td>
+		  %= trans_rt_name $_->{rt}
+		</td>
+		<td>
+	          %= t span => (class => 'table-tooltips', 'data-tooltip' => trans_defjump_name($_->{defjump}), 'data-position' => 'bottom') => begin
+	          %= $_->{defjump}
+	          % end
+		</td>
+		<td>
+	          %= $_->{blocked} ? img_html(blocked => $_->{qs}) : ''
+		  % my $speed_key = get_speed_key($_->{speed_in}, $_->{speed_out});
+		  % my $speed = 'Скорость: '.trans_speed_plan($speed_key);
+		  % $speed .= "\nВходящая: $_->{speed_in}\nИсходящая: $_->{speed_out}" if $speed_key eq 'userdef';
+		  % my $t = "$speed\nРежим квоты: ".trans_qs_name($_->{qs})."\nОсталось: ".btomb($_->{sum_limit_in}).' Мб из '.btomb($_->{limit_in}).' Мб';
+		  %= t span => (class => 'table-tooltips', 'data-tooltip' => $t, 'data-position' => 'bottom') => begin
+		  %== $_->{qs} == 0 ? '*Анлим*' : btomb($_->{limit_in}).'&nbsp;Мб'
+	          % end
+		</td>
 		<td><%= $_->{profile_name} // "Нет данных ($_->{profile})" %></td>
 	      </tr>
 	      % }
@@ -227,7 +233,7 @@
 $(document).ready(function(){
   $('.scrollspy').scrollSpy();
   $('.btn-tooltip').tooltip({enterDelay:500});
-  $('.table-tooltips').tooltip({enterDelay:700});
+  $('.table-tooltips').tooltip({enterDelay:500});
 
   $('input.field-with-error,textarea.field-with-error').removeClass('valid').addClass('invalid');
 

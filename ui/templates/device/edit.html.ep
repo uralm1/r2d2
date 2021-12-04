@@ -16,11 +16,14 @@
 	%= hidden_field clientid => $client_id
 	%= hidden_field client_cn_a => $rec->{client_cn}
 	%= hidden_field client_login_a => $rec->{client_login}
-        % if ($rec->{flagged}) {
-	<div class="row"><div class="col s12 m12 l10"><div class="card-panel list-warning-panel">
-          <div class="green-text"><i class="material-icons tiny">warning</i><span>&nbsp;<b>ВНИМАНИЕ!</b> Данное устройство не синхронизировано. Ожидайте синхронизации...</span></div>
-	</div></div></div>
+
+	% if ($rec->{flagged} || $rec->{blocked}) {
+	%= panel_html 'start'
+	%= $rec->{flagged} ? panel_html 'flagged' : ''
+	%= $rec->{blocked} ? panel_html(blocked => $rec->{qs}) : ''
+	%= panel_html 'end'
 	% }
+
 	<div class="row">
 	  <div class="input-field col s12 m8 l5">
 	    % param name => $rec->{name} unless defined param 'name';
@@ -72,7 +75,7 @@
 
 	    % param profile1 => param 'profile';
 	    %= select_field profile1 => [[param('profile_name') => param('profile')]], id => 'profile', disabled => undef
-	    %#= label_for profile => 'Расположение'
+	    %= label_for profile => 'Расположение'
 	    %= t 'span', class => 'helper-text', 'Изменение местоположения не допускается'
 	  </div>
 	</div>
@@ -95,7 +98,7 @@
 	<div class="row">
 	  <div class="col s12">
 	    <label>
-	      % param no_dhcp => $rec->{no_dhcp} unless defined param 'no_dhcp';
+	      % param no_dhcp => $rec->{no_dhcp} // 0 unless defined param 'no_dhcp';
 	      %= check_box no_dhcp => 1, id => 'no-dhcp', class => 'filled-in'
 	      %= t 'span', 'Устройство не использует DHCP'
 	    </label>
@@ -120,12 +123,8 @@
 	<div class="row">
 	  <div class="input-field col s12 m8 l4">
 	    % unless (param 'speed_key') {
-	    %   my ($speed_key, $speed_userdef_in, $speed_userdef_out) = ('userdef', '', '');
-	    %   for (@{config 'speed_plans'}) {
-	    %     if ($rec->{speed_in} eq $_->{in} && $rec->{speed_out} eq $_->{out}) {
-	    %       $speed_key = $_->{key}; # don't exit loop here
-	    %     }
-	    %   }
+	    %   my $speed_key = get_speed_key($rec->{speed_in}, $rec->{speed_out});
+	    %   my ($speed_userdef_in, $speed_userdef_out) = ('', '');
 	    %   if ($speed_key eq 'userdef') {
 	    %     $speed_userdef_in = $rec->{speed_in} // '';
 	    %     $speed_userdef_out = $rec->{speed_out} // '';
@@ -134,8 +133,7 @@
 	    %   param 'speed_userdef_in' => $speed_userdef_in;
 	    %   param 'speed_userdef_out' => $speed_userdef_out;
 	    % }
-	    % my @sl = map {[$_->{name} => $_->{key}, 'data-icon' => $_->{img}]} @{config 'speed_plans'};
-	    %= select_field speed_key => \@sl, id => 'speed';
+	    %= select_field speed_key => array_for_speed_select, id => 'speed';
 	    %= label_for speed => 'Скорость доступа'
 	    %= t 'span', class => 'helper-text', 'При выборе индивидуала, настройте скорости вручную'
 	  </div>

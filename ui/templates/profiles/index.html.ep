@@ -82,7 +82,7 @@
   $(document).ready(function(){
     $('.fixed-action-btn').floatingActionButton();
     $('.btn-tooltip').tooltip();
-    //$('.table-tooltips').tooltip({enterDelay:700});
+    //$('.table-tooltips').tooltip({enterDelay:500});
     $('.tr-profile').click(function(){
       var key = $(this).attr('data-profilekey');
       if (key==undefined)

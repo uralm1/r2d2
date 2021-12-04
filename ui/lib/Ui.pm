@@ -31,6 +31,7 @@ sub startup {
   $self->plugin('Ui::Plugin::MPagenav');
   $self->plugin('Ui::Plugin::Utils');
   $self->plugin('Ui::Plugin::StatUtils');
+  $self->plugin('Ui::Plugin::Html');
 
   #push @{$self->commands->namespaces}, 'Ui::Command';
 
