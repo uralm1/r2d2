@@ -3,18 +3,18 @@
   <table class="striped narrow-log">
     <thead>
       <tr>
-	<th>ID</th>
-	<th>ВРЕМЯ</th>
-	<th>ПОДСИСТЕМА</th>
+	<th style="width:4%;">ID</th>
+	<th style="width:11%;">ВРЕМЯ</th>
+	<th style="width:10%;">ПОДСИСТЕМА</th>
 	<th>СОБЫТИЕ</th>
       </tr>
     </thead>
     <tbody>
       % for (@{$log_rec->{d}}) {
       <tr style="color:<%== log_rowcolor($_->{subsys}) %>;">
-	<td><%= $_->{id} %></td>
-	<td><%= $_->{date} %></td>
-	<td><%= $_->{subsys} %></td>
+	<td style="width:4%;"><%= $_->{id} %></td>
+	<td style="width:11%;white-space:nowrap;"><%= $_->{date} %></td>
+	<td style="width:10%;"><%= $_->{subsys} %></td>
 	<td><%= $_->{info} %></td>
       </tr>
       % }

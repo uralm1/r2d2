@@ -3,7 +3,6 @@ use Mojo::Base 'Mojolicious::Plugin';
 
 use Ui::Ural::LogColorer;
 use Ui::Ural::OperatorResolver;
-use Ui::Ural::Changelog;;
 use Mojo::URL;
 use Mojo::ByteStream 'b';
 use Mojo::IOLoop;
@@ -100,29 +99,6 @@ sub register {
       return undef;
     }
     return $v;
-  });
-
-
-  # html_or_undef = check_newversion
-  $app->helper(check_newversion => sub {
-    my $c = shift;
-    my $coo = $c->cookie('versionA');
-    my $cur_version = $c->stash('version');
-    if (defined $coo) {
-      if ($coo ne $cur_version) {
-        $c->cookie('versionA' => $cur_version, {path => '/', expires=>time+360000000});
-        if (my $changelog = Ui::Ural::Changelog->new($cur_version)) {
-          return b('<div id="newversion-modal" class="modal modal-fixed-footer">
-<div class="modal-content"><h4>Новая версия '.$changelog->get_version.
-'</h4><p><b>Последние улучшения и новинки:</b></p><pre class="newversion-hist">'.$changelog->get_changelog.
-'</pre></div><div class="modal-footer"><a href="#!" class="modal-close waves-effect waves-green btn-flat">Отлично</a></div></div>');
-        }
-      }
-    } else {
-      $c->cookie('versionA' => $cur_version, {path => '/', expires=>time+360000000});
-    }
-
-    return undef;
   });
 
 

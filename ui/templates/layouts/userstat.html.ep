@@ -36,7 +36,7 @@
       %   my $at = stash('activetab') // 1;
       <ul class="tabs tabs-transparent">
 	<li class="tab"><a <%== $at == 1 ? 'class="active" href="#tabactive"' : 'target="_self" href="/stat"' %>>Трафик по дням</a></li>
-	<li class="tab"><a <%== $at == 2 ? 'class="active" href="#tabactive"' : 'target="_self" href="/stat?rep=month"' %>>За 12 мес.</a></li>
+	<li class="tab"><a <%== $at == 2 ? 'class="active" href="#tabactive"' : 'target="_self" href="/stat?rep=month"' %>>За 12 месяцев</a></li>
       </ul>
       % }
     </div>

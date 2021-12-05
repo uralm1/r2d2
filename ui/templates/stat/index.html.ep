@@ -29,13 +29,14 @@
       % }
     </div>
   </div>
+  % my $wow_feature = check_newfeature(1 => 1);
   % my $num_devs = scalar @{$fullrec->{devices}};
   % my $chart_id_counter = 1;
   % if ($num_devs > 0) {
   %   my ($suf1, $suf2) = qw/о ое/;
   %   if ($num_devs =~ /[567890]|[1][1234]$/) { ($suf1, $suf2) = ('', 'ых') }
   %   elsif ($num_devs =~ /[234]$/) { ($suf1, $suf2) = qw/а ых/ }
-  <p class="head-text"><b>У Вас <%= $num_devs %> устройств<%== $suf1 %></b>, подключенн<%== $suf2 %> к сети Интернет. Статистика отображена ниже:</p>
+  <p class="head-text"><b><span id="wow-ad">У Вас</span> <%= $num_devs %> устройств<%== $suf1 %></b>, подключенн<%== $suf2 %> к сети Интернет. Статистика отображена ниже:</p>
   <ul class="collapsible expandable">
     % for my $rec (@{$fullrec->{devices}}) {
     <li class="active">
@@ -49,6 +50,18 @@
     %   $chart_id_counter++;
     % }
   </ul>
+  % if ($wow_feature) {
+  <div class="tap-target cyan" data-target="wow-ad">
+    <div class="tap-target-content white-text">
+      <h5>Несколько устройств!</h5>
+      <p>Если у Вас несколько устройств, подключенных к интернет, теперь Вы можете
+просматривать статистику по каждому из них.<br>
+      Свернуть или развернуть статистику по конкретному устройству можно нажав на
+заголовок соответствующего устройства.
+      </p>
+    </div>
+  </div>
+  % }
   % } else {
   <p class="head-text"><b>У Вас ОТСУТСТВУЮТ устройства</b>, подключенные к сети Интернет</p>
   % }
@@ -64,6 +77,10 @@
 $(document).ready(function(){
   $('.collapsible').collapsible({accordion:false});
   $('#enotify').change(function(){$('#enotifyform').submit()});
+% if ($wow_feature) {
+  $('.tap-target').tapTarget();
+  $('.tap-target').tapTarget('open');
+% }
 });
 </script>
 % end

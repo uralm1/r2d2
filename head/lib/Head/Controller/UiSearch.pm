@@ -57,7 +57,7 @@ sub searchclientbylogin {
   $self->render_later;
 
   my $db = $self->mysql_inet->db;
-  $db->query("SELECT id, type, guid, login, c.desc, DATE_FORMAT(create_time, '%k:%i:%s %e-%m-%y') AS create_time, cn, email, email_notify \
+  $db->query("SELECT id, type, guid, login, c.desc, DATE_FORMAT(create_time, '%k:%i:%s %e-%m-%y') AS create_time, cn, email, email_notify, lost \
 FROM clients c \
 WHERE type = 0 AND login = ? LIMIT 1",
     $login =>

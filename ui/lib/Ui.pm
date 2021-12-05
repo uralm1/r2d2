@@ -80,7 +80,7 @@ sub startup {
   $r->get('/about')->to('index#about');
   $r->get('/about/stat')->to('index#aboutstat');
 
-  $r->get('/rep/client')->to('rep#client');
+  #$r->get('/rep/client')->to('rep#client');
   $r->get('/stat')->to('stat#index');
   $r->post('/stat/email')->to('stat#emailpost');
 
