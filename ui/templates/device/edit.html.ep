@@ -154,14 +154,24 @@
 	<h5>Лимиты</h5>
 	<div class="row">
 	  <div class="input-field col s10 m6 l4">
+	    % param limit_in => btomb $rec->{limit_in} unless defined param 'limit_in';
+	    %= text_field 'limit_in', id => 'limit-in'
+	    %= label_for 'limit-in' => 'Лимит (Мегабайт в месяц)'
+	    %= t 'span', class => 'helper-text', 'data-error' => 'Ошибка', 'Формат: число без добавления "Мб".'
+	  </div>
+	  <div class="input-field col s10 m6 l4">
 	    % param qs => $rec->{qs} unless defined param 'qs';
 	    %= select_field qs => config('qs_names'), id => 'qs';
 	    %= label_for qs => 'Режим квоты'
 	  </div>
+	</div>
+	<div class="row">
 	  <div class="input-field col s10 m6 l4">
-	    % param limit_in => btomb $rec->{limit_in} unless defined param 'limit_in';
-	    %= text_field 'limit_in', id => 'limit-in'
-	    %= label_for 'limit-in' => 'Лимит (Мегабайт в месяц)'
+	    % param sum_limit_in => btomb $rec->{sum_limit_in} unless defined param 'sum_limit_in';
+	    %= input_tag 'sum_limit_in', type => 'hidden'
+	    % param 'sum_limit_in1' => param 'sum_limit_in';
+	    %= text_field 'sum_limit_in1', id => 'sum-limit-in', disabled => undef
+	    %= label_for 'sum-limit-in' => 'Осталось (Мегабайт в месяц)'
 	    %= t 'span', class => 'helper-text', 'data-error' => 'Ошибка', 'Формат: число без добавления "Мб".'
 	  </div>
 	</div>

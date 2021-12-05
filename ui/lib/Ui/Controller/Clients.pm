@@ -8,9 +8,9 @@ sub index {
   my $self = shift;
   return undef unless $self->authorize({ admin=>1 });
 
-  my $search = $self->param('s');
-  my $view_mode = $self->param('v') // '';
-  my $sort_mode = $self->param('sort') // '';
+  my $search = $self->param('s') // $self->session('s');
+  my $view_mode = $self->param('v') // $self->session('v') // '';
+  my $sort_mode = $self->param('sort') // $self->session('sort') // '';
   my $set = $self->param('set') // 'v';
 
   # consistency
@@ -50,7 +50,10 @@ sub index {
   my $active_page = $self->param('p') || 1;
   return unless $self->exists_and_number($active_page);
 
-  my $lostonlyifexist_mode = $self->session('lostfirstshown') || (defined $search && $search ne '') || $view_mode ne '' ? 0 : 1;
+  my $lostonlyifexist_mode = $self->session('lostfirstshown') ||
+    (defined $search && $search ne '') || $view_mode ne '' ? 0 : 1;
+
+  $self->session(s => $search, v => $view_mode, sort => $sort_mode);
 
   $self->render_later;
 
