@@ -66,5 +66,4 @@ t/100_ui_get_oplog.t
 t/101_ui_get_auditlog.t
 t/60_profiles.t
 t/66_send_mail_notification.t
-t/67_retrive_login_db_attr.t
-t/68_retrive_ad_fullname_email.t
+t/67_retrive_db_attr.t

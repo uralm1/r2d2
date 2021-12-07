@@ -2,6 +2,7 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+- Информация по БД в subsys head и отображение в system view.
 - 
 
 ## [0.7] - 2021-12-06

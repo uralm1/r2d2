@@ -17,6 +17,7 @@ lib/Ui/Controller/Rep.pm
 lib/Ui/Controller/Server.pm
 lib/Ui/Controller/Stat.pm
 lib/Ui/Controller/System.pm
+lib/Ui/Plugin/Html.pm
 lib/Ui/Plugin/MPagenav.pm
 lib/Ui/Plugin/StatUtils.pm
 lib/Ui/Plugin/Utils.pm
@@ -66,6 +67,7 @@ templates/client/stat.html.ep
 templates/clients/index.html.ep
 templates/device/delete.html.ep
 templates/device/edit.html.ep
+templates/device/limit.html.ep
 templates/device/move.html.ep
 templates/device/new.html.ep
 templates/device/stat.html.ep
@@ -83,6 +85,7 @@ templates/profiles/index.html.ep
 templates/rep/client.html.ep
 templates/server/delete.html.ep
 templates/server/edit.html.ep
+templates/server/limit.html.ep
 templates/server/new.html.ep
 templates/server/stat.html.ep
 templates/stat/_chartjs_deps.html.ep

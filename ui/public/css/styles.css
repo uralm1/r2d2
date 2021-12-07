@@ -87,7 +87,7 @@ pre.newversion-hist {
   padding:0 0 0 18px;
 }
 
-.tr-client, .tr-devices, .tr-device, .tr-device-head, .tr-head-status, .tr-status, .tr-agents, .tr-agent, .tr-agent-head, .tr-profile {
+.tr-client, .tr-devices, .tr-device, .tr-device-head, .tr-head-status, .tr-head-database, .tr-status, .tr-agents, .tr-agent, .tr-agent-head, .tr-profile {
   border-bottom:none;
 }
 
@@ -118,7 +118,12 @@ tr.tr-status-head>th {
 
 tr.tr-head-status>td {
   padding-top:10px;
-  padding-bottom:20px;
+  padding-bottom:10px;
+}
+
+tr.tr-head-database>td {
+  padding-top:0px;
+  padding-bottom:5px;
 }
 
 tr.tr-device-head>th, tr.tr-agent-head>th {

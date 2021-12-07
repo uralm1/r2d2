@@ -22,6 +22,36 @@
 	  <span class="listagenttype green lighten-3"><%= $head_status %></span>
 	</td>
       </tr>
+      % if ($db) {
+      <tr class="tr-head-database">
+	<td style="width:5%"><span class="listprofiletype">СУБД</span></td>
+	<td style="width:21%">Основная база данных</td>
+	<td style="width:5%"><span class="listagenttype"><%= $db->{scheme} %></span></td>
+	<td style="width:25%"><%= "$db->{name} на $db->{host}" %></td>
+	<td style="width:44%">
+	  % if ($db->{ping}) {
+	  <span class="listagenttype green lighten-3">OK</span>
+	  % } else {
+	  <span class="listagenttype red lighten-2">НЕДОСТУПНО</span>
+	  % }
+	</td>
+      </tr>
+      % }
+      % if (my $db = stash 'db-minion') {
+      <tr class="tr-head-database">
+	<td style="width:5%"><span class="listprofiletype">СУБД</span></td>
+	<td style="width:21%">База данных подсистемы заданий</td>
+	<td style="width:5%"><span class="listagenttype"><%= $db->{scheme} %></span></td>
+	<td style="width:25%"><%= "$db->{name} на $db->{host}" %></td>
+	<td style="width:44%">
+	  % if ($db->{ping}) {
+	  <span class="listagenttype green lighten-3">OK</span>
+	  % } else {
+	  <span class="listagenttype red lighten-2">НЕДОСТУПНО</span>
+	  % }
+	</td>
+      </tr>
+      % }
     </tbody>
   </table>
   <h5>Состояние системы</h5>
@@ -100,6 +130,11 @@
 	</td>
       </tr>
 
+    % }
+    % unless (@{$rec->{d}}) {
+      <tr class="tr-status">
+	<td colspan="3">Объекты отсутствуют. Добавьте объекты и агенты через меню "Объекты".</td>
+      </tr>
     % }
     </tbody>
   </table>

@@ -38,6 +38,13 @@ paths:
                   version:
                     type: string
                     example: '3.00'
+                  db:
+                    $ref: '#/components/schemas/database_info_object'
+                  db-minion:
+                    $ref: '#/components/schemas/database_info_object'
+                required:
+                  - subsys
+                  - version
 
 
   /log:
@@ -2529,3 +2536,30 @@ components:
         - name
         - lastcheck
         - agents
+        
+    database_info_object:
+      description: Информация по базе данных
+      type: object
+      properties:
+        name:
+          type: string
+          description: имя БД
+          example: inet
+        host:
+          type: string
+          description: хост сервера БД
+          example: contoso.somedomain
+        scheme:
+          type: string
+          description: тип (схема) БД
+          example: mysql
+        ping:
+          type: integer
+          description: Результат пинга БД (0, 1)
+          enum: [0, 1]
+          example: 1
+      required:
+        - name
+        - host
+        - scheme
+        - ping

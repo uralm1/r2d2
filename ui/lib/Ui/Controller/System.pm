@@ -23,7 +23,8 @@ sub index {
     return unless my $v = $self->request_json($res);
     my $head_status = $v->{subsys} ? "OK: $v->{subsys}" : 'НЕВЕРНЫЕ ДАННЫЕ';
     $head_status .=  " ($v->{version})" if defined $v->{version};
-    $self->stash(head_status => $head_status);
+    $self->stash(head_status => $head_status,
+      db => $v->{db}, 'db-minion' => $v->{'db-minion'});
 
     return $self->ua->get_p(Mojo::URL->new('/ui/profiles/status')->to_abs($self->head_url)->
         query({page => $active_page, lop => $self->config('lines_on_page')}) =>
