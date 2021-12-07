@@ -101,26 +101,34 @@ sub startup {
   $r->get('/ui/profiles')->to('ui_system#profileshash');
   $r->get('/ui/profiles/status')->to('ui_system#profilesstatus');
   $r->get('/ui/profiles/list')->to('ui_profiles#list');
+
   $r->get('/ui/log/oplog')->to('ui_log#oplog');
   $r->get('/ui/log/audit')->to('ui_log#auditlog');
+
   $r->get('/ui/list')->to('ui_list#list');
+
   $r->get('/ui/search/0')->to('ui_search#searchclient');
   $r->get('/ui/search/1')->to('ui_search#searchclientbylogin');
   $r->get('/ui/server/#id')->to('ui_servers#serverget');
   $r->put('/ui/server/#id')->to('ui_servers#serverput');
   $r->delete('/ui/server/#id')->to('ui_servers#serverdelete');
+  $r->patch('/ui/server/limit/#id')->to('ui_servers#serverpatchlimit');
   $r->post('/ui/server')->to('ui_servers#serverpost');
+
   $r->post('/ui/client')->to('ui_clients#clientpost');
   $r->get('/ui/client/#id')->to('ui_clients#clientget');
   $r->put('/ui/client/#id')->to('ui_clients#clientput');
   $r->delete('/ui/client/#id')->to('ui_clients#clientdelete');
   $r->patch('/ui/client/0/#id')->to('ui_clients#clientpatch0');
   $r->patch('/ui/client/1/bylogin')->to('ui_clients#clientpatch1bylogin');
+
   $r->get('/ui/device/#client_id/#device_id')->to('ui_devices#deviceget');
   $r->put('/ui/device/#client_id/#device_id')->to('ui_devices#deviceput');
   $r->delete('/ui/device/#client_id/#device_id')->to('ui_devices#devicedelete');
-  $r->patch('/ui/device/0/#client_id/#device_id')->to('ui_devices#devicepatch');
+  $r->patch('/ui/device/move/#client_id/#device_id')->to('ui_devices#devicepatchmove');
+  $r->patch('/ui/device/limit/#client_id/#device_id')->to('ui_devices#devicepatchlimit');
   $r->post('/ui/device/#client_id')->to('ui_devices#devicepost');
+
   $r->get('/ui/stat/device/#client_id/#device_id')->to('ui_stat#deviceget');
   $r->get('/ui/stat/server/#server_id')->to('ui_stat#serverget');
   $r->get('/ui/stat/client/#client_id')->to('ui_stat#clientget');

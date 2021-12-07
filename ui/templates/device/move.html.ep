@@ -1,4 +1,4 @@
-% layout 'default', title => 'Перенос устройства', back_url => url_with('deviceedit')->query({s => undef});
+% layout 'default', title => 'Перенос устройства', back_url => url_with('deviceedit')->query({id => $device_id, clientid => $client_id, s => undef});
 % use MIME::Base64 qw(encode_base64url);
 % my $toast_msg = flash 'oper';
 % if ($toast_msg) {

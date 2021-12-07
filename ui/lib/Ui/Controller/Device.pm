@@ -14,7 +14,7 @@ sub newpost {
   my $v = $self->validation;
   return $self->render(text=>'Не дал показания') unless $v->has_data;
 
-  $self->log->debug("I: ".$self->dumper($v->input));
+  #$self->log->debug("I: ".$self->dumper($v->input));
 
   # client_id parameter is a must
   my $client_id = $v->optional('client_id')->param;
@@ -53,7 +53,7 @@ sub newpost {
   my $limit_in = $v->required('limit_in', 'not_empty')->like(qr/^$RE{num}{decimal}{-radix=>'[,.]'}{-sep=>'[ ]?'}$/)->param;
   $j->{profile} = $v->required('profile', 'not_empty')->param;
 
-  if ($v->has_error) { my @f=@{$v->failed}; $self->log->debug("Failed validation: @f") }
+  #if ($v->has_error) { my @f=@{$v->failed}; $self->log->debug("Failed validation: @f") }
 
   # rerender page with errors
   return $self->_render_new_device_page($client_id, $audit_client_rec) if $v->has_error;
@@ -84,8 +84,8 @@ sub newpost {
       return unless $self->request_success($res);
 
       $self->raudit("Добавление нового клиентского устройства $j->{name}, местоположение $j->{profile}, $j->{ip}, провайдер ".
-$self->config('rt_resolve')->{$j->{rt}}.
-', режим квоты '.$self->config('qs_resolve')->{$j->{qs}}.
+$self->rt_resolve($j->{rt}).
+', режим квоты '.$self->qs_resolve($j->{qs}).
 ", лимит $audit_limit_in Мб. Клиент $audit_client_rec->{cn} ($audit_client_rec->{login}).");
 
       # do redirect with flash
@@ -225,8 +225,8 @@ sub editpost {
       return unless $self->request_success($res);
 
       $self->raudit("Редактирование клиентского устройства $j->{name}, местоположение $j->{profile}, $j->{ip}, провайдер ".
-$self->config('rt_resolve')->{$j->{rt}}.
-', режим квоты '.$self->config('qs_resolve')->{$j->{qs}}.
+$self->rt_resolve($j->{rt}).
+', режим квоты '.$self->qs_resolve($j->{qs}).
 ", лимит $audit_limit_in Мб. Клиент $audit_client_rec->{client_cn} ($audit_client_rec->{client_login}).");
 
       # do redirect with flash
@@ -335,8 +335,8 @@ sub movepost {
 
     my $j = { id => $old_client_id, newid => $sel_id }; # patch request body json
 
-    # post to system
-    $self->ua->patch(Mojo::URL->new("/ui/device/0/$old_client_id/$device_id")->to_abs($self->head_url) => json => $j =>
+    # post (patch) to system
+    $self->ua->patch(Mojo::URL->new("/ui/device/move/$old_client_id/$device_id")->to_abs($self->head_url) => json => $j =>
       sub {
         my ($ua, $tx) = @_;
         my $res = eval { $tx->result };
@@ -346,7 +346,7 @@ sub movepost {
 от клиента $audit_oldclient_cn ($audit_oldclient_login) новому клиенту $audit_client_cn ($audit_client_login).");
 
         # do redirect with a toast
-        $self->flash(oper => 'Выполнено успешно.');
+        $self->flash(oper => 'Устройство перенесено новому клиенту.');
         return $self->redirect_to('/clients');
       } # patch closure
     );
@@ -414,6 +414,96 @@ sub deletepost {
       $self->flash(oper => 'Выполнено успешно.');
       $self->redirect_to($self->url_for('clientedit')->query(id => $client_id));
     } # delete closure
+  );
+}
+
+
+sub limit {
+  my $self = shift;
+  return undef unless $self->authorize({ admin=>1 });
+
+  my $id = $self->param('id');
+  return unless $self->exists_and_number($id);
+  my $client_id = $self->param('clientid');
+  return unless $self->exists_and_number($client_id);
+
+  $self->render_later;
+
+  $self->ua->get(Mojo::URL->new("/ui/device/$client_id/$id")->to_abs($self->head_url) =>
+    {Accept => 'application/json'} =>
+    sub {
+      my ($ua, $tx) = @_;
+      my $res = eval { $tx->result };
+      return unless $self->request_success($res);
+      return unless my $v = $self->request_json($res);
+
+      return $self->render(client_id => $client_id, device_id => $id, rec => $v);
+    } # get closure
+  );
+}
+
+
+sub limitpost {
+  my $self = shift;
+  return undef unless $self->authorize({ admin=>1 });
+
+  my $v = $self->validation;
+  return $self->render(text=>'Не дал показания') unless $v->has_data;
+  $self->log->debug("I: ".$self->dumper($v->input));
+
+  my $id = $v->optional('id')->param;
+  return unless $self->exists_and_number($id);
+  my $client_id = $v->optional('clientid')->param;
+  return unless $self->exists_and_number($client_id);
+
+  my $audit_client_rec = {
+    client_cn => $v->optional('client_cn_a')->param // 'н/д',
+    client_login => $v->optional('client_login_a')->param // 'н/д'
+  };
+
+  my $j = { }; # patch request body json
+  $j->{qs} = $v->required('qs', 'not_empty')->like(qr/^[0-9]$/)->param;
+  my $limit_in = $v->required('limit_in', 'not_empty')->like(qr/^$RE{num}{decimal}{-radix=>'[,.]'}{-sep=>'[ ]?'}$/)->param;
+  $j->{reset_sum} = $v->optional('reset_sum')->like(qr/^[01]$/)->param // 0;
+  $j->{add_sum} = $v->optional('add_sum')->like(qr/^[01]$/)->param // 0;
+
+  my $audit_name = $v->optional('name')->param // 'н/д';
+  my $audit_ip = $v->optional('ip')->param // 'н/д';
+  my $audit_profile = $v->optional('profile')->param // 'н/д';
+
+  #if ($v->has_error) { my @f=@{$v->failed}; $self->log->debug("Failed validation: @f") }
+
+  # rerender page with errors
+  return $self->render(template => 'device/limit',
+    client_id => $client_id, device_id => $id, rec => $audit_client_rec) if $v->has_error;
+
+  # improve limit_in a little
+  $limit_in =~ s/ //g; # remove separators
+  $limit_in =~ s/,/./; # fix comma
+  my $audit_limit_in = $limit_in;
+  $j->{limit_in} = $self->mbtob($limit_in);
+
+  $self->log->debug("J: ".$self->dumper($j));
+
+  # post (patch) to system
+  $self->render_later;
+
+  $self->ua->patch(Mojo::URL->new("/ui/device/limit/$client_id/$id")->to_abs($self->head_url) => json => $j =>
+    sub {
+      my ($ua, $tx) = @_;
+      my $res = eval { $tx->result };
+      return unless $self->request_success($res);
+
+      my $tl = $j->{add_sum} ? 'Временное добавление' : 'Изменение';
+      my $tl1 = $j->{reset_sum} ? 'Счетчик трафика сброшен. ' : '';
+      $self->raudit("${tl} лимита клиентского устройства $audit_name, местоположение $audit_profile, $audit_ip".
+", объем $audit_limit_in Мб, режим квоты ".$self->qs_resolve($j->{qs}).
+". ${tl1}Клиент $audit_client_rec->{client_cn} ($audit_client_rec->{client_login}).");
+
+      # do redirect with flash
+      $self->flash(oper => 'Лимит устройства изменен.');
+      $self->redirect_to($self->url_for('clientedit')->query(id => $client_id));
+    } # patch closure
   );
 }
 

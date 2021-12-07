@@ -658,6 +658,69 @@ paths:
                 description: error message
 
 
+  /ui/server/limit/{server_id}:
+    patch:
+      summary: Изменение лимита и режима квоты сервера
+      tags: ['Ui servers']
+      parameters:
+        - name: server_id
+          in: path
+          required: true
+          description: Server id
+          schema:
+            type: integer
+
+      requestBody:
+        required: true
+        content:
+          'application/json':
+            schema:
+              type: object
+              properties:
+                qs:
+                  type: integer
+                  description: quote mode (0-disabled, 1-notify, 2-limit, 3-block)
+                  enum: [0,1,2,3]
+                  example: 2
+                limit_in:
+                  type: integer
+                  description: quota limit in bytes
+                  example: 1073741824
+                add_sum:
+                  type: integer
+                  description: 1-добавить временно (reset_sum игнорируется), 0-установить лимит
+                  enum: [0,1]
+                  example: 0
+                reset_sum:
+                  type: integer
+                  description: 1-сбросить счетчик лимита (сразу вступит в действие) или 0-просто установить лимит (вступит в действие с начала месяца)
+                  enum: [0,1]
+                  example: 1
+              required:
+                - qs
+                - limit_in
+                - add_sum
+                - reset_sum
+
+      responses:
+        '200':
+          description: Success
+        '404':
+          description: Not found, including bad id parameter
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+
   /ui/server:
     post:
       summary: Добавление нового сервера
@@ -1045,7 +1108,7 @@ paths:
                 description: error message
 
 
-  /ui/device/0/{client_id}/{device_id}:
+  /ui/device/move/{client_id}/{device_id}:
     patch:
       summary: Перенос устройства от одного клиента к другому
       description: Свойство id необязательное, если указывается, то должно совпадать с параметром client_id.
@@ -1080,6 +1143,75 @@ paths:
                   description: Код нового клиента
               required:
                 - newid
+
+      responses:
+        '200':
+          description: Success
+        '404':
+          description: Not found, including bad id parameter
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+
+  /ui/device/limit/{client_id}/{device_id}:
+    patch:
+      summary: Изменение лимита и режима квоты устройства
+      tags: ['Ui devices']
+      parameters:
+        - name: client_id
+          in: path
+          required: true
+          description: Client id владельца устройства
+          schema:
+            type: integer
+        - name: device_id
+          in: path
+          required: true
+          description: Device id
+          schema:
+            type: integer
+
+      requestBody:
+        required: true
+        content:
+          'application/json':
+            schema:
+              type: object
+              properties:
+                qs:
+                  type: integer
+                  description: quote mode (0-disabled, 1-notify, 2-limit, 3-block)
+                  enum: [0,1,2,3]
+                  example: 2
+                limit_in:
+                  type: integer
+                  description: quota limit in bytes
+                  example: 1073741824
+                add_sum:
+                  type: integer
+                  description: 1-добавить временно (reset_sum игнорируется), 0-установить лимит
+                  enum: [0,1]
+                  example: 0
+                reset_sum:
+                  type: integer
+                  description: 1-сбросить счетчик лимита (сразу вступит в действие) или 0-просто установить лимит (вступит в действие с начала месяца)
+                  enum: [0,1]
+                  example: 1
+              required:
+                - qs
+                - limit_in
+                - add_sum
+                - reset_sum
 
       responses:
         '200':

@@ -163,6 +163,55 @@ VALUES (?, CURDATE(), 0, 0)", $last_device_id) };
 }
 
 
+# change server limit
+sub serverpatchlimit {
+  my $self = shift;
+  my $id = $self->stash('id');
+  return unless $self->exists_and_number404($id);
+
+  return unless my $j = $self->json_content($self->req);
+  return unless $self->json_validate($j, 'limit_record');
+
+  $self->log->debug($self->dumper($j));
+
+  $self->render_later;
+
+  my $sql;
+  my @sql_params;
+  if ($j->{add_sum}) {
+    $sql = "UPDATE devices d INNER JOIN clients c ON d.client_id = c.id \
+SET qs = ?, sum_limit_in = sum_limit_in + ? \
+WHERE c.type = 1 AND c.id = ?";
+    @sql_params = ($j->{qs}, $j->{limit_in}, $id);
+  } elsif ($j->{reset_sum}) {
+    $sql = "UPDATE devices d INNER JOIN clients c ON d.client_id = c.id \
+SET qs = ?, limit_in = ?, sum_limit_in = ? \
+WHERE c.type = 1 AND c.id = ?";
+    @sql_params = ($j->{qs}, $j->{limit_in}, $j->{limit_in}, $id);
+  } else {
+    $sql = "UPDATE devices d INNER JOIN clients c ON d.client_id = c.id \
+SET qs = ?, limit_in = ? \
+WHERE c.type = 1 AND c.id = ?";
+    @sql_params = ($j->{qs}, $j->{limit_in}, $id);
+  }
+
+  $self->mysql_inet->db->query($sql, @sql_params =>
+    sub {
+      my ($db, $err, $results) = @_;
+      return $self->render(text => "Database error, updating server limit: $err", status => 503) if $err;
+
+      if ($results->affected_rows > 0) {
+        $self->dblog->info("UI: Server id $id limit updated successfully");
+        $self->rendered(200);
+      } else {
+        $self->dblog->info("UI: Server id $id limit not updated");
+        $self->render(text => "Server id $id not found", status => 404);
+      }
+    }
+  );
+}
+
+
 # delete server submit
 sub serverdelete {
   my $self = shift;

@@ -61,7 +61,7 @@
       </div>
 
       <div id="place" class="section scrollspy">
-	<h5>Местоположение</h5>
+	<h5 class="grey-text text-darken-1">Местоположение</h5>
 	<div class="row">
 	  <div class="input-field col s12 m8 l5">
 	    % param profile => $rec->{profile} unless defined param 'profile';
@@ -149,7 +149,7 @@
       <div id="limits" class="section scrollspy">
 	<h5>Лимиты</h5>
 	<div class="row">
-	  <div class="input-field col s10 m6 l4">
+	  <div class="input-field col s10 m6 l4 btn-tooltip" data-position="top", data-tooltip="Изменение лимита в данном поле будет применено с начала нового месяца.&#10;&#13;Нажатие 'Сохранить изменения' вызовет пересинхронизацию сервера.&#10;&#13;Чтобы изменить лимит немедленно, воспользуйтесь ссылкой 'Изменить лимит'.">
 	    % param limit_in => btomb $rec->{limit_in} unless defined param 'limit_in';
 	    %= text_field 'limit_in', id => 'limit-in'
 	    %= label_for 'limit-in' => 'Лимит (Мегабайт в месяц)'
@@ -161,7 +161,10 @@
 	    % param 'sum_limit_in1' => param 'sum_limit_in';
 	    %= text_field 'sum_limit_in1', id => 'sum-limit-in', disabled => undef
 	    %= label_for 'sum-limit-in' => 'Осталось (Мегабайт в месяц)'
-	    %= t 'span', class => 'helper-text', 'data-error' => 'Ошибка', 'Чтобы сбросить, установите "Сбросить счетчик лимита".'
+	    %= t 'span', class => 'helper-text', 'data-error' => 'Ошибка', 'Чтобы сбросить, нажмите "Измененить лимит...".'
+	  </div>
+	  <div class="input-field col s6 m4 l3">
+	    %= link_to 'Изменить лимит...' => url_with('serverlimit')->query({id => $srv_id}) => (class => 'btn-flat waves-effect waves-teal btn-tooltip', 'data-position' => 'top', 'data-tooltip' => 'Изменение лимитов устройства без пересинхронизации')
 	  </div>
 	</div>
 	<div class="row">
@@ -176,7 +179,7 @@
       <div class="row">
 	<div class="col s12">
 	  <button class="btn-large waves-effect waves-light" type="submit">Сохранить изменения</button>
-	  %= link_to 'Удалить...' => url_with('serverdelete') => (class => 'btn-large waves-effect waves-light spaceleft')
+	  %= link_to 'Удалить...' => url_with('serverdelete')->query({id => $srv_id}) => (class => 'btn-large waves-effect waves-light spaceleft')
 	  <span class="spaceleft">Будет запущено изменение параметров сервера на агентах.</span>
 	</div>
       </div>
@@ -201,6 +204,7 @@
 <script>
 $(document).ready(function(){
   $('.scrollspy').scrollSpy();
+  $('.btn-tooltip').tooltip({enterDelay:500});
   $('select').formSelect();
 
   $('input.field-with-error,textarea.field-with-error').removeClass('valid').addClass('invalid');

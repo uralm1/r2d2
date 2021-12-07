@@ -96,8 +96,8 @@ sub editpost {
       return unless $self->request_success($res);
 
       $self->raudit("Редактирование сервера $j->{cn}, местоположение $j->{profile}, $j->{ip}, провайдер ".
-$self->config('rt_resolve')->{$j->{rt}}.
-', режим квоты '.$self->config('qs_resolve')->{$j->{qs}}.", лимит $audit_limit_in Мб.");
+$self->rt_resolve($j->{rt}).
+', режим квоты '.$self->qs_resolve($j->{qs}).", лимит $audit_limit_in Мб.");
 
       # do redirect with flash
       $self->flash(oper => 'Выполнено успешно.');
@@ -185,8 +185,8 @@ sub newpost {
       return unless $self->request_success($res);
 
       $self->raudit("Добавление нового сервера $j->{cn}, местоположение $j->{profile}, $j->{ip}, провайдер ".
-$self->config('rt_resolve')->{$j->{rt}}.
-', режим квоты '.$self->config('qs_resolve')->{$j->{qs}}.", лимит $audit_limit_in Мб.");
+$self->rt_resolve($j->{rt}).
+', режим квоты '.$self->qs_resolve($j->{qs}).", лимит $audit_limit_in Мб.");
 
       # do redirect with flash
       $self->flash(oper => 'Выполнено успешно.');
@@ -272,6 +272,86 @@ sub deletepost {
 }
 
 
+sub limit {
+  my $self = shift;
+  return undef unless $self->authorize({ admin=>1 });
+
+  my $id = $self->param('id');
+  return unless $self->exists_and_number($id);
+
+  $self->render_later;
+
+  $self->ua->get(Mojo::URL->new("/ui/server/$id")->to_abs($self->head_url) =>
+    {Accept => 'application/json'} =>
+    sub {
+      my ($ua, $tx) = @_;
+      my $res = eval { $tx->result };
+      return unless $self->request_success($res);
+      return unless my $v = $self->request_json($res);
+
+      return $self->render(srv_id => $id, rec => $v);
+    } # get closure
+  );
+}
+
+
+sub limitpost {
+  my $self = shift;
+  return undef unless $self->authorize({ admin=>1 });
+
+  my $v = $self->validation;
+  return $self->render(text=>'Не дал показания') unless $v->has_data;
+  $self->log->debug("I: ".$self->dumper($v->input));
+
+  my $id = $v->optional('id')->param;
+  return unless $self->exists_and_number($id);
+
+  my $j = { }; # patch request body json
+  $j->{qs} = $v->required('qs', 'not_empty')->like(qr/^[0-9]$/)->param;
+  my $limit_in = $v->required('limit_in', 'not_empty')->like(qr/^$RE{num}{decimal}{-radix=>'[,.]'}{-sep=>'[ ]?'}$/)->param;
+  $j->{reset_sum} = $v->optional('reset_sum')->like(qr/^[01]$/)->param // 0;
+  $j->{add_sum} = $v->optional('add_sum')->like(qr/^[01]$/)->param // 0;
+
+  my $audit_cn = $v->optional('cn')->param // 'н/д';
+  my $audit_ip = $v->optional('ip')->param // 'н/д';
+  my $audit_profile = $v->optional('profile')->param // 'н/д';
+
+  #if ($v->has_error) { my @f=@{$v->failed}; $self->log->debug("Failed validation: @f") }
+
+  # rerender page with errors
+  return $self->render(template => 'server/limit', srv_id => $id) if $v->has_error;
+
+  # improve limit_in a little
+  $limit_in =~ s/ //g; # remove separators
+  $limit_in =~ s/,/./; # fix comma
+  my $audit_limit_in = $limit_in;
+  $j->{limit_in} = $self->mbtob($limit_in);
+
+  $self->log->debug("J: ".$self->dumper($j));
+
+  # post (patch) to system
+  $self->render_later;
+
+  $self->ua->patch(Mojo::URL->new("/ui/server/limit/$id")->to_abs($self->head_url) => json => $j =>
+    sub {
+      my ($ua, $tx) = @_;
+      my $res = eval { $tx->result };
+      return unless $self->request_success($res);
+
+      my $tl = $j->{add_sum} ? 'Временное добавление' : 'Изменение';
+      my $tl1 = $j->{reset_sum} ? 'Счетчик трафика сброшен. ' : '';
+      $self->raudit("$tl лимита сервера $audit_cn, местоположение $audit_profile, $audit_ip".
+", объем $audit_limit_in Мб, режим квоты ".$self->qs_resolve($j->{qs}).
+". $tl1");
+
+      # do redirect with flash
+      $self->flash(oper => 'Лимит сервера изменен.');
+      $self->redirect_to($self->url_for('clients'));
+    } # patch closure
+  );
+}
+
+
 sub stat {
   my $self = shift;
   return undef unless $self->authorize({ admin=>1 });
@@ -299,7 +379,7 @@ sub stat {
       return unless my $v = $self->request_json($res);
 
       return $self->render(
-        server_id => $server_id,
+        srv_id => $server_id,
         rec => $v,
         rep => $reptype,
         activetab => $activetab

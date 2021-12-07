@@ -41,10 +41,6 @@ sub startup {
   $self->ua->ca($config->{ca});
   $self->ua->cert($config->{local_cert})->key($config->{local_key});
 
-  # create useful hashes in config
-  $self->config(rt_resolve => { map { $_->[1] => $_->[0] } @{$config->{rt_names}} });
-  $self->config(qs_resolve => { map { $_->[1] => $_->[0] } @{$config->{qs_names}} });
-
   # Router authentication routine
   $self->hook(before_dispatch => sub {
     my $c = shift;
@@ -95,6 +91,8 @@ sub startup {
   $r->post('/server/edit')->to('server#editpost');
   $r->get('/server/delete')->to('server#delete');
   $r->post('/server/delete')->to('server#deletepost');
+  $r->get('/server/limit')->to('server#limit');
+  $r->post('/server/limit')->to('server#limitpost');
   $r->get('/server/stat')->to('server#stat');
 
   $r->get('/clients')->to('clients#index');
@@ -116,6 +114,8 @@ sub startup {
   $r->post('/device/move')->to('device#movepost');
   $r->get('/device/delete')->to('device#delete');
   $r->post('/device/delete')->to('device#deletepost');
+  $r->get('/device/limit')->to('device#limit');
+  $r->post('/device/limit')->to('device#limitpost');
   $r->get('/device/stat')->to('device#stat');
 
   $r->get('/profiles')->to('profiles#index');

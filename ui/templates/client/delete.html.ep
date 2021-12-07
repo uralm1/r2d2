@@ -1,4 +1,4 @@
-% layout 'default', title => 'Удаление клиента', back_url => url_with('clientedit');
+% layout 'default', title => 'Удаление клиента', back_url => url_with('clientedit')->query({id => $client_id});
 <div class="scont">
   % if (my $num_devs = @{$rec->{devices}}) {
     <div class="row">

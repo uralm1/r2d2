@@ -167,32 +167,32 @@ sub register {
   });
 
 
-  # 'text' = trans_rt_name($rt)
-  $app->helper(trans_rt_name => sub {
+  # 'text' = rt_resolve($rt)
+  $app->helper(rt_resolve => sub {
     my ($c, $selector) = @_;
     state %trans = map { $_->[1] => $_->[0] } @{$c->config('rt_names')};
     return $trans{$selector} // 'Неизвестно';
   });
 
 
-  # 'text' = trans_qs_name($qs)
-  $app->helper(trans_qs_name => sub {
+  # 'text' = qs_resolve($qs)
+  $app->helper(qs_resolve => sub {
     my ($c, $selector) = @_;
     state %trans = map { $_->[1] => $_->[0] } @{$c->config('qs_names')};
     return $trans{$selector} // 'Неизвестно';
   });
 
 
-  # 'text' = trans_defjump_name($defjump)
-  $app->helper(trans_defjump_name => sub {
+  # 'text' = defjump_resolve($defjump)
+  $app->helper(defjump_resolve => sub {
     my ($c, $selector) = @_;
     state %trans = map { $_->[1] => $_->[0] } @{$c->config('defjump_names')};
     return $trans{$selector} // 'Неизвестно';
   });
 
 
-  # 'text' = trans_speed_plan($speed_key)
-  $app->helper(trans_speed_plan => sub {
+  # 'text' = speed_plan_resolve($speed_key)
+  $app->helper(speed_plan_resolve => sub {
     my ($c, $selector) = @_;
     state %trans = map { $_->{key} => $_->{name} } @{$c->config('speed_plans')};
     return $trans{$selector} // 'Неизвестно';

@@ -75,8 +75,8 @@
 	<div class="row">
 	  <div class="col s12">
 	    <button class="btn-large waves-effect waves-light" type="submit">Сохранить изменения</button>
-	    %= link_to 'Заменить клиента...' => url_with('clientreplace') => (class => 'btn-large waves-effect waves-light spaceleft btn-tooltip', 'data-position' => 'top', 'data-tooltip' => 'Заменить указанного клиента, выбрав нового из глобального каталога')
-	    %= link_to 'Удалить...' => url_with('clientdelete') => (class => 'btn-large waves-effect waves-light spaceleft')
+	    %= link_to 'Заменить клиента...' => url_with('clientreplace')->query({id => $client_id}) => (class => 'btn-large waves-effect waves-light spaceleft btn-tooltip', 'data-position' => 'top', 'data-tooltip' => 'Заменить указанного клиента, выбрав нового из глобального каталога')
+	    %= link_to 'Удалить...' => url_with('clientdelete')->query({id => $client_id}) => (class => 'btn-large waves-effect waves-light spaceleft')
 	  </div>
 	</div>
 
@@ -175,19 +175,19 @@
 		  %= $_->{mac}
 		</td>
 		<td>
-		  %= trans_rt_name $_->{rt}
+		  %= rt_resolve $_->{rt}
 		</td>
 		<td>
-	          %= t span => (class => 'table-tooltips', 'data-tooltip' => trans_defjump_name($_->{defjump}), 'data-position' => 'bottom') => begin
+	          %= t span => (class => 'table-tooltips', 'data-tooltip' => defjump_resolve($_->{defjump}), 'data-position' => 'bottom') => begin
 	          %= $_->{defjump}
 	          % end
 		</td>
 		<td>
 	          %= $_->{blocked} ? img_html(blocked => $_->{qs}) : ''
 		  % my $speed_key = get_speed_key($_->{speed_in}, $_->{speed_out});
-		  % my $speed = 'Скорость: '.trans_speed_plan($speed_key);
+		  % my $speed = 'Скорость: '.speed_plan_resolve($speed_key);
 		  % $speed .= "\nВходящая: $_->{speed_in}\nИсходящая: $_->{speed_out}" if $speed_key eq 'userdef';
-		  % my $t = "$speed\nРежим квоты: ".trans_qs_name($_->{qs})."\nОсталось: ".btomb($_->{sum_limit_in}).' Мб из '.btomb($_->{limit_in}).' Мб';
+		  % my $t = "$speed\nРежим квоты: ".qs_resolve($_->{qs})."\nОсталось: ".btomb($_->{sum_limit_in}).' Мб из '.btomb($_->{limit_in}).' Мб';
 		  %= t span => (class => 'table-tooltips', 'data-tooltip' => $t, 'data-position' => 'bottom') => begin
 		  %== $_->{qs} == 0 ? '*Анлим*' : btomb($_->{limit_in}).'&nbsp;Мб'
 	          % end

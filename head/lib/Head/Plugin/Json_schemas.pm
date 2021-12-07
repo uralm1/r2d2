@@ -130,3 +130,15 @@ __DATA__
   }
 }
 
+@@ limit_record
+{
+  "type": "object",
+  "required": ["qs", "limit_in", "add_sum", "reset_sum"],
+  "properties": {
+    "qs": { "type":"integer", "minimum":0, "maximum":9 },
+    "limit_in": { "type":"integer", "minimum":0 },
+    "add_sum": { "type":"integer", "enum":[0,1] },
+    "reset_sum": { "type":"integer", "enum":[0,1] }
+  }
+}
+

@@ -111,19 +111,19 @@
 		%= $_->{mac}
 	      </td>
 	      <td style="width:10%">
-	        %= trans_rt_name $_->{rt}
+	        %= rt_resolve $_->{rt}
 	      </td>
 	      <td style="width:12%">
-	        %= t span => (class => 'table-tooltips', 'data-tooltip' => trans_defjump_name($_->{defjump}), 'data-position' => 'bottom') => begin
+	        %= t span => (class => 'table-tooltips', 'data-tooltip' => defjump_resolve($_->{defjump}), 'data-position' => 'bottom') => begin
 	        %= $_->{defjump}
 	        % end
 	      </td>
 	      <td style="width:12%">
 	        %= $_->{blocked} ? img_html(blocked => $_->{qs}) : ''
 		% my $speed_key = get_speed_key($_->{speed_in}, $_->{speed_out});
-		% my $speed = 'Скорость: '.trans_speed_plan($speed_key);
+		% my $speed = 'Скорость: '.speed_plan_resolve($speed_key);
 		% $speed .= "\nВходящая: $_->{speed_in}\nИсходящая: $_->{speed_out}" if $speed_key eq 'userdef';
-		% my $t = "$speed\nРежим квоты: ".trans_qs_name($_->{qs})."\nОсталось: ".btomb($_->{sum_limit_in}).' Мб из '.btomb($_->{limit_in}).' Мб';
+		% my $t = "$speed\nРежим квоты: ".qs_resolve($_->{qs})."\nОсталось: ".btomb($_->{sum_limit_in}).' Мб из '.btomb($_->{limit_in}).' Мб';
 		%= t span => (class => 'table-tooltips', 'data-tooltip' => $t, 'data-position' => 'bottom') => begin
 		%== $_->{qs} == 0 ? '*Анлим*' : btomb($_->{limit_in}).'&nbsp;Мб'
 	        % end
@@ -195,19 +195,19 @@
 	  %= $_->{mac}
 	</td>
 	<td style="width:10%">
-	  %= trans_rt_name $_->{rt}
+	  %= rt_resolve $_->{rt}
 	</td>
 	<td style="width:9%">
-	  %= t span => (class => 'table-tooltips', 'data-tooltip' => trans_defjump_name($_->{defjump}), 'data-position' => 'bottom') => begin
+	  %= t span => (class => 'table-tooltips', 'data-tooltip' => defjump_resolve($_->{defjump}), 'data-position' => 'bottom') => begin
 	  %= $_->{defjump}
 	  % end
 	</td>
 	<td style="width:12%">
           %= $_->{blocked} ? img_html(blocked => $_->{qs}) : ''
 	  % my $speed_key = get_speed_key($_->{speed_in}, $_->{speed_out});
-	  % my $speed = 'Скорость: '.trans_speed_plan($speed_key);
+	  % my $speed = 'Скорость: '.speed_plan_resolve($speed_key);
 	  % $speed .= "\nВходящая: $_->{speed_in}\nИсходящая: $_->{speed_out}" if $speed_key eq 'userdef';
-	  % my $t = "$speed\nРежим квоты: ".trans_qs_name($_->{qs})."\nОсталось: ".btomb($_->{sum_limit_in}).' Мб из '.btomb($_->{limit_in}).' Мб';
+	  % my $t = "$speed\nРежим квоты: ".qs_resolve($_->{qs})."\nОсталось: ".btomb($_->{sum_limit_in}).' Мб из '.btomb($_->{limit_in}).' Мб';
 	  %= t span => (class => 'table-tooltips', 'data-tooltip' => $t, 'data-position' => 'bottom') => begin
 	  %== $_->{qs} == 0 ? '*Анлим*' : btomb($_->{limit_in}).'&nbsp;Мб'
 	  % end

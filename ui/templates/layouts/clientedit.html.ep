@@ -6,11 +6,11 @@
 <li class="tab"><a class="active" href="#tabactive"><%== $text %></a></li>
 % } else {
 %   if ($this_tab == 1) {
-<li class="tab"><a target="_self" href="<%== url_with('clientedit')->query({rep => undef}) %>"><%== $text %></a></li>
+<li class="tab"><a target="_self" href="<%== url_with('clientedit')->query({id => $client_id, rep => undef}) %>"><%== $text %></a></li>
 %   } elsif ($this_tab == 2) {
-<li class="tab"><a target="_self" href="<%== url_with('clientstat')->query({rep => undef}) %>"><%== $text %></a></li>
+<li class="tab"><a target="_self" href="<%== url_with('clientstat')->query({id => $client_id, rep => undef}) %>"><%== $text %></a></li>
 %   } elsif ($this_tab == 3) {
-<li class="tab"><a target="_self" href="<%== url_with('clientstat')->query({rep => 'month'}) %>"><%== $text %></a></li>
+<li class="tab"><a target="_self" href="<%== url_with('clientstat')->query({id => $client_id, rep => 'month'}) %>"><%== $text %></a></li>
 %   }
 % }
 <% end %>

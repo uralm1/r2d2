@@ -1,4 +1,4 @@
-% layout 'default', title => 'Удаление устройства', back_url => url_with('deviceedit');
+% layout 'default', title => 'Удаление устройства', back_url => url_with('deviceedit')->query({id => $device_id, clientid => $client_id});
 <div class="scont">
   <div class="row">
     <div class="col s12">
