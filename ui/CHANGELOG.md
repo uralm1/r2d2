@@ -2,8 +2,9 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+- Сохранение текущей страницы списка клиентов в сессионном хранилище.
+- Столбец описания в списке клиентов.
 - Информация по БД в subsys head и отображение в system view.
-- 
 
 ## [0.7] - 2021-12-06
 - Редактирование лимитов.

@@ -47,6 +47,7 @@
 	<th><a class="sortlink" href="<%== url_with->query({sort => 'cn', set => 'sort'}) %>">Наименование клиента</a><%== $sorton->(qr/^cn$/) %></th>
 	<th><a class="sortlink" href="<%== url_with->query({sort => 'login', set => 'sort'}) %>">Логин</a><%== $sorton->(qr/^login$/) %></th>
 	<th>E-mail</th>
+	<th>Комментарий, #заявки</th>
       </tr>
     </thead>
     <tbody>
@@ -72,9 +73,10 @@
 	</td>
 	<td><%= $c->{login} %></td>
 	<td><%= $c->{email} %></td>
+	<td><%= $c->{desc} %></td>
       </tr>
       <tr class="tr-devices <%== $lost_class %>">
-	<td class="listdevicerow" colspan="4">
+	<td class="listdevicerow" colspan="5">
 	  <table>
 	    % unless ($th) {
 	    <thead>

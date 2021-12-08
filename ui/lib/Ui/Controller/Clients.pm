@@ -47,13 +47,15 @@ sub index {
     }
   }
 
-  my $active_page = $self->param('p') || 1;
-  return unless $self->exists_and_number($active_page);
-
   my $lostonlyifexist_mode = $self->session('lostfirstshown') ||
     (defined $search && $search ne '') || $view_mode ne '' ? 0 : 1;
 
-  $self->session(s => $search, v => $view_mode, sort => $sort_mode);
+  $self->session(ap => undef) if $lostonlyifexist_mode || $self->param('set');
+
+  my $active_page = $self->param('p') || $self->session('ap') || 1;
+  return unless $self->exists_and_number($active_page);
+
+  $self->session(s => $search, v => $view_mode, sort => $sort_mode, ap => $active_page);
 
   $self->render_later;
 
