@@ -236,8 +236,8 @@ sub _compat_from_config_to_db {
   my $db = $app->mysql_inet->db;
 
   my $e = eval {
-    $db->query('DELETE FROM profiles');
     $db->query('DELETE FROM profiles_agents');
+    $db->query('DELETE FROM profiles');
   };
   die "Tables cleanup error\n" unless defined $e;
 

@@ -2,6 +2,8 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+- Добавил foreign key constraints  в базе данных.
+- Всплывающая информация о комментарии устройства в списках.
 - Сохранение текущей страницы списка клиентов в сессионном хранилище.
 - Столбец описания в списке клиентов.
 - Информация по БД в subsys head и отображение в system view.

@@ -97,7 +97,8 @@
 	      <td style="width:23%">
 		%= $_->{flagged} ? img_html 'flagged' : ''
 		<i class="material-icons tiny"><%== $c->{type} == 1 ? 'dns':'computer' %></i>
-		%= link_to $c->{type} == 1 ? url_for('serveredit')->query(id => $c->{id}) : url_for('deviceedit')->query(clientid => $c->{id}, id => $_->{id}) => (class => 'listlink') => begin
+	        % my $name_tooltip = ($_->{desc} ne '') ? 'table-tooltips' : '';
+		%= link_to $c->{type} == 1 ? url_for('serveredit')->query(id => $c->{id}) : url_for('deviceedit')->query(clientid => $c->{id}, id => $_->{id}) => (class => "listlink $name_tooltip", 'data-tooltip' => $_->{desc}, 'data-position' => 'bottom') => begin
 		% if ($_->{name} ne '') {
 		%= $_->{name}
 		% } else {

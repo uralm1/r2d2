@@ -23,6 +23,22 @@ sub register {
 __DATA__
 @@ inetdb
 -- 1 up
+CREATE TABLE IF NOT EXISTS `clients` (
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `type` tinyint(3) UNSIGNED NOT NULL,
+  `guid` char(36) CHARACTER SET ascii NOT NULL,
+  `login` varchar(255) NOT NULL,
+  `desc` varchar(255) NOT NULL,
+  `create_time` datetime DEFAULT NULL,
+  `cn` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `email_notify` tinyint(1) NOT NULL,
+  `lost` tinyint(1) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `cn` (`cn`),
+  KEY `typelogin` (`type`, `login`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS `devices` (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `login` varchar(30) DEFAULT NULL,
@@ -56,6 +72,9 @@ CREATE TABLE IF NOT EXISTS `devices` (
   KEY `sync_flags` (`sync_flags`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+ALTER TABLE `devices`
+  ADD CONSTRAINT `devices_ibfk_1` FOREIGN KEY (`client_id`) REFERENCES `clients` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
 CREATE TABLE IF NOT EXISTS `adaily` (
   `device_id` int(11) UNSIGNED NOT NULL,
   `login` varchar(30) DEFAULT NULL,
@@ -76,21 +95,6 @@ CREATE TABLE IF NOT EXISTS `amonthly` (
   PRIMARY KEY (`date`,`device_id`),
   KEY `date` (`date`),
   KEY `device_id` (`device_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS `clients` (
-  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `type` tinyint(3) UNSIGNED NOT NULL,
-  `guid` char(36) CHARACTER SET ascii NOT NULL,
-  `login` varchar(255) NOT NULL,
-  `desc` varchar(255) NOT NULL,
-  `create_time` datetime DEFAULT NULL,
-  `cn` varchar(255) NOT NULL,
-  `email` varchar(255) NOT NULL,
-  `email_notify` tinyint(1) NOT NULL,
-  `lost` tinyint(1) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `typelogin` (`type`, `login`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `op_log` (
@@ -133,6 +137,9 @@ CREATE TABLE IF NOT EXISTS `profiles_agents` (
   PRIMARY KEY(`id`),
   KEY `profile_id` (`profile_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+ALTER TABLE `profiles_agents`
+  ADD CONSTRAINT `profiles_agents_ibfk_1` FOREIGN KEY (`profile_id`) REFERENCES `profiles` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 
 -- 1 down

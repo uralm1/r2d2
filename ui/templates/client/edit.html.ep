@@ -161,7 +161,8 @@
 		<td><%== $line_num++ %></td>
 		<td>
 		  %= $_->{flagged} ? img_html 'flagged' : ''
-		  %= link_to url_for('deviceedit')->query(back => 1, clientid => $client_id, id => $_->{id}) => (class => 'listlink') => begin
+	          % my $name_tooltip = ($_->{desc} ne '') ? 'table-tooltips' : '';
+		  %= link_to url_for('deviceedit')->query(back => 1, clientid => $client_id, id => $_->{id}) => (class => "listlink $name_tooltip", 'data-tooltip' => $_->{desc}, 'data-position' => 'bottom') => begin
 		  % if ($_->{name} ne '') {
 		  %= $_->{name}
                   % } else {
