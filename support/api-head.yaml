@@ -2545,21 +2545,26 @@ components:
           type: string
           description: имя БД
           example: inet
-        host:
+        hostport:
           type: string
-          description: хост сервера БД
+          description: хост и порт (при наличии) сервера БД
           example: contoso.somedomain
         scheme:
           type: string
           description: тип (схема) БД
           example: mysql
-        ping:
+        state:
           type: integer
-          description: Результат пинга БД (0, 1)
           enum: [0, 1]
+          description: Результат пинга БД (0, 1)
           example: 1
+        status:
+          type: string
+          description: Версия СУБД при успешном пинге, 'нет ответа' при неуспешном
+          example: '10.1.26-MariaDB-0'
       required:
         - name
-        - host
+        - hostport
         - scheme
-        - ping
+        - state
+        - status
