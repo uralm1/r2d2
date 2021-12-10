@@ -1,6 +1,6 @@
 @rem echo off
 @setlocal
-@set ver=2.59
+@set ver=2.61
 @set ver_ljq=1.2
 @set inst_dir=c:\Utils\Dhcpsyn
 

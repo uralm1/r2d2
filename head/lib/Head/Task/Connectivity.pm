@@ -33,7 +33,7 @@ sub register {
 sub _do {
   my ($app, $profile) = @_;
 
-  my $profiles = $app->profiles(dont_copy_config_to_db => 1)->hash;
+  my $profiles = $app->profiles->hash;
   if (defined $profile) {
     die "Requested profile configuration doesn't exist!\n" unless $profiles->{$profile};
   }

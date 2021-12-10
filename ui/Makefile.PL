@@ -39,6 +39,7 @@ sub install {
 install::
 	\$(NOECHO) \$(ECHO) "** Installing configuration, public and templates files..."
 	\$(NOECHO) install -m 0644 ui.conf_empty \$(DESTDIR)$inst_dir/ui.conf_empty
+	\$(NOECHO) install -m 0644 CHANGELOG.md \$(DESTDIR)$inst_dir/CHANGELOG.md
 	\$(NOECHO) [ ! -f \$(DESTDIR)$inst_dir/ui.conf ] && install -m 0644 ui.conf_empty \$(DESTDIR)$inst_dir/ui.conf || true
 	\$(NOECHO) for d in \$\$(find public -type d); do install -m 0755 -d \$(DESTDIR)$inst_dir/\"\$\$d\"; done
 	\$(NOECHO) for f in \$\$(find public -type f); do install -m 0644 -D \"\$\$f\" \$(DESTDIR)$inst_dir/\"\$\$f\"; done

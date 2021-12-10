@@ -45,7 +45,7 @@ ON DUPLICATE KEY UPDATE m_in = sum_in, m_out = sum_out") };
     }
 
     # send RELOAD to all block agents to unblock devices in one request
-    $app->profiles(dont_copy_config_to_db => 1)->eachagent(sub {
+    $app->profiles->eachagent(sub {
       my ($profile_key, $agent_key, $agent) = @_;
 
       return unless $agent->{block};

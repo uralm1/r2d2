@@ -17,7 +17,7 @@ sub run {
   my ($id) = @_;
   die "Bad <device-id> argument.\n" unless (defined($id) && $id =~ /^\d+$/);
 
-  my $profiles = $app->profiles(dont_copy_config_to_db => 1);
+  my $profiles = $app->profiles;
   my $db = $app->mysql_inet->db;
   $app->log->info('Asyncronious refresh initiated');
   $db->query("SELECT profile FROM devices WHERE id = ?", $id =>

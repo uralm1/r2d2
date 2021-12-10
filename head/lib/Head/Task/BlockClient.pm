@@ -13,7 +13,7 @@ sub register {
     my $app = $job->app;
 
     # loop by agents
-    my $res = $app->profiles(dont_copy_config_to_db => 1)->eachagent($profile, sub {
+    my $res = $app->profiles->eachagent($profile, sub {
       my ($profile_key, $agent_key, $agent) = @_;
 
       return unless $agent->{block};

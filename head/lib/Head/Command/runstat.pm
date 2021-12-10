@@ -19,7 +19,7 @@ sub run {
   die "Bad <profile> argument\n" unless defined $p;
 
   # loop by agents
-  my $res1 = $app->profiles(dont_copy_config_to_db => 1)->eachagent($p, sub {
+  my $res1 = $app->profiles->eachagent($p, sub {
     my ($profile_key, $agent_key, $agent) = @_;
 
     my $t = $agent->{type};

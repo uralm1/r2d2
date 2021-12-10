@@ -10,7 +10,7 @@ has usage => "Usage: APPLICATION checkdb\n";
 sub run {
   my $app = shift->app;
 
-  my $profiles = $app->profiles(dont_copy_config_to_db => 1);
+  my $profiles = $app->profiles;
   my $db = $app->mysql_inet->db;
   $app->log->info('Asyncronious update - checking db for changes');
   $db->query("SELECT id, profile, sync_flags FROM devices WHERE sync_flags > 0" =>

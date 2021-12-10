@@ -11,7 +11,7 @@ has usage => "Usage: APPLICATION checkdbdel\n";
 sub run {
   my $app = shift->app;
 
-  my $profiles = $app->profiles(dont_copy_config_to_db => 1);
+  my $profiles = $app->profiles;
 
   my $dcc = $app->del_compat_check;
   return 1 unless $dcc;

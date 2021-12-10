@@ -39,10 +39,6 @@ sub new {
   }, $class;
   #say 'Ural::Profiles constructor!';
 
-  # load profiles configuration from config to database
-  # to remove in future versions!
-  $self->_compat_from_config_to_db unless $opt{dont_copy_config_to_db};
-
   unless (defined eval { $self->load }) {
     chomp $@;
     die "Profiles loading error: $@\n";
@@ -227,6 +223,48 @@ WHERE profile = ?",
 }
 
 
+=for comment
+# old configuration scheme in head.conf
+#profiles_source => {
+#  'plk' => {
+#    name => 'Производственно-лабораторный комплекс',
+#    agents => [
+#      {
+#        name => 'Агент роутера',
+#        type => 'rtsyn',
+#        url => 'https://localhost:2275'
+#      },
+#      #{
+#      #  name => 'Агент DHCP',
+#      #  type => 'dhcpsyn',
+#      #  url => 'https://localhost:2275'
+#      #},
+#      #{
+#      #  name => 'Агент Firewall',
+#      #  type => 'fwsyn',
+#      #  url => 'https://localhost:2275',
+#      #  block => 1
+#      #},
+#    ],
+#  },
+#  'gwtest1' => {
+#    name => 'Тестовое подразделение',
+#    agents => [
+#      {
+#        name => 'Универсальный агент',
+#        type => 'gwsyn',
+#        url => 'https://1.2.3.4:2275',
+#        block => 1
+#      },
+#    ],
+#  },
+#  'atcsev' => {
+#    name => 'АТЦ Севастопольская',
+#    agents => [
+#    ],
+#  },
+#}
+
 # deprecated
 # upload configuration from config file to db,
 # old db tables will be emptied!
@@ -275,7 +313,7 @@ VALUES (?, ?, ?, ?, ?, 2, 'Ожидание проверки...')",
 
   return 1;
 }
-
+=cut
 
 # internal
 sub _test_assign {
