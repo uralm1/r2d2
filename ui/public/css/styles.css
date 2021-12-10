@@ -98,7 +98,7 @@ tr.tr-client, tr.tr-device, tr.tr-status, tr.tr-agent, tr.tr-profile {
 
 .tr-client:hover, .tr-device:hover, .tr-device-edit:hover, .tr-profile:hover {
   cursor:pointer;
-  background-color: rgba(225,225,225,.5);
+  background-color: rgba(225,225,225,.5) !important;
 }
 
 tr.tr-client>td, tr.tr-status>td, tr.tr-profile>td {
@@ -188,9 +188,14 @@ a.sortlink {
 
 .tr-client.lostclient {
   text-decoration: line-through;
+  background-color:#d4e3ed;
 }
 .tr-devices.lostclient {
   color: #9b9b9b;
+}
+
+.tr-device.blocked, .tr-device-edit.blocked {
+  background-color:#fff7f0;
 }
 
 .list-warning-panel {

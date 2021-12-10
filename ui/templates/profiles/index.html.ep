@@ -1,4 +1,4 @@
-% layout 'default', title => 'Список объектов', back_url => '/';
+% layout 'default', title => 'Список объектов';
 <div class="scont">
   <table>
     <thead>

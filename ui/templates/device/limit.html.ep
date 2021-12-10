@@ -5,158 +5,137 @@
 %   end
 % }
 <div class="scont">
-  <div class="row">
-    <div class="col s12 m12 l10">
+  %= form_for devicelimit => (method=>'POST') => begin
 
-      %= form_for devicelimit => (method=>'POST') => begin
+  %= hidden_field id => $device_id
+  %= hidden_field clientid => $client_id
+  %= hidden_field client_cn_a => $rec->{client_cn}
+  %= hidden_field client_login_a => $rec->{client_login}
 
-      <div id="main" class="section scrollspy margin-top">
-	%= hidden_field id => $device_id
-	%= hidden_field clientid => $client_id
-	%= hidden_field client_cn_a => $rec->{client_cn}
-	%= hidden_field client_login_a => $rec->{client_login}
-
-	<div class="row">
-	  <div class="input-field col s12 m8 l5">
-	    % param name => $rec->{name} ne '' ? $rec->{name} : "Не указано, ID: $rec->{id}" unless defined param 'name';
-	    %= input_tag 'name', type => 'hidden'
-	    % param name1 => param 'name';
-	    %= text_field 'name1', id => 'name', disabled => undef
-	    %= label_for name => 'Название устройства'
-	    %= t 'span', class => 'helper-text'
-	  </div>
-	  <div class="input-field col s12 m4 l3 offset-l1">
-	    % param 'create-time' => $rec->{create_time} // 'Не указано' unless param 'create-time';
-	    %= input_tag 'create-time', type => 'hidden'
-	    % param 'create-time1' => param 'create-time';
-	    %= text_field 'create-time1', id => 'create-time', disabled => undef
-	    %= label_for 'create-time' => 'Дата и время создания'
-	  </div>
-	</div>
-	<div class="row">
-	  <div class="input-field col s12 m8 l5">
-	    % param 'desc' => $rec->{desc} unless param 'desc';
-	    %= input_tag 'desc', type => 'hidden'
-	    % param 'desc1' => param 'desc';
-	    %= text_area 'desc1', id => 'desc', class => 'materialize-textarea', placeholder => '', disabled => undef
-	    %= label_for desc => 'Комментарий'
-	  </div>
-	</div>
-
-	<h5 class="grey-text text-darken-1">Клиент</h5>
-	<div class="row">
-	  <div class="input-field col s5 m5 l5">
-	    %= text_field 'client-cn' => $rec->{client_cn}, id => 'client-cn', disabled => undef
-	    %= label_for 'client-cn' => 'Фамилия Имя Отчество'
-	  </div>
-	  <div class="input-field col s5 m5 l4">
-	    %= text_field 'client-login' => $rec->{client_login}, id => 'client-login', disabled => undef
-	    %= label_for 'client-login' => 'логин'
-	  </div>
-	</div>
-
-	<h5 class="grey-text text-darken-1">Местоположение</h5>
-	<div class="row">
-	  <div class="input-field col s12 m8 l5">
-	    % param profile => $rec->{profile} unless defined param 'profile';
-	    %= input_tag 'profile', type => 'hidden'
-	    % param profile_name => $rec->{profile_name} // "Нет данных ($rec->{profile})" unless defined param 'profile_name';
-	    %= input_tag 'profile_name', type => 'hidden'
-
-	    % param 'profile_name1' => param 'profile_name';
-	    %= text_field 'profile_name1', id => 'profile', disabled => undef;
-	    %#= label_for profile => 'Расположение'
-	  </div>
-	</div>
-      </div>
-
-      %#<h5 class="grey-text text-darken-1">Сетевые параметры</h5>
-      %#<div class="row">
-	%#<div class="input-field col s10 m6 l4">
-	  % param ip => $rec->{ip} unless defined param 'ip';
-	  %= input_tag 'ip', type => 'hidden'
-	  %# param ip1 => param 'ip';
-	  %#= text_field 'ip1', id => 'ip', disabled => undef;
-	  %#= label_for ip => 'IP адрес'
-	  %#= t 'span', class => 'helper-text', 'IPv4'
-	%#</div>
-	%#<div class="input-field col s10 m6 l4">
-	  % param mac => $rec->{mac} unless defined param 'mac';
-	  %= input_tag 'mac', type => 'hidden'
-	  %# param mac1 => param 'mac';
-	  %#= text_field 'mac1', id => 'mac', disabled => undef
-	  %#= label_for mac => 'MAC'
-	  %#= t 'span', class => 'helper-text', 'Eui-48 ethernet MAC'
-	%#</div>
-      %#</div>
-
-      <div id="limits" class="section scrollspy">
-	<h5>Лимиты</h5>
-	<div class="row">
-	  <div class="input-field col s10 m6 l4">
-	    % param limit_in => btomb $rec->{limit_in} unless defined param 'limit_in';
-	    %= text_field 'limit_in', id => 'limit-in'
-	    %= label_for 'limit-in' => 'Лимит (Мегабайт в месяц)'
-	    %= t 'span', class => 'helper-text', 'data-error' => 'Ошибка', 'Формат: число без добавления "Мб".'
-	  </div>
-	  <div class="input-field col s10 m6 l4">
-	    % param sum_limit_in => btomb $rec->{sum_limit_in} unless defined param 'sum_limit_in';
-	    %= input_tag 'sum_limit_in', type => 'hidden'
-	    % param 'sum_limit_in1' => param 'sum_limit_in';
-	    %= text_field 'sum_limit_in1', id => 'sum-limit-in', disabled => undef
-	    %= label_for 'sum-limit-in' => 'Осталось (Мегабайт в месяц)'
-	    %= t 'span', class => 'helper-text', 'data-error' => 'Ошибка', 'Будет изменено в соответствии с заданным лимитом и опциями.'
-	  </div>
-	</div>
-	<div class="row">
-	  <div class="col s12 l9">
-	    <label>
-	      %= check_box add_sum => 1, id => 'add-sum', class => 'filled-in'
-	      <span>Добавить временно (*&nbsp;Временное добавление объема к счетчику лимита до конца текущего месяца. С нового месяца счетчик будет сброшен на текущее значение лимита.)</span>
-	    </label>
-	  </div>
-	</div>
-	<div class="row">
-	  <div class="col s12 l9">
-	    <label>
-	      %= check_box reset_sum => 1, id => 'reset-sum', class => 'filled-in', checked => 'checked'
-	      <span>Сбросить счетчик лимита (**&nbsp;Начать отсчет нового лимита немедленно. Иначе, новый лимит будет использован только с нового месяца.)</span>
-	    </label>
-	  </div>
-	</div>
-	<div class="row">
-	  <div class="input-field col s10 m6 l4">
-	    % param qs => $rec->{qs} unless defined param 'qs';
-	    %= select_field qs => config('qs_names'), id => 'qs';
-	    %= label_for qs => 'Режим квоты'
-	  </div>
-	</div>
-      </div>
-
-      <div class="row">
-	<div class="col s12">
-	  <button class="btn-large waves-effect waves-light" type="submit">Выполнить изменение</button>
-	  <span class="spaceleft">Изменение лимита выполняется без пересинхронизации устройства на агентах.</span>
-	</div>
-      </div>
-      % end
+  <div class="row margin-top">
+    <div class="input-field col s12 m8 l5">
+      % param name => $rec->{name} ne '' ? $rec->{name} : "Не указано, ID: $rec->{id}" unless defined param 'name';
+      %= input_tag 'name', type => 'hidden'
+      % param name1 => param 'name';
+      %= text_field 'name1', id => 'name', disabled => undef
+      %= label_for name => 'Название устройства'
+      %= t 'span', class => 'helper-text'
     </div>
-
-    <div class="col hide-on-med-and-down l2">
-      <div class="toc-wrapper">
-	<ul class="section table-of-contents">
-	  <li><a href="#main">Данные устройства</a></li>
-	  <li><a href="#limits">Лимиты</a></li>
-	</ul>
-      </div>
+    <div class="input-field col s12 m4 l3 offset-l1">
+      % param 'create-time' => $rec->{create_time} // 'Не указано' unless param 'create-time';
+      %= input_tag 'create-time', type => 'hidden'
+      % param 'create-time1' => param 'create-time';
+      %= text_field 'create-time1', id => 'create-time', disabled => undef
+      %= label_for 'create-time' => 'Дата и время создания'
     </div>
-
   </div>
+  <div class="row">
+    <div class="input-field col s12 m8 l5">
+      % param 'desc' => $rec->{desc} unless param 'desc';
+      %= input_tag 'desc', type => 'hidden'
+      % param 'desc1' => param 'desc';
+      %= text_area 'desc1', id => 'desc', class => 'materialize-textarea', placeholder => '', disabled => undef
+      %= label_for desc => 'Комментарий'
+    </div>
+  </div>
+
+  <h5 class="grey-text text-darken-1">Клиент</h5>
+  <div class="row">
+    <div class="input-field col s5 m5 l5">
+      %= text_field 'client-cn' => $rec->{client_cn}, id => 'client-cn', disabled => undef
+      %= label_for 'client-cn' => 'Фамилия Имя Отчество'
+    </div>
+    <div class="input-field col s5 m5 l4">
+      %= text_field 'client-login' => $rec->{client_login}, id => 'client-login', disabled => undef
+      %= label_for 'client-login' => 'логин'
+    </div>
+
+    %#<h5 class="grey-text text-darken-1">Местоположение</h5>
+    %#<div class="row">
+      %#<div class="input-field col s12 m8 l5">
+	% param profile => $rec->{profile} unless defined param 'profile';
+	%= input_tag 'profile', type => 'hidden'
+	% param profile_name => $rec->{profile_name} // "Нет данных ($rec->{profile})" unless defined param 'profile_name';
+	%= input_tag 'profile_name', type => 'hidden'
+	%# param 'profile_name1' => param 'profile_name';
+	%#= text_field 'profile_name1', id => 'profile', disabled => undef;
+	%#= label_for profile => 'Расположение'
+      %#</div>
+    %#</div>
+  </div>
+
+  %#<h5 class="grey-text text-darken-1">Сетевые параметры</h5>
+  %#<div class="row">
+    %#<div class="input-field col s10 m6 l4">
+      % param ip => $rec->{ip} unless defined param 'ip';
+      %= input_tag 'ip', type => 'hidden'
+      %# param ip1 => param 'ip';
+      %#= text_field 'ip1', id => 'ip', disabled => undef;
+      %#= label_for ip => 'IP адрес'
+      %#= t 'span', class => 'helper-text', 'IPv4'
+    %#</div>
+    %#<div class="input-field col s10 m6 l4">
+      % param mac => $rec->{mac} unless defined param 'mac';
+      %= input_tag 'mac', type => 'hidden'
+      %# param mac1 => param 'mac';
+      %#= text_field 'mac1', id => 'mac', disabled => undef
+      %#= label_for mac => 'MAC'
+      %#= t 'span', class => 'helper-text', 'Eui-48 ethernet MAC'
+    %#</div>
+  %#</div>
+
+  <h5>Лимиты</h5>
+  <div class="row">
+    <div class="input-field col s10 m6 l4">
+      % param limit_in => btomb $rec->{limit_in} unless defined param 'limit_in';
+      %= text_field 'limit_in', id => 'limit-in'
+      %= label_for 'limit-in' => 'Лимит (Мегабайт в месяц)'
+      %= t 'span', class => 'helper-text', 'data-error' => 'Ошибка', 'Формат: число без добавления "Мб".'
+    </div>
+    <div class="input-field col s10 m6 l4">
+      % param sum_limit_in => btomb $rec->{sum_limit_in} unless defined param 'sum_limit_in';
+      %= input_tag 'sum_limit_in', type => 'hidden'
+      % param 'sum_limit_in1' => param 'sum_limit_in';
+      %= text_field 'sum_limit_in1', id => 'sum-limit-in', disabled => undef
+      %= label_for 'sum-limit-in' => 'Осталось (Мегабайт в месяц)'
+      %= t 'span', class => 'helper-text', 'data-error' => 'Ошибка', 'Будет изменено в соответствии с заданным лимитом и опциями.'
+    </div>
+  </div>
+  <div class="row">
+    <div class="col s12 l9">
+      <label>
+	%= check_box add_sum => 1, id => 'add-sum', class => 'filled-in'
+	<span>Добавить временно (*&nbsp;Временное добавление объема к счетчику лимита до конца текущего месяца. С нового месяца счетчик будет сброшен на текущее значение лимита.)</span>
+      </label>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col s12 l9">
+      <label>
+	%= check_box reset_sum => 1, id => 'reset-sum', class => 'filled-in', checked => 'checked'
+	<span>Сбросить счетчик лимита (**&nbsp;Начать отсчет нового лимита немедленно. Иначе, новый лимит будет использован только с нового месяца.)</span>
+      </label>
+    </div>
+  </div>
+  <div class="row">
+    <div class="input-field col s10 m6 l4">
+      % param qs => $rec->{qs} unless defined param 'qs';
+      %= select_field qs => config('qs_names'), id => 'qs';
+      %= label_for qs => 'Режим квоты'
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col s12">
+      <button class="btn-large waves-effect waves-light" type="submit">Выполнить изменение</button>
+      <span class="spaceleft">Изменение лимита выполняется без пересинхронизации устройства на агентах.</span>
+    </div>
+  </div>
+  % end
 </div>
 % content_for script0 => begin
 <script>
 $(document).ready(function(){
-  $('.scrollspy').scrollSpy();
   $('select').formSelect();
   $('input.field-with-error,textarea.field-with-error').removeClass('valid').addClass('invalid');
 });

@@ -3,7 +3,7 @@
   <div class="row">
     <div class="col s12">
       <h5><b>Отчет по трафику для пользователя</b></h5>
-      Компонент программы <b>&laquo;Управление комплексом &laquo;R2D2 2021&raquo;. Версия: <%== $version %>&raquo;</b>.
+      Компонент программы <b>&laquo;Управление комплексом R2D2 2021&raquo;. Версия: <%== $version %></b>
     </div>
   </div>
 %= include 'index/_hist'

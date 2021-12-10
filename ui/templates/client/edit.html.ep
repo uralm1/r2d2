@@ -157,10 +157,11 @@
 	    <tbody>
 	      % my $line_num = 1;
 	      % for (@{$rec->{devices}}) {
-	      <tr class="tr-device-edit" data-deviceid="<%== $_->{id} %>">
+	      <tr class="tr-device-edit <%== $_->{blocked} ? 'blocked':'' %>" data-deviceid="<%== $_->{id} %>">
 		<td><%== $line_num++ %></td>
 		<td>
 		  %= $_->{flagged} ? img_html 'flagged' : ''
+	          %= $_->{blocked} ? img_html(blocked => $_->{qs}) : ''
 	          % my $name_tooltip = ($_->{desc} ne '') ? 'table-tooltips' : '';
 		  %= link_to url_for('deviceedit')->query(back => 1, clientid => $client_id, id => $_->{id}) => (class => "listlink $name_tooltip", 'data-tooltip' => $_->{desc}, 'data-position' => 'bottom') => begin
 		  % if ($_->{name} ne '') {
@@ -184,7 +185,6 @@
 	          % end
 		</td>
 		<td>
-	          %= $_->{blocked} ? img_html(blocked => $_->{qs}) : ''
 		  % my $speed_key = get_speed_key($_->{speed_in}, $_->{speed_out});
 		  % my $speed = 'Скорость: '.speed_plan_resolve($speed_key);
 		  % $speed .= "\nВходящая: $_->{speed_in}\nИсходящая: $_->{speed_out}" if $speed_key eq 'userdef';
