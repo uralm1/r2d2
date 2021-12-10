@@ -12,7 +12,7 @@ sub register {
     my ($self, $json, $schema) = @_;
     my $jv = JSON::Validator->new;
     $jv->schema("data:///$schema"); # die on schema errors!
-    $jv->coerce('numbers');
+    $jv->schema->coerce('numbers');
     if (my @errors = $jv->validate($json)) {
       $self->render(text => "Format @errors", status => 503);
       return undef;
