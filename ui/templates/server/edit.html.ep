@@ -14,10 +14,10 @@
       <div id="main" class="section scrollspy margin-top">
 	%= hidden_field id => $srv_id
 
-	% if ($rec->{flagged} || $rec->{blocked}) {
+	% if (dev_flagged($rec) || dev_warnedorblocked($rec)) {
 	%= panel_html 'start'
-	%= $rec->{flagged} ? panel_html 'flagged' : ''
-	%= $rec->{blocked} ? panel_html(blocked => $rec->{qs}) : ''
+	%= dev_flagged($rec) ? panel_html 'flagged' : ''
+	%= dev_warnedorblocked($rec) ? panel_html(blocked => $rec->{qs}) : ''
 	%= panel_html 'end'
 	% }
 

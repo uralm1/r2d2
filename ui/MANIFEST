@@ -17,6 +17,7 @@ lib/Ui/Controller/Rep.pm
 lib/Ui/Controller/Server.pm
 lib/Ui/Controller/Stat.pm
 lib/Ui/Controller/System.pm
+lib/Ui/Plugin/DeviceFlags.pm
 lib/Ui/Plugin/Html.pm
 lib/Ui/Plugin/MPagenav.pm
 lib/Ui/Plugin/StatUtils.pm

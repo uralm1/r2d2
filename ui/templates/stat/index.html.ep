@@ -5,7 +5,16 @@
 %   end
 % }
 <div class="scont" id="tabactive">
-  <div class="row row-top-margin">
+
+  % if (anydev_warnedorblocked($fullrec->{devices})) {
+  <div class="margin-top">
+  %= panel_html 'start'
+  %= panel_html 'blocked-stat'
+  %= panel_html 'end'
+  </div>
+  % }
+
+  <div class="row margin-top">
     <div class="col xl6 l7 s8 head-text">
       <b>Фамилия Имя Отчество:</b>&nbsp;<%= $fullrec->{cn} %><br>
       <b>Логин:</b>&nbsp;<%= $fullrec->{login} %><br>
@@ -77,6 +86,7 @@
 $(document).ready(function(){
   $('.collapsible').collapsible({accordion:false});
   $('#enotify').change(function(){$('#enotifyform').submit()});
+  $('.list-warning-panel').click(function(){$('.list-warning-panel').parent().parent().parent().hide(300)});
 % if ($wow_feature) {
   $('.tap-target').tapTarget();
   $('.tap-target').tapTarget('open');

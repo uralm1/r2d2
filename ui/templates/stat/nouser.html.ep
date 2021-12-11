@@ -1,6 +1,6 @@
 % layout 'userstat', title => 'Сервис недоступен';
 <div class="scont">
-  <div class="row row-top-margin">
+  <div class="row margin-top">
     <div class="col s12">
       <h5>Вы не имеете права доступа в сеть Интернет.</h5>
       <p>Воспользуйтесь одной из полезных ссылок справа для продолжения.</p>

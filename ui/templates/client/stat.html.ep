@@ -1,12 +1,12 @@
 % layout 'clientedit'; #activetab => $activetab
 <div class="scont" id="tabactive">
-  <div class="row row-top-margin">
+  <div class="row margin-top">
     <div class="col s11 head-text">
       <b>Фамилия Имя Отчество:</b>&nbsp;<%= $fullrec->{cn} %><br>
       <b>Логин:</b>&nbsp;<%= $fullrec->{login} %><br>
       % if ($fullrec->{email}) {
       <b>E-mail:</b>&nbsp;<%= $fullrec->{email} %>
-      <b>(уведомление <%== $fullrec->{email_notify} ? 'включено' : 'отключено'%>)</b>
+      <b>(уведомление по e-mail <%== $fullrec->{email_notify} ? 'включено' : 'отключено'%>)</b>
       % }
     </div>
   </div>

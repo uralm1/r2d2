@@ -1,7 +1,7 @@
 package Ui;
 use Mojo::Base 'Mojolicious';
 
-our $VERSION = '0.7.10';
+our $VERSION = '0.7.11';
 
 # This method will run once at server start
 sub startup {
@@ -32,6 +32,7 @@ sub startup {
   $self->plugin('Ui::Plugin::Utils');
   $self->plugin('Ui::Plugin::StatUtils');
   $self->plugin('Ui::Plugin::Html');
+  $self->plugin('Ui::Plugin::DeviceFlags');
 
   #push @{$self->commands->namespaces}, 'Ui::Command';
 

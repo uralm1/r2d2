@@ -1,11 +1,11 @@
 % layout 'serveredit'; #activetab => $activetab
 <div class="scont" id="tabactive">
-  <div class="row row-top-margin">
+  <div class="row margin-top">
     <div class="col s11 head-text">
       <b>Название сервера:</b>&nbsp;<%= $rec->{cn} %><br>
       % if ($rec->{email}) {
       <b>E-mail для уведомлений:</b>&nbsp;<%= $rec->{email} %>
-      <b>(уведомление <%== $rec->{email_notify} ? 'включено' : 'отключено'%>)</b>
+      <b>(уведомление по e-mail <%== $rec->{email_notify} ? 'включено' : 'отключено'%>)</b>
       % }
     </div>
   </div>

@@ -79,17 +79,18 @@ sub register {
     state $_source = {
       start => '<div class="row"><div class="col s12 m12 l10"><div class="card-panel list-warning-panel">',
       end => '</div></div></div>',
-      flagged => '<div class="green-text"><i class="material-icons tiny">warning</i><span>&nbsp;<b>ВНИМАНИЕ!</b> Данное устройство не синхронизировано. Ожидайте синхронизации...</span></div>',
+      flagged => '<div class="green-text"><i class="material-icons tiny">warning</i><span>&nbsp;<b>ВНИМАНИЕ! Данное устройство не синхронизировано. Ожидайте синхронизации...</b></span></div>',
       lost => '<div class="red-text"><i class="material-icons tiny">warning</i><span>&nbsp;<b>ВНИМАНИЕ! Данный клиент отсутствует в глобальном каталоге. Выполните замену или удаление.</b></span></div>',
       lostlist => '<div class="red-text"><i class="material-icons tiny">warning</i><span>&nbsp;<b>ВНИМАНИЕ! Имеются клиенты, отсутствующие в глобальном каталоге. Выполните замену или удаление.</b></span></div>',
       manual => '<div><i class="material-icons tiny">warning</i><span>&nbsp;<b>ВНИМАНИЕ!</b> Данный клиент создан вручную. Рекомендуется перейти на использование глобального каталога.</span></div>',
       painlist => '<div><i class="material-icons tiny">warning</i><span>&nbsp;<b>ВНИМАНИЕ!</b> Имеются клиенты, созданные вручную. Рекомендуется перейти на использование глобального каталога.</span></div>',
       blocked => [
-        '<div class="blue-text"><i class="material-icons tiny">warning</i><span>&nbsp;<b>ВНИМАНИЕ!</b> Данное устройство заблокировано. Режим неизвестен.</span></div>',
-        '<div class="amber-text text-darken-3"><i class="material-icons tiny">warning</i><span>&nbsp;<b>ВНИМАНИЕ!</b> Активировано предупреждение по лимиту трафика. Режим - предупреждение.</span></div>',
-        '<div class="red-text"><i class="material-icons tiny">warning</i><span>&nbsp;<b>ВНИМАНИЕ!</b> Активировано ограничение по лимиту трафика. Режим - ограничение скорости.</span></div>',
-        '<div class="red-text"><i class="material-icons tiny">warning</i><span>&nbsp;<b>ВНИМАНИЕ!</b> Активирована блокировка по лимиту трафика. Режим - блокировка доступа.</span></div>',
-      ]
+        '<div class="blue-text"><i class="material-icons tiny">warning</i><span>&nbsp;<b>ВНИМАНИЕ! Данное устройство заблокировано. Режим неизвестен.</b></span></div>',
+        '<div class="amber-text text-darken-3"><i class="material-icons tiny">warning</i><span>&nbsp;<b>ВНИМАНИЕ! Активировано предупреждение по лимиту трафика. Режим - предупреждение.</b></span></div>',
+        '<div class="red-text"><i class="material-icons tiny">warning</i><span>&nbsp;<b>ВНИМАНИЕ! Активировано ограничение по лимиту трафика. Режим - ограничение скорости.</b></span></div>',
+        '<div class="red-text"><i class="material-icons tiny">warning</i><span>&nbsp;<b>ВНИМАНИЕ! Активирована блокировка по лимиту трафика. Режим - блокировка доступа.</b></span></div>',
+      ],
+      'blocked-stat' => '<div class="amber-text text-darken-3"><i class="material-icons tiny">warning</i><span>&nbsp;<b>ВНИМАНИЕ! Вы исчерпали лимит трафика на одном из Ваших устройств. Подробности ниже.</b></span></div>',
     };
 
     if ($key eq 'blocked') {

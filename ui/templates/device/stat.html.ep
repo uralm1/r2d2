@@ -1,6 +1,6 @@
 % layout 'deviceedit'; #activetab => $activetab
 <div class="scont" id="tabactive">
-  <ul class="collapsible expandable row-top-margin">
+  <ul class="collapsible expandable margin-top">
     <li class="active">
       <div class="collapsible-header grey lighten-3">
 %= include 'stat/_device_head'

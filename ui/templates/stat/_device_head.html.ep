@@ -1,6 +1,6 @@
 <div class="row row-leftbottom-no-margin" style="width:100%">
   <div class="col icon-col">
-    % if ($rec->{blocked}) {
+    % if (dev_warnedorblocked($rec)) {
     %   if ($rec->{qs} == 1) { # warn
     <i class="material-icons medium amber-text" title="Лимит исчерпан. Предупреждение! Ваше потребление трафика превысило установленную норму.">warning</i>
     %   } elsif ($rec->{qs} == 2) { # speed

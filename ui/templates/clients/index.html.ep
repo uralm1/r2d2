@@ -93,10 +93,10 @@
 	    % $th = 1; }
 	    <tbody>
 	    % for (@{$c->{devices}}) {
-	    <tr class="tr-device <%== $_->{blocked} ? 'blocked':'' %>" data-type="<%= $c->{type} %>" data-clientid="<%== $c->{id} %>" data-deviceid="<%== $_->{id} %>">
+	    <tr class="tr-device <%== dev_blocked ? 'blocked':'' %>" data-type="<%= $c->{type} %>" data-clientid="<%== $c->{id} %>" data-deviceid="<%== $_->{id} %>">
 	      <td style="width:23%">
-		%= $_->{flagged} ? img_html 'flagged' : ''
-	        %= $_->{blocked} ? img_html(blocked => $_->{qs}) : ''
+		%= dev_flagged ? img_html 'flagged' : ''
+	        %= dev_warnedorblocked ? img_html(blocked => $_->{qs}) : ''
 		<i class="material-icons tiny"><%== $c->{type} == 1 ? 'dns':'computer' %></i>
 	        % my $name_tooltip = ($_->{desc} ne '') ? 'table-tooltips' : '';
 		%= link_to $c->{type} == 1 ? url_for('serveredit')->query(id => $c->{id}) : url_for('deviceedit')->query(clientid => $c->{id}, id => $_->{id}) => (class => "listlink $name_tooltip", 'data-tooltip' => $_->{desc}, 'data-position' => 'bottom') => begin
@@ -174,10 +174,10 @@
     </thead>
     <tbody>
     % for (@{$rec->{d}}) {
-    <tr class="tr-device-edit <%== $_->{blocked} ? 'blocked':'' %>" data-type="<%== defined $_->{client_login} && $_->{client_login} ne '' ? 0 : 1 %>" data-clientid="<%== $_->{client_id} %>" data-deviceid="<%== $_->{id} %>">
+    <tr class="tr-device-edit <%== dev_blocked ? 'blocked':'' %>" data-type="<%== defined $_->{client_login} && $_->{client_login} ne '' ? 0 : 1 %>" data-clientid="<%== $_->{client_id} %>" data-deviceid="<%== $_->{id} %>">
 	<td style="width:13%">
-	  %= $_->{flagged} ? img_html 'flagged' : ''
-          %= $_->{blocked} ? img_html(blocked => $_->{qs}) : ''
+	  %= dev_flagged ? img_html 'flagged' : ''
+	  %= dev_warnedorblocked ? img_html(blocked => $_->{qs}) : ''
 	  % my $name_tooltip = (defined $_->{desc} && $_->{desc} ne '') ? 'table-tooltips' : '';
 	  %= link_to url_for('deviceedit')->query(clientid => $_->{id}, id => $_->{id}) => (class => "listlink $name_tooltip", 'data-tooltip' => $_->{desc}, 'data-position' => 'bottom') => begin
 	  % if ($_->{name} ne '') {
