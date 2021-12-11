@@ -198,10 +198,17 @@ sub register {
     return $trans{$selector} // 'Неизвестно';
   });
 
+  # '/img/speed.png' = speed_plan_img($speed_key)
+  $app->helper(speed_plan_img => sub {
+    my ($c, $selector) = @_;
+    state %trans = map { $_->{key} => $_->{img} } @{$c->config('speed_plans')};
+    return $trans{$selector} // '';
+  });
+
   # 'speed_key'|'userdef' = get_speed_key($speed_in, $speed_out)
   $app->helper(get_speed_key => sub {
     my ($c, $speed_in, $speed_out) = @_;
-    state %trans = map { 
+    state %trans = map {
       my $in = $_->{in};
       my $out = $_->{out};
       defined $in && defined $out && $in ne '' && $out ne '' ? ("$in$out" => $_->{key}) : ()

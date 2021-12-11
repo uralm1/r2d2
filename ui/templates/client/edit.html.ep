@@ -186,9 +186,11 @@
 		</td>
 		<td>
 		  % my $speed_key = get_speed_key($_->{speed_in}, $_->{speed_out});
-		  % my $speed = 'Скорость: '.speed_plan_resolve($speed_key);
+		  % my $s = speed_plan_resolve($speed_key);
+		  % my $speed = "Скорость: $s";
 		  % $speed .= "\nВходящая: $_->{speed_in}\nИсходящая: $_->{speed_out}" if $speed_key eq 'userdef';
 		  % my $t = "$speed\nРежим квоты: ".qs_resolve($_->{qs})."\nОсталось: ".btomb($_->{sum_limit_in}).' Мб из '.btomb($_->{limit_in}).' Мб';
+		  %= image speed_plan_img($speed_key), class => 'speed-img table-tooltips', 'data-tooltip' => $s, 'data-position' => 'bottom'
 		  %= t span => (class => 'table-tooltips', 'data-tooltip' => $t, 'data-position' => 'bottom') => begin
 		  %== $_->{qs} == 0 ? '*Анлим*' : btomb($_->{limit_in}).'&nbsp;Мб'
 	          % end

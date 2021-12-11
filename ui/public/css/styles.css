@@ -210,3 +210,10 @@ a.sortlink {
   white-space: pre-wrap;
   text-align: left;
 }
+
+.speed-img {
+  width:16px;
+  height:16px;
+  object-fit:none;
+  object-position:center;
+}
