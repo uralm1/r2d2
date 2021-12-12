@@ -91,6 +91,7 @@ sub register {
         '<div class="red-text"><i class="material-icons tiny">warning</i><span>&nbsp;<b>ВНИМАНИЕ! Активирована блокировка по лимиту трафика. Режим - блокировка доступа.</b></span></div>',
       ],
       'blocked-stat' => '<div class="amber-text text-darken-3"><i class="material-icons tiny">warning</i><span>&nbsp;<b>ВНИМАНИЕ! Вы исчерпали лимит трафика на одном из Ваших устройств. Подробности ниже.</b></span></div>',
+      'blocked-clientedit' => '<div class="amber-text text-darken-3"><i class="material-icons tiny">warning</i><span>&nbsp;<b>ВНИМАНИЕ! У клиента исчерпан лимит трафика на одном из устройств. Подробности на странице статистики.</b></span></div>',
     };
 
     if ($key eq 'blocked') {

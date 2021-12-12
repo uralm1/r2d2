@@ -23,10 +23,12 @@
 	%= hidden_field login_a => $rec->{login}
 	%= hidden_field email_a => $rec->{email}
 
-	% if ($rec->{lost} || !$rec->{guid}) {
+	% my $_wob = anydev_warnedorblocked($rec->{devices});
+	% if ($rec->{lost} || !$rec->{guid} || $_wob) {
 	%= panel_html 'start'
 	%= $rec->{lost} ? panel_html 'lost' : ''
 	%= !$rec->{guid} ? panel_html 'manual' : ''
+	%= $_wob ? panel_html 'blocked-clientedit' : ''
 	%= panel_html 'end'
 	% }
 
