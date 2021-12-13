@@ -22,12 +22,12 @@ sub color {
 
   #say "next_color:".$self->{next_color};
 
-  if (my $c = $self->{colors}[$self->{next_color}++]) {
-    return $self->{d}{$str} = $c;
-  } else {
+  my $c = $self->{colors}[$self->{next_color}++];
+  unless ($c) {
     $self->{next_color} = 1;
-    return $self->{colors}[0] || $self->{default_color};
+    $c = $self->{colors}[0] || $self->{default_color};
   }
+  return $self->{d}{$str} = $c;
 }
 
 
