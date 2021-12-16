@@ -89,7 +89,7 @@
 		<th style="width:12%">Лимит</th>
 		<th style="width:15%"><a class="sortlink" href="<%== url_with->query({sort => 'place', set => 'sort'}) %>">Место</a><%== $sorton->(qr/^place$/) %></th>
 	      </tr>
-	    <thead>
+	    </thead>
 	    % $th = 1; }
 	    <tbody>
 	    % for (@{$c->{devices}}) {

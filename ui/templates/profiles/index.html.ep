@@ -32,7 +32,7 @@
 		<th style="width:25%">Адрес (URL)</th>
 		<th style="width:40%">Поддержка блокировки</th>
 	      </tr>
-	    <thead>
+	    </thead>
 	    % $th = 1; }
 	    <tbody>
 	    % for my $a (@{$_->{agents}}) {

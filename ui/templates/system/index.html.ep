@@ -80,7 +80,7 @@
 		<th style="width:25%">Состояние</th>
 		<th style="width:20%">Последняя проверка</th>
 	      </tr>
-	    <thead>
+	    </thead>
 	    % $th = 1; }
 	    <tbody>
 	    % for my $a (@{$_->{agents}}) {
