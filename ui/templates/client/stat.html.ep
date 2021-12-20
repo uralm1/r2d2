@@ -13,7 +13,14 @@
   % my $num_devs = scalar @{$fullrec->{devices}};
   % my $chart_id_counter = 1;
   % if ($num_devs > 0) {
-  <p class="head-text"><b>Клиентские устройства (<%= $num_devs %>)</b>, подключенные к сети Интернет:</p>
+  <div class="row">
+    <div class="col s8 head-text">
+      <b>Клиентские устройства (<%= $num_devs %>)</b>, подключенные к сети Интернет:
+    </div>
+    <div class="col s4 head-text">
+      <a id="collapse-all" href="#!">Свернуть&nbsp;все<i class="tiny material-icons">arrow_drop_up</i></a> / <a id="open-all" href="#!">Развернуть<i class="tiny material-icons">arrow_drop_down</i></a>
+    </div>
+  </div>
   <ul class="collapsible expandable">
     % for my $rec (@{$fullrec->{devices}}) {
     <li class="active">
@@ -41,6 +48,12 @@
 <script>
 $(document).ready(function(){
   $('.collapsible').collapsible({accordion:false});
+  $('#collapse-all').click(function(){
+    for (var i=0;i<<%== $num_devs %>;i++){$('.collapsible').collapsible('close', i)}
+  });
+  $('#open-all').click(function(){
+    for (var i=0;i<<%== $num_devs %>;i++){$('.collapsible').collapsible('open', i)}
+  });
 });
 </script>
 % end

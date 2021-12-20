@@ -45,7 +45,14 @@
   %   my ($suf1, $suf2) = qw/о ое/;
   %   if ($num_devs =~ /[567890]|[1][1234]$/) { ($suf1, $suf2) = ('', 'ых') }
   %   elsif ($num_devs =~ /[234]$/) { ($suf1, $suf2) = qw/а ых/ }
-  <p class="head-text"><b><span id="wow-ad">У Вас</span> <%= $num_devs %> устройств<%== $suf1 %></b>, подключенн<%== $suf2 %> к сети Интернет. Статистика отображена ниже:</p>
+  <div class="row">
+    <div class="col s8 head-text">
+      <b><span id="wow-ad">У Вас</span> <%= $num_devs %> устройств<%== $suf1 %></b>, подключенн<%== $suf2 %> к сети Интернет. Статистика отображена ниже.
+    </div>
+    <div class="col s4 head-text">
+      <a id="collapse-all" href="#!">Свернуть&nbsp;все<i class="tiny material-icons">arrow_drop_up</i></a> / <a id="open-all" href="#!">Развернуть<i class="tiny material-icons">arrow_drop_down</i></a>
+    </div>
+  </div>
   <ul class="collapsible expandable">
     % for my $rec (@{$fullrec->{devices}}) {
     <li class="active">
@@ -87,6 +94,12 @@ $(document).ready(function(){
   $('.collapsible').collapsible({accordion:false});
   $('#enotify').change(function(){$('#enotifyform').submit()});
   $('.list-warning-panel').click(function(){$('.list-warning-panel').parent().parent().parent().hide(300)});
+  $('#collapse-all').click(function(){
+    for (var i=0;i<<%== $num_devs %>;i++){$('.collapsible').collapsible('close', i)}
+  });
+  $('#open-all').click(function(){
+    for (var i=0;i<<%== $num_devs %>;i++){$('.collapsible').collapsible('open', i)}
+  });
 % if ($wow_feature) {
   $('.tap-target').tapTarget();
   $('.tap-target').tapTarget('open');
