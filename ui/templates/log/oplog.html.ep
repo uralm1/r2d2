@@ -3,7 +3,7 @@
   <table class="striped narrow-log">
     <thead>
       <tr>
-	<th style="width:4%;">ID</th>
+	<th style="width:8%;">ID</th>
 	<th style="width:11%;">ВРЕМЯ</th>
 	<th style="width:10%;">ПОДСИСТЕМА</th>
 	<th>СОБЫТИЕ</th>
@@ -12,8 +12,8 @@
     <tbody>
       % for (@{$log_rec->{d}}) {
       <tr style="color:<%== log_rowcolor($_->{subsys}) %>;">
-	<td style="width:4%;"><%= $_->{id} %></td>
-	<td style="width:11%;white-space:nowrap;"><%= $_->{date} %></td>
+	<td style="width:8%;"><%= $_->{id} %></td>
+	<td style="width:11%;white-space:nowrap;"><%= prettify_date $_->{date} %></td>
 	<td style="width:10%;"><%= $_->{subsys} %></td>
 	<td><%= $_->{info} %></td>
       </tr>

@@ -32,7 +32,7 @@
 	    %= t 'span', class => 'helper-text', 'data-error' => 'Ошибка, не должно быть пустым'
 	  </div>
 	  <div class="input-field col s12 m4 l3 offset-l1">
-	    % param 'create-time' => $rec->{create_time} // 'Не указано' unless param 'create-time';
+	    % param 'create-time' => prettify_date($rec->{create_time}) // 'Не указано' unless param 'create-time';
 	    %= input_tag 'create-time', type => 'hidden'
 	    % param 'create-time1' => param 'create-time';
 	    %= text_field 'create-time1', id => 'create-time', disabled => undef

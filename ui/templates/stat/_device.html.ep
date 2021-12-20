@@ -3,7 +3,7 @@
     <table class="highlight tbl-device-stat">
       <thead>
 	<tr>
-	  <th>Дата: <%= $rec->{date} %></th>
+	  <th>Дата: <%= prettify_date($rec->{date}) %></th>
 	  <th>Получено</th>
 	  <th>Отправлено</th>
 	</tr>

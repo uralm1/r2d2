@@ -14,7 +14,7 @@
       %= t 'span', class => 'helper-text', 'Указанный клиент будет заменен'
     </div>
     <div class="input-field col s12 m4 l3 offset-l1">
-      %= text_field 'create-time' => $rec->{create_time} // 'Не указано', id => 'create-time', disabled => undef
+      %= text_field 'create-time' => prettify_date($rec->{create_time}) // 'Не указано', id => 'create-time', disabled => undef
       %= label_for 'create-time' => 'Дата и время создания'
     </div>
   </div>

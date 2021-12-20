@@ -37,7 +37,7 @@ sub register {
 
   $app->helper(datetotd => sub {
     if ($_[1] =~ /^(\d+)[-\/](\d+)[-\/](\d+)$/) {
-      return b( '<td>'.xml_escape( $_[2] ? "$2-$3" : "$1-$2-$3" ).'</td>' );
+      return b( '<td>'.xml_escape( $_[2] ? "$2/$3" : "$1/$2/$3" ).'</td>' );
     }
     return b( '<td>н/д</td>' );
   });

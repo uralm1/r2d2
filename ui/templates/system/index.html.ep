@@ -66,7 +66,7 @@
       <tr class="tr-status">
 	<td style="width:5%"><span class="listprofiletype">Объект</span></td>
 	<td style="width:75%"><%= $_->{name} ne '' ? $_->{name} : 'Key: '.$_->{key} %></td>
-	<td style="width:20%"><%= $_->{lastcheck} ne '' ? $_->{lastcheck} : 'н/д' %></td>
+	<td style="width:20%"><%= $_->{lastcheck} ne '' ? prettify_date($_->{lastcheck}) : 'н/д' %></td>
       </tr>
       <tr class="tr-agents">
 	<td class="listagentrow" colspan="3">
@@ -107,7 +107,7 @@
 	      % }
 	      </td>
 	      <td style="width:20%">
-		%= $a->{lastcheck} ne '' ? $a->{lastcheck} : 'н/д'
+		%= $a->{lastcheck} ne '' ? prettify_date($a->{lastcheck}) : 'н/д'
 	      </td>
 	    </tr>
             % $agents_total++;
