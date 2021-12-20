@@ -6,10 +6,13 @@
 % }
 <div class="scont" id="tabactive">
 
-  % if (anydev_warnedorblocked($fullrec->{devices})) {
+  % my $_brc = check_browser;
+  % my $_wob = anydev_warnedorblocked($fullrec->{devices});
+  % if (!$_brc || $_wob) {
   <div class="margin-top">
   %= panel_html 'start'
-  %= panel_html 'blocked-stat'
+  %= !$_brc ? panel_html 'old-browser' : ''
+  %= $_wob ? panel_html 'blocked-stat' : ''
   %= panel_html 'end'
   </div>
   % }

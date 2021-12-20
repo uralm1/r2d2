@@ -1,6 +1,12 @@
 % layout 'default', title => 'R2D2 <span style="font-size:smaller;font-weight:bold">2021</span>';
 <div class="scont">
   <h5>Центр управления</h5>
+
+  % unless (my $_brc = check_browser) {
+  %= panel_html 'start'
+  %= !$_brc ? panel_html 'old-browser' : ''
+  %= panel_html 'end'
+  % }
   <table>
     <thead>
       <tr class="tr-status-head">
@@ -155,6 +161,7 @@
     $('.fixed-action-btn').floatingActionButton();
     $('.btn-tooltip').tooltip();
     //$('.table-tooltips').tooltip({enterDelay:500});
+    $('.list-warning-panel').click(function(){$('.list-warning-panel').parent().parent().hide(300)});
     setTimeout(function(){window.location.reload()}, 120000);
   });
 </script>

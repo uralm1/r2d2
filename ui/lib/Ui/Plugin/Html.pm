@@ -3,6 +3,7 @@ use Mojo::Base 'Mojolicious::Plugin';
 
 use Ui::Ural::Changelog;
 use Mojo::ByteStream 'b';
+use HTTP::BrowserDetect;
 
 sub register {
   my ($self, $app, $args) = @_;
@@ -44,6 +45,32 @@ sub register {
       return 1;
     }
     return undef;
+  });
+
+
+  # 1/undef = check_browser
+  # 1 - browser is ok
+  $app->helper(check_browser => sub {
+    my $c = shift;
+    my $br = $c->session('br');
+    if (!defined $br) {
+      my $ua = HTTP::BrowserDetect->new($c->req->headers->user_agent);
+      #say 'BROWSER CHECK!!! '.$ua->browser_major;
+      if (
+        ($ua->ie && $ua->browser_major <= 11) ||
+        ($ua->firefox && $ua->browser_major <= 78) ||
+        ($ua->chrome && $ua->browser_major < 78) ||
+        ($ua->edge && $ua->browser_major <= 78)
+      ) {
+        # bad browser
+        $br = 0;
+      } else {
+        # good browser
+        $br = 1;
+      }
+      $c->session(br => $br);
+    }
+    return $br > 0 ? 1 : undef;
   });
 
 
@@ -92,6 +119,7 @@ sub register {
       ],
       'blocked-stat' => '<div class="amber-text text-darken-3"><i class="material-icons tiny">warning</i><span>&nbsp;<b>ВНИМАНИЕ! Вы исчерпали лимит трафика на одном из Ваших устройств. Подробности ниже.</b></span></div>',
       'blocked-clientedit' => '<div class="amber-text text-darken-3"><i class="material-icons tiny">warning</i><span>&nbsp;<b>ВНИМАНИЕ! У клиента исчерпан лимит трафика на одном из устройств. Подробности на странице статистики.</b></span></div>',
+      'old-browser' => '<div class="red-text"><i class="material-icons tiny">warning</i><span>&nbsp;<b>ВНИМАНИЕ! Вы используете устаревшую версию Интернет-броузера. Возможно некоторые элементы будут отображены неверно или не будут работать. Обновите Интернет-броузер.</b></span></div>',
     };
 
     if ($key eq 'blocked') {

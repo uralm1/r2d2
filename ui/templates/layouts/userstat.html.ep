@@ -41,11 +41,6 @@
       % }
     </div>
   </nav>
-<!--[if lte IE 9]>
-  <div class="section"><div class="container"><div class="card-panel red">
-  <b class="white-text">ВНИМАНИЕ! Вы используете устаревшую версию браузера Интернет. Многие элементы страницы будут отображены некорректно. Обновите версию Вашего браузера!</b>
-  </div></div></div>
-<![endif]-->
 %= content
   <footer class="page-footer pink darken-2">
     <div class="footer-copyright">
