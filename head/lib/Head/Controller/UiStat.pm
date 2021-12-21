@@ -60,7 +60,7 @@ sub deviceget {
 sub device_attrs_p {
   my ($self, $db, $device_id, $client_id) = @_;
 
-  $db->query_p("SELECT d.id, d.name, sum_in, sum_out, qs, limit_in, sum_limit_in, blocked, d.profile, p.name AS profile_name \
+  $db->query_p("SELECT d.id, d.name, sum_in, sum_out, defjump, qs, limit_in, sum_limit_in, blocked, d.profile, p.name AS profile_name \
 FROM devices d LEFT OUTER JOIN profiles p ON d.profile = p.profile \
 WHERE d.id = ? AND d.client_id = ?",
     $device_id,
@@ -78,7 +78,7 @@ sub handle_device_attrs {
   $j->{date} = $t->dmy('-');
 
   if (my $rh = $result->hash) {
-    for (qw/id name limit_in sum_limit_in qs blocked profile/) {
+    for (qw/id name limit_in sum_limit_in defjump qs blocked profile/) {
       die 'Undefined device attribute' unless exists $rh->{$_};
       $j->{$_} = $rh->{$_};
     }
@@ -401,7 +401,7 @@ sub server_attrs_p {
   my ($self, $db, $server_id) = @_;
 
   $db->query_p("SELECT d.id AS deviceid, c.id, cn, email, c.email_notify, \
-sum_in, sum_out, qs, limit_in, sum_limit_in, blocked, d.profile, p.name AS profile_name \
+sum_in, sum_out, defjump, qs, limit_in, sum_limit_in, blocked, d.profile, p.name AS profile_name \
 FROM clients c INNER JOIN devices d ON d.client_id = c.id \
 LEFT OUTER JOIN profiles p ON d.profile = p.profile \
 WHERE type = 1 AND c.id = ?",
@@ -419,7 +419,7 @@ sub handle_server_attrs {
   $j->{date} = $t->dmy('-');
 
   if (my $rh = $result->hash) {
-    for (qw/id cn limit_in sum_limit_in qs blocked profile/) {
+    for (qw/id cn limit_in sum_limit_in defjump qs blocked profile/) {
       die 'Undefined server attribute' unless exists $rh->{$_};
       $j->{$_} = $rh->{$_};
     }
@@ -548,7 +548,7 @@ sub handle_client_attrs {
 sub devices_attrs_p {
   my ($self, $db, $client_id) = @_;
 
-  $db->query_p("SELECT d.id, d.name, sum_in, sum_out, qs, limit_in, sum_limit_in, blocked, d.profile, p.name AS profile_name \
+  $db->query_p("SELECT d.id, d.name, sum_in, sum_out, defjump, qs, limit_in, sum_limit_in, blocked, d.profile, p.name AS profile_name \
 FROM devices d LEFT OUTER JOIN profiles p ON d.profile = p.profile \
 WHERE d.client_id = ? \
 ORDER BY d.id ASC LIMIT 20",
@@ -572,7 +572,7 @@ sub handle_devices_attrs {
     my $t = localtime;
     $dev->{date} = $t->dmy('-');
 
-    for (qw/id name limit_in sum_limit_in qs blocked profile/) {
+    for (qw/id name limit_in sum_limit_in defjump qs blocked profile/) {
       die 'Undefined devices attribute' unless exists $next->{$_};
       $dev->{$_} = $next->{$_};
     }

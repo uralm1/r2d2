@@ -2313,6 +2313,10 @@ components:
           type: string
           description: Наименование устройства
           example: 'Рабочий ноутбук'
+        defjump:
+          type: string
+          description: ACCEPT/DROP/HTTP_ICMP/HTTP_IM_ICMP/ICMP_ONLY
+          example: 'ACCEPT'
         qs:
           type: integer
           description: quote mode (0-disabled, 1-notify, 2-limit, 3-block)
@@ -2352,6 +2356,7 @@ components:
         - id
         - name
         - date
+        - defjump
         - qs
         - limit_in
         - sum_limit_in
@@ -2385,6 +2390,10 @@ components:
           type: integer
           description: Флаг извещения по email, 0 или 1
           example: 1
+        defjump:
+          type: string
+          description: ACCEPT/DROP/HTTP_ICMP/HTTP_IM_ICMP/ICMP_ONLY
+          example: 'ACCEPT'
         qs:
           type: integer
           description: quote mode (0-disabled, 1-notify, 2-limit, 3-block)
@@ -2424,6 +2433,7 @@ components:
         - id
         - cn
         - date
+        - defjump
         - qs
         - limit_in
         - sum_limit_in

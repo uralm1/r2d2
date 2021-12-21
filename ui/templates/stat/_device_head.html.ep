@@ -24,5 +24,8 @@
     %   my $check_text_style = $rec->{sum_limit_in} <= 0 ? 'style="color:#ff0000"' : '';
     <b>Текущий лимит:</b>&nbsp;<%= traftomb($rec->{limit_in}) %>, <span <%== $check_text_style %>><b>Осталось:</b>&nbsp;<%= traftomb($rec->{sum_limit_in}) %></span>.<br>
     % }
+    % if ($rec->{defjump} =~ /^drop$/i) {
+    <span style="color:#ff0000;">Доступ в Интернет на устройстве отключен администратором</span><br>
+    % }
   </div>
 </div>
