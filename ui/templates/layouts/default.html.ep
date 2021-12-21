@@ -60,7 +60,7 @@
         <span title="Версия: <%== $version%>. Автор: Урал Хасанов, 2021">
 	  <span style="color:#ffeb3b;">R</span><span style="color:#ff9800;">2</span><span style="color:#fff;">D</span><span style="color:#ace5ff;">2</span>.<span style="color:#7fffd4;">Ui</span>
 	</span>
-        <span> &#x00b7 <a href="/about">О программе</a></span>
+        <span> &#x00b7; <a href="/about">О программе</a></span>
         <span class="right grey-text text-lighten-2">Текущий пользователь: <%= oprs $remote_user %></span>
       </div>
     </div>

@@ -45,8 +45,10 @@ sub register {
 
   $app->helper(get_js_date => sub {
     if ($_[1] =~ /^(\d+)[-\/](\d+)[-\/](\d+)$/) {
+      my $y = $3 + 0; # remove leading 0
       my $m = $2 - 1;
-      return "new Date($3,$m,$1)";
+      my $d = $1 + 0; # remove leading 0
+      return "new Date($y,$m,$d)";
     }
     return undef;
   });
