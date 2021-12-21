@@ -57,10 +57,11 @@ sub register {
       my $ua = HTTP::BrowserDetect->new($c->req->headers->user_agent);
       #say 'BROWSER CHECK!!! '.$ua->browser_major;
       if (
-        ($ua->ie && $ua->browser_major <= 11) ||
+        $ua->ie ||
         ($ua->firefox && $ua->browser_major <= 78) ||
         ($ua->chrome && $ua->browser_major < 78) ||
-        ($ua->edge && $ua->browser_major <= 78)
+        ($ua->edge && $ua->browser_major <= 78) ||
+        $ua->edgelegacy
       ) {
         # bad browser
         $br = 0;

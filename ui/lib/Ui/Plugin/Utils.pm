@@ -134,7 +134,7 @@ sub register {
   # '10:11:12 11/12/21' = prettify_date('10:11:12 11-12-21')
   $app->helper(prettify_date => sub {
     my $date = $_[1];
-    $date =~ s/-/\//g;
+    $date =~ s/-/\//g if defined $date;
     return $date;
   });
 
