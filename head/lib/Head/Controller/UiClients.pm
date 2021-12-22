@@ -74,24 +74,39 @@ sub clientpost {
   $self->log->debug($self->dumper($j));
   $self->render_later;
 
-  $self->mysql_inet->db->query("INSERT INTO clients \
-(create_time, type, guid, login, clients.desc, cn, email, email_notify, lost) \
-VALUES (NOW(), 0, ?, ?, ?, ?, ?, ?, 0)",
-    $j->{guid},
+  # check duplicates
+  $self->mysql_inet->db->query("SELECT id FROM clients WHERE type = 0 AND \
+(login = ? OR (cn = ? AND guid = ?))",
     $j->{login},
-    $j->{desc} // '',
     $j->{cn},
-    $j->{email} // '',
-    $j->{email_notify} // 1 =>
+    $j->{guid} =>
     sub {
       my ($db, $err, $results) = @_;
-      return $self->render(text => "Database error, inserting client: $err", status => 503) if $err;
+      return $self->render(text => "Database error, checking duplicate client: $err", status => 503) if $err;
+      return $self->render(text => 'Refused, duplicate client exist', status => 400) if $results->rows > 0;
 
-      my $last_id = $results->last_insert_id;
-      $self->dblog->info("UI: Client id $last_id added successfully");
-      $self->render(text => $last_id);
+      $results->finish;
+
+      $db->query("INSERT INTO clients \
+(create_time, type, guid, login, clients.desc, cn, email, email_notify, lost) \
+VALUES (NOW(), 0, ?, ?, ?, ?, ?, ?, 0)",
+        $j->{guid},
+        $j->{login},
+        $j->{desc} // '',
+        $j->{cn},
+        $j->{email} // '',
+        $j->{email_notify} // 1 =>
+        sub {
+          my ($db, $err, $results) = @_;
+          return $self->render(text => "Database error, inserting client: $err", status => 503) if $err;
+
+          my $last_id = $results->last_insert_id;
+          $self->dblog->info("UI: Client id $last_id added successfully");
+          $self->render(text => $last_id);
+        }
+      ); # inner query
     }
-  );
+  ); # outer query
 }
 
 
@@ -109,29 +124,45 @@ sub clientput {
 
   $self->render_later;
 
-  $self->mysql_inet->db->query("UPDATE clients \
-SET guid = ?, login = ?, clients.desc = ?, cn = ?, email = ?, email_notify = ?, lost = 0 \
-WHERE type = 0 AND id = ?",
-    $j->{guid},
+  # check duplicates
+  $self->mysql_inet->db->query("SELECT id FROM clients WHERE type = 0 AND \
+(login = ? OR (cn = ? AND guid = ?)) AND id != ?",
     $j->{login},
-    $j->{desc} // '',
     $j->{cn},
-    $j->{email} // '',
-    $j->{email_notify} // 1,
+    $j->{guid},
     $id =>
     sub {
       my ($db, $err, $results) = @_;
-      return $self->render(text => "Database error, updating client: $err", status => 503) if $err;
+      return $self->render(text => "Database error, checking duplicate client: $err", status => 503) if $err;
+      return $self->render(text => 'Refused, duplicate client exist', status => 400) if $results->rows > 0;
 
-      if ($results->affected_rows > 0) {
-        $self->dblog->info("UI: Client id $id updated successfully");
-        $self->rendered(200);
-      } else {
-        $self->dblog->info("UI: Client id $id not updated");
-        $self->render(text => "Client id $id not found", status => 404);
-      }
+      $results->finish;
+
+      $db->query("UPDATE clients \
+SET guid = ?, login = ?, clients.desc = ?, cn = ?, email = ?, email_notify = ?, lost = 0 \
+WHERE type = 0 AND id = ?",
+        $j->{guid},
+        $j->{login},
+        $j->{desc} // '',
+        $j->{cn},
+        $j->{email} // '',
+        $j->{email_notify} // 1,
+        $id =>
+        sub {
+          my ($db, $err, $results) = @_;
+          return $self->render(text => "Database error, updating client: $err", status => 503) if $err;
+
+          if ($results->affected_rows > 0) {
+            $self->dblog->info("UI: Client id $id updated successfully");
+            $self->rendered(200);
+          } else {
+            $self->dblog->info("UI: Client id $id not updated");
+            $self->render(text => "Client id $id not found", status => 404);
+          }
+        }
+      ); # inner query
     }
-  );
+  ); # outer query
 }
 
 
@@ -155,7 +186,7 @@ sub clientdelete {
       $results->finish;
 
       $db->query("DELETE FROM clients \
-    WHERE type = 0 AND id = ?", $id =>
+WHERE type = 0 AND id = ?", $id =>
         sub {
           my ($db, $err, $results) = @_;
           return $self->render(text => "Database error, deleting client: $err", status => 503) if $err;

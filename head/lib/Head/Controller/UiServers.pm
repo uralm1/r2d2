@@ -66,37 +66,50 @@ sub serverput {
   $self->log->debug($self->dumper($j));
   $self->render_later;
 
-  # FIXME sync_flags field is deprecated
-  $self->mysql_inet->db->query("UPDATE clients c INNER JOIN devices d ON d.client_id = c.id \
-SET cn = ?, c.desc = ?, name = 'Подключение сервера', d.desc = '', email = ?, c.email_notify = ?, ip = ?, mac = ?, no_dhcp = ?, rt = ?, defjump = ?, speed_in = ?, speed_out = ?, qs = ?, limit_in = ?, sync_flags = 15 \
-WHERE c.type = 1 AND c.id = ?",
+  # check duplicates
+  $self->mysql_inet->db->query("SELECT id FROM clients WHERE type = 1 AND cn = ? AND id != ?",
     $j->{cn},
-    $j->{desc} // '',
-    $j->{email} // '',
-    $j->{email_notify} // 1,
-    scalar($ipo->numeric),
-    $j->{mac},
-    $j->{no_dhcp},
-    $j->{rt},
-    $j->{defjump},
-    $j->{speed_in},
-    $j->{speed_out},
-    $j->{qs},
-    $j->{limit_in},
     $id =>
     sub {
       my ($db, $err, $results) = @_;
-      return $self->render(text => "Database error, updating server: $err", status => 503) if $err;
+      return $self->render(text => "Database error, checking duplicate server: $err", status => 503) if $err;
+      return $self->render(text => 'Refused, duplicate server exist', status => 400) if $results->rows > 0;
 
-      if ($results->affected_rows > 0) {
-        $self->dblog->info("UI: Server id $id updated successfully");
-        $self->rendered(200);
-      } else {
-        $self->dblog->info("UI: Server id $id not updated");
-        $self->render(text => "Server id $id not found", status => 404);
-      }
+      $results->finish;
+
+      # FIXME sync_flags field is deprecated
+      $db->query("UPDATE clients c INNER JOIN devices d ON d.client_id = c.id \
+SET cn = ?, c.desc = ?, name = 'Подключение сервера', d.desc = '', email = ?, c.email_notify = ?, ip = ?, mac = ?, no_dhcp = ?, rt = ?, defjump = ?, speed_in = ?, speed_out = ?, qs = ?, limit_in = ?, sync_flags = 15 \
+WHERE c.type = 1 AND c.id = ?",
+        $j->{cn},
+        $j->{desc} // '',
+        $j->{email} // '',
+        $j->{email_notify} // 1,
+        scalar($ipo->numeric),
+        $j->{mac},
+        $j->{no_dhcp},
+        $j->{rt},
+        $j->{defjump},
+        $j->{speed_in},
+        $j->{speed_out},
+        $j->{qs},
+        $j->{limit_in},
+        $id =>
+        sub {
+          my ($db, $err, $results) = @_;
+          return $self->render(text => "Database error, updating server: $err", status => 503) if $err;
+
+          if ($results->affected_rows > 0) {
+            $self->dblog->info("UI: Server id $id updated successfully");
+            $self->rendered(200);
+          } else {
+            $self->dblog->info("UI: Server id $id not updated");
+            $self->render(text => "Server id $id not found", status => 404);
+          }
+        }
+      ); # inner query
     }
-  );
+  ); # outer query
 }
 
 
@@ -113,12 +126,19 @@ sub serverpost {
 
   $self->log->debug($self->dumper($j));
 
-  # start transaction
   my $db = $self->mysql_inet->db;
+
+  # check duplicates
+  my $results = eval { $db->query("SELECT id FROM clients WHERE type = 1 AND cn = ?", $j->{cn}) };
+  return $self->render(text => "Database error, checking duplicate server: $@", status => 503) unless $results;
+  return $self->render(text => 'Refused, duplicate server exist', status => 400) if $results->rows > 0;
+  $results->finish;
+
+  # start transaction
   my $tx = eval { $db->begin };
   return $self->render(text => "Database error, transaction failure: $@", status => 503) unless $tx;
 
-  my $results = eval { $db->query("INSERT INTO clients \
+  $results = eval { $db->query("INSERT INTO clients \
 (create_time, type, guid, login, clients.desc, cn, email, email_notify, lost) \
 VALUES (NOW(), 1, '', '', ?, ?, ?, ?, 0)",
     $j->{desc} // '',
@@ -220,23 +240,45 @@ sub serverdelete {
 
   #$self->log->debug("Deleting id: $id");
 
-  $self->render_later;
+  my $db = $self->mysql_inet->db;
+  # get device id
+  my $results = eval { $db->query("SELECT devices.id FROM devices INNER JOIN clients ON client_id = clients.id \
+WHERE clients.type = 1 AND clients.id = ?", $id) };
+  return $self->render(text => "Database error, selecting server device: $@", status => 503) unless $results;
 
-  $self->mysql_inet->db->query("DELETE clients, devices FROM clients INNER JOIN devices ON client_id = clients.id \
-WHERE clients.type = 1 AND clients.id = ?", $id =>
-    sub {
-      my ($db, $err, $results) = @_;
-      return $self->render(text => "Database error, deleting server: $err", status => 503) if $err;
+  if ($results->rows < 1) {
+    $self->dblog->info("UI: Server id $id not deleted, not found");
+    return $self->render(text => "Server id $id not found", status => 404);
+  }
+  my $device_id = $results->array->[0];
+  $results->finish;
+  #$self->log->debug("Deleting device id: $device_id");
 
-      if ($results->affected_rows > 0) {
-        $self->dblog->info("UI: Server id $id deleted successfully");
-        $self->rendered(200);
-      } else {
-        $self->dblog->info("UI: Server id $id not deleted");
-        $self->render(text => "Server id $id not found", status => 404);
-      }
-    }
-  );
+  # start transaction
+  my $tx = eval { $db->begin };
+  return $self->render(text => "Database error, transaction failure: $@", status => 503) unless $tx;
+
+  $results = eval { $db->query("DELETE FROM devices WHERE id = ?", $device_id) };
+  return $self->render(text => "Database error, deleting server device: $@", status => 503) unless $results;
+
+  $self->dblog->info("UI: Server id $id device $device_id not deleted. This should not happen.") if $results->affected_rows < 1;
+
+  $results = eval { $db->query("DELETE FROM clients WHERE type = 1 AND id = ?", $id) };
+  return $self->render(text => "Database error, deleting server: $@", status => 503) unless $results;
+
+  my $afr = $results->affected_rows;
+
+  eval { $tx->commit };
+  return $self->render(text => "Database error, transaction commit failure: $@", status => 503) if $@;
+
+  # finished
+  if ($afr > 0) {
+    $self->dblog->info("UI: Server id $id deleted successfully");
+    $self->rendered(200);
+  } else {
+    $self->dblog->info("UI: Server id $id not deleted. This should not happen.");
+    $self->render(text => "Server id $id not deleted", status => 503);
+  }
 }
 
 

@@ -620,6 +620,13 @@ paths:
       responses:
         '200':
           description: Success
+        '400':
+          description: Refused, duplicate server exist
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
         '404':
           description: Not found, including bad id parameter
           content:
@@ -748,6 +755,13 @@ paths:
               schema:
                 type: integer
                 description: 'Inserted server id'
+        '400':
+          description: Refused, duplicate server exist
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
         '503':
           description: Operation error
           content:
@@ -814,6 +828,13 @@ paths:
       responses:
         '200':
           description: Success
+        '400':
+          description: Refused, duplicate client exist
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
         '404':
           description: Not found, including bad id parameter
           content:
@@ -986,6 +1007,13 @@ paths:
               schema:
                 type: integer
                 description: Inserted client id
+        '400':
+          description: Refused, duplicate client exist
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
         '503':
           description: Operation error
           content:
