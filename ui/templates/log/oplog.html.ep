@@ -1,4 +1,4 @@
-% layout 'default', title => 'Лог системных событий', back_url => '/';
+% layout 'default', title => 'Лог системных событий', back_url => '/', back_js => 1;
 <div class="scont">
   <table class="striped narrow-log">
     <thead>

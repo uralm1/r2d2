@@ -1,4 +1,4 @@
-% layout 'default', title => 'Лог аудита', back_url => '/clients';
+% layout 'default', title => 'Лог аудита', back_url => '/', back_js => 1;
 <div class="scont">
   <table class="striped narrow-log">
     <thead>

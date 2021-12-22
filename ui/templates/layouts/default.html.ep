@@ -68,13 +68,16 @@
 <script src="/js/jquery-3.6.0.min.js"></script>
 <script src="/js/materialize.min.js?v=101"></script>
 <script>
-  $(document).ready(function(){
-    $('.tabs').tabs();
-    $('.dropdown-trigger').dropdown({coverTrigger:false,constrainWidth:false});
-% if ($newversion) {
-    $('#newversion-modal').modal();$('#newversion-modal').modal('open');
+$(document).ready(function(){
+% if (stash 'back_js') {
+  $('a.brand-logo').click(function(e){e.preventDefault();window.history.back()});
 % }
-  });
+  $('.tabs').tabs();
+  $('.dropdown-trigger').dropdown({coverTrigger:false,constrainWidth:false});
+% if ($newversion) {
+  $('#newversion-modal').modal();$('#newversion-modal').modal('open');
+% }
+});
 </script>
 %= content 'done_toast'
 %= content 'validation_toast'
