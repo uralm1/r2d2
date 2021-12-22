@@ -318,7 +318,7 @@ sub client_devices_p {
         $db->query_p("SELECT d.id, d.name, d.desc, DATE_FORMAT(create_time, '%k:%i:%s %e-%m-%y') AS create_time, \
 ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, sum_limit_in, blocked, IF(sync_flags > 0, 1, 0) AS flagged, d.profile, p.name AS profile_name, d.client_id AS client_id \
 FROM devices d LEFT OUTER JOIN profiles p ON d.profile = p.profile WHERE d.client_id = ? \
-ORDER BY ip ASC LIMIT 20", $_->{id})
+ORDER BY ip ASC LIMIT 100", $_->{id})
       },
       @$j
     );

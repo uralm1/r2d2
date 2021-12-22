@@ -551,7 +551,7 @@ sub devices_attrs_p {
   $db->query_p("SELECT d.id, d.name, sum_in, sum_out, defjump, qs, limit_in, sum_limit_in, blocked, d.profile, p.name AS profile_name \
 FROM devices d LEFT OUTER JOIN profiles p ON d.profile = p.profile \
 WHERE d.client_id = ? \
-ORDER BY d.id ASC LIMIT 20",
+ORDER BY d.id ASC LIMIT 100",
     $client_id
   );
 }

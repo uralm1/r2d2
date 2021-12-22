@@ -27,7 +27,7 @@ FROM clients c WHERE id = ?", $id =>
 ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, sum_limit_in, blocked, IF(sync_flags > 0, 1, 0) AS flagged, d.profile, p.name AS profile_name, d.client_id AS client_id, c.cn AS client_cn, c.login AS client_login \
 FROM devices d INNER JOIN clients c ON d.client_id = c.id LEFT OUTER JOIN profiles p ON d.profile = p.profile \
 WHERE d.client_id = ? \
-ORDER BY d.id ASC LIMIT 20", $cl->{id} =>
+ORDER BY d.id ASC LIMIT 100", $cl->{id} =>
         sub {
           my ($db, $err, $results) = @_;
           return $self->render(text => "Database error, retrieving devices: $err", status => 503) if $err;
