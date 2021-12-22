@@ -9,9 +9,10 @@ sub index {
   return undef unless $self->authorize({ admin=>1 });
 
   my $search = $self->param('s') // $self->session('s');
+  #say "SEARCH: $search";
   my $view_mode = $self->param('v') // $self->session('v') // '';
   my $sort_mode = $self->param('sort') // $self->session('sort') // '';
-  my $set = $self->param('set') // 'v';
+  my $set = $self->param('set') // '';
 
   # consistency
   if ($set =~ /^v$/) {
@@ -55,6 +56,7 @@ sub index {
   my $active_page = $self->param('p') || $self->session('ap') || 1;
   return unless $self->exists_and_number($active_page);
 
+  #say "SEARCH2: $search";
   $self->session(s => $search, v => $view_mode, sort => $sort_mode, ap => $active_page);
 
   $self->render_later;
