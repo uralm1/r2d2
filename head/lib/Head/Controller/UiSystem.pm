@@ -29,7 +29,7 @@ sub profilesstatus {
   })->then(sub {
     my $j = []; # resulting d attribute
 
-    $self->profiles->each(sub {
+    $self->profiles->each_sorted(sub {
       my ($key, $prof) = @_;
       my $p_rec = {
         key => $key,
@@ -38,7 +38,9 @@ sub profilesstatus {
         agents => []
       };
 
-      for my $agent (values %{$prof->{agents}}) {
+      my $ah = $prof->{agents};
+      for my $agent_id (sort keys %$ah) {
+        my $agent = $ah->{$agent_id};
         my $a_rec = {};
         for (qw/name type url block state status/) {
           die 'Agent attribute error' unless defined $agent->{$_};

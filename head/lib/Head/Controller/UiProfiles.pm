@@ -59,14 +59,14 @@ sub profiles_p {
 
   my $profiles_p = $db->query_p("SELECT id, profile AS `key`, name, \
 DATE_FORMAT(lastcheck, '%k:%i:%s %e-%m-%Y') AS lastcheck FROM profiles \
-ORDER BY id ASC LIMIT ? OFFSET ?",
+ORDER BY profile, id LIMIT ? OFFSET ?",
     $lines_on_page,
     ($self->stash('page') - 1) * $lines_on_page
   );
 
   my $agents_p = $db->query_p("SELECT id, profile_id, name, type, url, block, \
 DATE_FORMAT(lastcheck, '%k:%i:%s %e-%m-%Y') AS lastcheck, state, status \
-FROM profiles_agents");
+FROM profiles_agents ORDER BY id");
 
   # return compound promise
   Mojo::Promise->all($count_p, $profiles_p, $agents_p);

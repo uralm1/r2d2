@@ -113,6 +113,16 @@ sub each {
 }
 
 
+# sorted by profile_key
+# $obj->each_sorted(sub { my ($profile_key, $profile) = @_; say "$profile_key => $profile->{name}" });
+sub each_sorted {
+  my ($self, $cb) = @_;
+  my $p = $self->{profiles};
+  $cb->($_, $p->{$_}) for (sort keys %$p);
+  return $self;
+}
+
+
 # $obj->eachagent('this_profile_key', sub { my ($profile_key, $agent_key, $agent) = @_; say "$profile_key => $agent->{name}" });
 # $obj->eachagent(sub { my ($profile_key, $agent_key, $agent) = @_; say "$profile_key => $agent->{name}" });
 # returns 1 if ok, 0 - 'this_profile_key' is not found.
