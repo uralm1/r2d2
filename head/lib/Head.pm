@@ -101,6 +101,7 @@ sub startup {
   $r->get('/ui/profiles')->to('ui_system#profileshash');
   $r->get('/ui/profiles/status')->to('ui_system#profilesstatus');
   $r->get('/ui/profiles/list')->to('ui_profiles#list');
+  $r->post('/ui/profile')->to('ui_profiles#profilepost');
 
   $r->get('/ui/log/oplog')->to('ui_log#oplog');
   $r->get('/ui/log/audit')->to('ui_log#auditlog');

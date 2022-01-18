@@ -134,4 +134,33 @@ sub _build_agent_rec {
 }
 
 
+
+# new profile submit
+sub profilepost {
+  my $self = shift;
+  return unless my $j = $self->json_content($self->req);
+  return unless $self->json_validate($j, 'profile_record');
+
+  #return $self->render(text => 'Bad id', status => 503) if exists $j->{id};
+
+  $self->log->debug($self->dumper($j));
+  $self->render_later;
+
+  $self->mysql_inet->db->query("INSERT INTO profiles \
+(profile, name) VALUES (?, ?)",
+    $j->{profile},
+    $j->{name} =>
+    sub {
+      my ($db, $err, $results) = @_;
+      return $self->render(text => "Database error, inserting profile: $err", status => 503) if $err;
+
+      my $last_id = $results->last_insert_id;
+      $self->dblog->info("UI: Profile id $last_id added successfully");
+      # FIXME update local profile hash!
+      $self->render(text => $last_id);
+    }
+  );
+}
+
+
 1;

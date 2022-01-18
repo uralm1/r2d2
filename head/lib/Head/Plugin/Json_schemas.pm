@@ -142,3 +142,17 @@ __DATA__
   }
 }
 
+@@ profile_record
+{
+  "type": "object",
+  "required": ["profile", "name"],
+  "properties": {
+    "profile": {
+      "type":"string",
+      "description":"Latin characters, numbers, and ._-",
+      "pattern":"^[A-Za-z_][A-Za-z0-9_\\.\\-]*$"
+    },
+    "name": { "type":"string", "minLength":1 }
+  }
+}
+

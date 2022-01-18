@@ -1,0 +1,37 @@
+% layout 'default', title => 'Новый объект', back_url => '/profiles';
+% if (validation->has_error) {
+%   content_with validation_toast => begin
+<script>$(document).ready(function(){M.toast({html:'Ошибка. Неверные данные.',displayLength:3000})})</script>
+%   end
+% }
+<div class="scont">
+  %= form_for profilenew => (method=>'POST') => begin
+    <div class="row margin-top">
+      <div class="input-field col s11 m7 l4">
+	%= text_field 'profile', id => 'profile'
+	%= label_for profile => 'Имя профиля'
+	%= t 'span', class => 'helper-text', 'data-error' => 'Ошибка. Неверное значение.', 'Уникальный идентификатор, например: gwtest1'
+      </div>
+    </div>
+    <div class="row">
+      <div class="input-field col s12 m8 l5">
+	%= text_field 'name', id => 'name'
+	%= label_for name => 'Наименование объекта'
+	%= t 'span', class => 'helper-text', 'data-error' => 'Ошибка. Поле не должно быть пустым.'
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col s12">
+	<button class="btn-large waves-effect waves-light" type="submit">Добавить объект</button>
+      </div>
+    </div>
+  % end
+</div>
+% content_for script0 => begin
+<script>
+  $(document).ready(function(){
+    $('input.field-with-error,textarea.field-with-error').removeClass('valid').addClass('invalid');
+  });
+</script>
+% end

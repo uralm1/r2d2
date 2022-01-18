@@ -23,7 +23,7 @@
   <ul id="places-dropdown" class="dropdown-content">
     <li><%= link_to 'profiles' => begin %>Список объектов<% end %></li>
     <li class="divider" tabindex="-1"></li>
-    <!--li><%= link_to 'profilenew' => begin %><i class="material-icons">add_location</i>Добавить новый объект&hellip;<% end %></li-->
+    <li><%= link_to 'profilenew' => begin %><i class="material-icons">domain</i>Добавить новый объект&hellip;<% end %></li>
   </ul>
   <ul id="logs-dropdown" class="dropdown-content">
     <li class="divider" tabindex="-1"></li>

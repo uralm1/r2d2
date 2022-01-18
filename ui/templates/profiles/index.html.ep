@@ -1,4 +1,9 @@
 % layout 'default', title => 'Список объектов';
+% if (my $toast_msg = flash 'oper') {
+%   content_with done_toast => begin
+<script>$(document).ready(function(){M.toast({html:'<%= $toast_msg %>',displayLength:3000})})</script>
+%   end
+% }
 <div class="scont">
   <table>
     <thead>
@@ -72,26 +77,25 @@
     Всего объектов:&nbsp;<%= $rec->{lines_total} %>, агентов:&nbsp;<%= $agents_total %>.
   </p>
 </div>
-<!--div class="fixed-action-btn">
+<div class="fixed-action-btn">
   %= link_to 'profilenew' => (class=>'btn-floating yellow darken-3 btn-large btn-tooltip', 'data-position'=>'left', 'data-tooltip'=>'Добавить новый объект') => begin
-  <i class="material-icons">add_location</i>
+  <i class="material-icons">domain</i>
   % end
-</div-->
+</div>
 % content_for script0 => begin
 <script>
-  $(document).ready(function(){
-    $('.fixed-action-btn').floatingActionButton();
-    $('.btn-tooltip').tooltip();
-    //$('.table-tooltips').tooltip({enterDelay:500});
-    $('.tr-profile').click(function(){
-      var key = $(this).attr('data-profilekey');
-      if (key==undefined)
-	M.toast({html:'Ошибка. Объект не выбран.',displayLength:3000});
-      else {
-	//location.assign('<%== url_for('profileedit') %>?key='+key);
-	M.toast({html:'Функция не поддерживается.',displayLength:3000});
-      }
-    });
+$(document).ready(function(){
+  $('.fixed-action-btn').floatingActionButton();
+  $('.btn-tooltip').tooltip();
+  //$('.table-tooltips').tooltip({enterDelay:500});
+  $('.tr-profile').click(function(){
+    var key = $(this).attr('data-profilekey');
+    if (key==undefined)
+      M.toast({html:'Ошибка. Объект не выбран.',displayLength:3000});
+    else {
+      location.assign('<%== url_for('profileedit') %>?key='+key);
+    }
   });
+});
 </script>
 % end

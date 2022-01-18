@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 - Одинаковая сортировка списка объектов и списка состояния системы.
+- Создание новых профилей.
 
 ## [0.8] - 2021-12-22
 - Исправлена ошибка удаления серверов.

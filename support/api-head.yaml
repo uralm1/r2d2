@@ -1546,6 +1546,42 @@ paths:
                 description: error message
 
 
+  /ui/profile:
+    post:
+      summary: Добавление нового объекта
+      tags: ['Ui profiles']
+      requestBody:
+        description: 'Profile data'
+        required: true
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/profile_record'
+
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                type: integer
+                description: 'Inserted profile id'
+        '400':
+          description: Refused, duplicate profile exist
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message      
+
+
   /ui/log/oplog:
     get:
       summary: Получение лога операций
@@ -2095,7 +2131,7 @@ components:
 
 
     client_record:
-      description: 'Client record'
+      description: Client record
       type: object
       properties:
         id:
@@ -2517,11 +2553,26 @@ components:
         - devices
 
 
+    profile_record:
+      description: Profile record
+      type: object
+      properties:
+        profile:
+          type: string
+          description: Ключ профиля
+        name:
+          type: string
+          description: Наименование профиля
+      required:
+        - profile
+        - name
+
+
     system_profile_record:
       description: Профиль (описание объекта) системы R2D2
       type: object
       properties:
-        key:
+        profile:
           type: string
           description: Ключ профиля
         name:
@@ -2570,7 +2621,7 @@ components:
               - status
               - lastcheck
       required:
-        - key
+        - profile
         - name
         - lastcheck
         - agents
