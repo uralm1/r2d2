@@ -71,7 +71,7 @@
     % for (@{$rec->{d}}) {
       <tr class="tr-status">
 	<td style="width:5%"><span class="listprofiletype">Объект</span></td>
-	<td style="width:75%"><%= $_->{name} ne '' ? $_->{name} : 'Key: '.$_->{key} %></td>
+	<td style="width:75%"><%= $_->{name} ne '' ? $_->{name} : 'Профиль: '.$_->{profile} %></td>
 	<td style="width:20%"><%= $_->{lastcheck} ne '' ? prettify_date($_->{lastcheck}) : 'н/д' %></td>
       </tr>
       <tr class="tr-agents">

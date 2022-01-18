@@ -57,7 +57,7 @@ sub profiles_p {
 
   my $count_p = $db->query_p('SELECT COUNT(*) FROM profiles');
 
-  my $profiles_p = $db->query_p("SELECT id, profile AS `key`, name, \
+  my $profiles_p = $db->query_p("SELECT id, profile, name, \
 DATE_FORMAT(lastcheck, '%k:%i:%s %e-%m-%Y') AS lastcheck FROM profiles \
 ORDER BY profile, id LIMIT ? OFFSET ?",
     $lines_on_page,
@@ -112,7 +112,7 @@ sub handle_profiles {
 sub _build_profile_rec {
   my $h = shift;
   my $r = {};
-  for (qw/key name/) {
+  for (qw/id profile name/) {
     die 'Undefined profile record attribute' unless exists $h->{$_};
     $r->{$_} = $h->{$_};
   }

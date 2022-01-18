@@ -17,11 +17,11 @@
     % my $th;
     % my $agents_total = 0;
     % for (@{$rec->{d}}) {
-      <tr class="tr-profile" data-profilekey="<%== $_->{key} %>">
+      <tr class="tr-profile" data-profileid="<%== $_->{id} %>">
 	<td style="width:5%"><span class="listprofiletype">Объект</span></td>
 	<td style="width:20%">
-	  %= link_to url_for('profileedit')->query(key => $_->{key}) => (class => 'listlink') => begin
-	  <%= $_->{key} %>
+	  %= link_to url_for('profileedit')->query(id => $_->{id}) => (class => 'listlink') => begin
+	  <%= $_->{profile} %>
 	  % end
 	</td>
 	<td style="width:75%"><%= $_->{name} %></td>
@@ -89,11 +89,11 @@ $(document).ready(function(){
   $('.btn-tooltip').tooltip();
   //$('.table-tooltips').tooltip({enterDelay:500});
   $('.tr-profile').click(function(){
-    var key = $(this).attr('data-profilekey');
-    if (key==undefined)
+    var id = $(this).attr('data-profileid');
+    if (id==undefined)
       M.toast({html:'Ошибка. Объект не выбран.',displayLength:3000});
     else {
-      location.assign('<%== url_for('profileedit') %>?key='+key);
+      location.assign('<%== url_for('profileedit') %>?id='+id);
     }
   });
 });

@@ -32,7 +32,7 @@ sub profilesstatus {
     $self->profiles->each_sorted(sub {
       my ($key, $prof) = @_;
       my $p_rec = {
-        key => $key,
+        profile => $key,
         name => $prof->{name},
         lastcheck => $prof->{lastcheck} // '',
         agents => []

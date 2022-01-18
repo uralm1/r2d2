@@ -1546,12 +1546,130 @@ paths:
                 description: error message
 
 
+  /ui/profile/{profile_id}:
+    get:
+      summary: Запрос данных по объекту (профилю)
+      tags: ['Ui profiles']
+      parameters:
+        - name: profile_id
+          in: path
+          required: true
+          description: Profile id
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/profile_record'
+        '404':
+          description: Not found, including bad id parameter
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+
+    put:
+      summary: Редактирование объекта (профиля)
+      description: Свойство id необязательное, если указывается то должно совпадать с параметром client_id. Свойство create_time игнорируется.
+      tags: ['Ui profiles']
+      parameters:
+        - name: profile_id
+          in: path
+          required: true
+          description: Profile id
+          schema:
+            type: integer
+            
+      requestBody:
+        description: Profile data
+        required: true
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/profile_record'
+
+      responses:
+        '200':
+          description: Success
+        '400':
+          description: Refused, duplicate profile exist
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '404':
+          description: Not found, including bad id parameter
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+
+    delete:
+      summary: Удаление объекта (профиля)
+      tags: ['Ui profiles']
+      parameters:
+        - name: profile_id
+          in: path
+          required: true
+          description: Profile id
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: Success
+        '400':
+          description: Deletion refused, profile agents exist
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '404':
+          description: Not found, including bad id parameter
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+
   /ui/profile:
     post:
-      summary: Добавление нового объекта
+      summary: Добавление нового объекта (профиля)
       tags: ['Ui profiles']
       requestBody:
-        description: 'Profile data'
+        description: Profile data
         required: true
         content:
           'application/json':
@@ -1565,7 +1683,7 @@ paths:
             text/plain:
               schema:
                 type: integer
-                description: 'Inserted profile id'
+                description: Inserted profile id
         '400':
           description: Refused, duplicate profile exist
           content:
@@ -2557,6 +2675,9 @@ components:
       description: Profile record
       type: object
       properties:
+        id:
+          type: integer
+          description: Код профиля. Not required on new.
         profile:
           type: string
           description: Ключ профиля
@@ -2572,6 +2693,9 @@ components:
       description: Профиль (описание объекта) системы R2D2
       type: object
       properties:
+        id:
+          type: integer
+          description: Код профиля. Возвращается только по запросу /ui/profiles/list.
         profile:
           type: string
           description: Ключ профиля
