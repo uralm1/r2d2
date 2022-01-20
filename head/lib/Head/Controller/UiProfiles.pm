@@ -57,15 +57,13 @@ sub profiles_p {
 
   my $count_p = $db->query_p('SELECT COUNT(*) FROM profiles');
 
-  my $profiles_p = $db->query_p("SELECT id, profile, name, \
-DATE_FORMAT(lastcheck, '%k:%i:%s %e-%m-%Y') AS lastcheck FROM profiles \
+  my $profiles_p = $db->query_p("SELECT id, profile, name FROM profiles \
 ORDER BY profile, id LIMIT ? OFFSET ?",
     $lines_on_page,
     ($self->stash('page') - 1) * $lines_on_page
   );
 
-  my $agents_p = $db->query_p("SELECT id, profile_id, name, type, url, block, \
-DATE_FORMAT(lastcheck, '%k:%i:%s %e-%m-%Y') AS lastcheck, state, status \
+  my $agents_p = $db->query_p("SELECT id, profile_id, name, type, url, block \
 FROM profiles_agents ORDER BY id");
 
   # return compound promise
@@ -116,7 +114,6 @@ sub _build_profile_rec {
     die 'Undefined profile record attribute' unless exists $h->{$_};
     $r->{$_} = $h->{$_};
   }
-  $r->{lastcheck} = $h->{lastcheck} // '';
   return $r;
 }
 
@@ -125,14 +122,57 @@ sub _build_profile_rec {
 sub _build_agent_rec {
   my $h = shift;
   my $r = {};
-  for (qw/name type url block state status/) {
+  for (qw/id name type url block/) {
     die 'Undefined agent record attribute' unless exists $h->{$_};
     $r->{$_} = $h->{$_};
   }
-  $r->{lastcheck} = $h->{lastcheck} // '';
   return $r;
 }
 
+
+
+sub profileget {
+  my $self = shift;
+  my $id = $self->stash('id');
+  return $self->render(text => 'Bad parameter', status => 404) unless defined $id && $id =~ /^\d+$/;
+
+  $self->render_later;
+
+  $self->mysql_inet->db->query("SELECT id, profile, name \
+FROM profiles WHERE id = ?", $id =>
+    sub {
+      my ($db, $err, $results) = @_;
+      return $self->render(text => "Database error, retrieving profile: $err", status => 503) if $err;
+
+      if (my $next = $results->hash) {
+        my $pr = eval { _build_profile_rec($next) };
+        return $self->render(text => 'Profile attribute error', status => 503) unless $pr;
+        $results->finish;
+
+        $db->query("SELECT id, name, type, url, block \
+FROM profiles_agents WHERE profile_id = ? ORDER BY id ASC LIMIT 100", $pr->{id} =>
+          sub {
+            my ($db, $err, $results) = @_;
+            return $self->render(text => "Database error, retrieving profile agents: $err", status => 503) if $err;
+
+            my $agents = undef;
+            if (my $a = $results->hashes) {
+              $agents = $a->map(sub { return eval { _build_agent_rec($_) } })->compact;
+            } else {
+              return $self->render(text => 'Database error, bad result', status => 503);
+            }
+
+            $pr->{agents} = $agents;
+
+            $self->render(json => $pr);
+          }
+        ); # inner query
+      } else {
+        return $self->render(text => 'Not found', status => 404);
+      }
+    }
+  ); # outer query
+}
 
 
 # new profile submit
@@ -141,13 +181,12 @@ sub profilepost {
   return unless my $j = $self->json_content($self->req);
   return unless $self->json_validate($j, 'profile_record');
 
-  #return $self->render(text => 'Bad id', status => 503) if exists $j->{id};
+  return $self->render(text => 'Bad id', status => 503) if exists $j->{id};
 
   $self->log->debug($self->dumper($j));
   $self->render_later;
 
-  $self->mysql_inet->db->query("INSERT INTO profiles \
-(profile, name) VALUES (?, ?)",
+  $self->mysql_inet->db->query("INSERT INTO profiles (profile, name) VALUES (?, ?)",
     $j->{profile},
     $j->{name} =>
     sub {
@@ -160,6 +199,82 @@ sub profilepost {
       $self->render(text => $last_id);
     }
   );
+}
+
+
+# edit profile submit
+sub profileput {
+  my $self = shift;
+  my $id = $self->stash('id');
+  return unless $self->exists_and_number404($id);
+
+  return unless my $j = $self->json_content($self->req);
+  return unless $self->json_validate($j, 'profile_record');
+
+  $self->log->debug($self->dumper($j));
+  return $self->render(text => 'Bad id', status => 503) if exists $j->{id} && $j->{id} != $id;
+
+  $self->render_later;
+
+  $self->mysql_inet->db->query("UPDATE profiles \
+SET profile = ?, name = ? \
+WHERE id = ?",
+    $j->{profile},
+    $j->{name},
+    $id =>
+    sub {
+      my ($db, $err, $results) = @_;
+      return $self->render(text => "Database error, updating profile: $err", status => 503) if $err;
+
+      if ($results->affected_rows > 0) {
+        $self->dblog->info("UI: Profile id $id updated successfully");
+        # FIXME update local profile hash!
+        $self->rendered(200);
+      } else {
+        $self->dblog->info("UI: Profile id $id not updated");
+        $self->render(text => "Profile id $id not found", status => 404);
+      }
+    }
+  ); # outer query
+}
+
+
+# delete profile submit
+sub profiledelete {
+  my $self = shift;
+  my $id = $self->stash('id');
+  return unless $self->exists_and_number404($id);
+
+  #$self->log->debug("Deleting id: $id");
+
+  $self->render_later;
+
+  $self->mysql_inet->db->query("SELECT id FROM profiles_agents WHERE profile_id = ?",
+    $id =>
+    sub {
+      my ($db, $err, $results) = @_;
+      return $self->render(text => "Database error, checking profile agents: $err", status => 503) if $err;
+      return $self->render(text => 'Refused, profile agents exist', status => 400) if $results->rows > 0;
+
+      $results->finish;
+
+      $db->query("DELETE FROM profiles WHERE id = ?", $id =>
+        sub {
+          my ($db, $err, $results) = @_;
+          return $self->render(text => "Database error, deleting profile: $err", status => 503) if $err;
+
+          if ($results->affected_rows > 0) {
+            $self->dblog->info("UI: Profile id $id deleted successfully");
+            # FIXME update local profile hash!
+            $self->rendered(200);
+          } else {
+            $self->dblog->info("UI: Profile id $id not deleted");
+            $self->render(text => "Profile id $id not found", status => 404);
+          }
+        }
+      ); # inner query
+    }
+  ); # outer query
 }
 
 

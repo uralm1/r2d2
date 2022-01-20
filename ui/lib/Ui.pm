@@ -123,6 +123,9 @@ sub startup {
   $r->get('/profile/new')->to('profile#newform');
   $r->post('/profile/new')->to('profile#newpost');
   $r->get('/profile/edit')->to('profile#edit');
+  $r->post('/profile/edit')->to('profile#editpost');
+  $r->get('/profile/delete')->to('profile#delete');
+  $r->post('/profile/delete')->to('profile#deletepost');
 }
 
 

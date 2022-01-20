@@ -50,6 +50,7 @@ public/js/chart.min.js
 public/js/chartjs-adapter-date-fns.js
 public/js/chartjs-adapter-luxon.js
 public/js/jquery-3.6.0.min.js
+public/js/luxon.js
 public/js/luxon.min.js
 public/js/materialize.js
 public/js/materialize.min.js
@@ -82,6 +83,9 @@ templates/layouts/serveredit.html.ep
 templates/layouts/userstat.html.ep
 templates/log/auditlog.html.ep
 templates/log/oplog.html.ep
+templates/profile/delete.html.ep
+templates/profile/edit.html.ep
+templates/profile/new.html.ep
 templates/profiles/index.html.ep
 templates/rep/client.html.ep
 templates/server/delete.html.ep

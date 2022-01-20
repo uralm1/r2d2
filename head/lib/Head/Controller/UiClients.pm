@@ -7,7 +7,7 @@ use Mojo::mysql;
 sub clientget {
   my $self = shift;
   my $id = $self->stash('id');
-  return $self->render(text=>'Bad parameter', status => 404) unless (defined($id) && $id =~ /^\d+$/);
+  return $self->render(text=>'Bad parameter', status => 404) unless defined $id && $id =~ /^\d+$/;
 
   $self->render_later;
 
@@ -36,7 +36,7 @@ ORDER BY d.id ASC LIMIT 100", $cl->{id} =>
           if (my $d = $results->hashes) {
             $devs = $d->map(sub { return eval { Head::Controller::UiDevices::_build_device_rec($_) } })->compact;
           } else {
-            return $self->render(text => 'Database error, bad result', status=>503);
+            return $self->render(text => 'Database error, bad result', status => 503);
           }
 
           $cl->{devices} = $devs;
@@ -69,7 +69,7 @@ sub clientpost {
   return unless my $j = $self->json_content($self->req);
   return unless $self->json_validate($j, 'client_record');
 
-  return $self->render(text => 'Bad id', status => 503) if exists($j->{id});
+  return $self->render(text => 'Bad id', status => 503) if exists $j->{id};
 
   $self->log->debug($self->dumper($j));
   $self->render_later;
@@ -181,7 +181,7 @@ sub clientdelete {
     sub {
       my ($db, $err, $results) = @_;
       return $self->render(text => "Database error, checking devices: $err", status => 503) if $err;
-      return $self->render(text => 'Refused, client devices exist', status => 400) if ($results->rows > 0);
+      return $self->render(text => 'Refused, client devices exist', status => 400) if $results->rows > 0;
 
       $results->finish;
 

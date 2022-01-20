@@ -147,6 +147,7 @@ __DATA__
   "type": "object",
   "required": ["profile", "name"],
   "properties": {
+    "id": { "type":"integer" },
     "profile": {
       "type":"string",
       "description":"Latin characters, numbers, and ._-",

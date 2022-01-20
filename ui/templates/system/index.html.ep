@@ -12,7 +12,7 @@
       <tr class="tr-status-head">
 	<!--style="width:5%"></th>
 	<th style="width:21%">Наименование</th-->
-	<th style="width:26%" colspan="2">Наименование</th>
+	<th style="width:26%" colspan="2">Подсистемы</th>
 	<th style="width:5%">Тип</th>
 	<th style="width:25%">Адрес</th>
 	<th style="width:44%">Состояние</th>

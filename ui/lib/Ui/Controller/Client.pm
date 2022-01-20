@@ -115,7 +115,12 @@ sub newpost {
 
         # do redirect with a toast
         $self->flash(oper => 'Выполнено успешно.');
-        return $self->redirect_to($self->url_for('clients'));
+        my $last_id = $res->body;
+        if ($last_id =~ /^\d+$/) {
+          $self->redirect_to($self->url_for('clientedit')->query(id => $last_id));
+        } else {
+          $self->redirect_to($self->url_for('clients'));
+        }
       } # post closure
     );
 
@@ -164,7 +169,12 @@ sub newpainpost {
 
       # do redirect with a toast
       $self->flash(oper => 'Выполнено успешно.');
-      $self->redirect_to($self->url_for('clients'));
+      my $last_id = $res->body;
+      if ($last_id =~ /^\d+$/) {
+        $self->redirect_to($self->url_for('clientedit')->query(id => $last_id));
+      } else {
+        $self->redirect_to($self->url_for('clients'));
+      }
     } # post closure
   );
 }

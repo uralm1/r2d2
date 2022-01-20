@@ -46,23 +46,19 @@
 		%= $a->{name} ne '' ? $a->{name} : 'н/д'
 	      </td>
 	      <td style="width:10%">
-		<%= $a->{type} %>
+		%= $a->{type}
 	      </td>
 	      <td style="width:25%">
-		<%= $a->{url} %>
+		%= $a->{url}
 	      </td>
 	      <td style="width:40%">
-		<%= $a->{block} ? 'Да':'Нет' %>
+		%= $a->{block} ? 'Да':'Нет'
 	      </td>
 	    </tr>
             % $agents_total++;
 	    % }
 	    % unless (@{$_->{agents}}) {
-	    <tr>
-	      <td colspan="4">
-		Агенты отсутствуют
-	      </td>
-	    </tr>
+	    <tr><td colspan="4">Агенты отсутствуют</td></tr>
 	    % }
 	    </tbody>
 	  </table>

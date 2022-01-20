@@ -41,7 +41,7 @@ sub profilesstatus {
       my $ah = $prof->{agents};
       for my $agent_id (sort keys %$ah) {
         my $agent = $ah->{$agent_id};
-        my $a_rec = {};
+        my $a_rec = { };
         for (qw/name type url block state status/) {
           die 'Agent attribute error' unless defined $agent->{$_};
           $a_rec->{$_} = $agent->{$_};

@@ -740,7 +740,7 @@ paths:
       summary: Добавление нового сервера
       tags: ['Ui servers']
       requestBody:
-        description: 'Server data'
+        description: Server data
         required: true
         content:
           'application/json':
@@ -754,7 +754,7 @@ paths:
             text/plain:
               schema:
                 type: integer
-                description: 'Inserted server id'
+                description: Inserted server id
         '400':
           description: Refused, duplicate server exist
           content:
@@ -1529,7 +1529,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ui_profiles_status'
+                $ref: '#/components/schemas/ui_profiles_list'
         '400':
           description: Ошибка в параметрах, в основном неверный номер текущей страницы
           content:
@@ -1564,7 +1564,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/profile_record'
+                $ref: '#/components/schemas/profile_full_record'
         '404':
           description: Not found, including bad id parameter
           content:
@@ -1583,7 +1583,7 @@ paths:
 
     put:
       summary: Редактирование объекта (профиля)
-      description: Свойство id необязательное, если указывается то должно совпадать с параметром client_id. Свойство create_time игнорируется.
+      description: Свойство id необязательное, если указывается то должно совпадать с параметром profile_id.
       tags: ['Ui profiles']
       parameters:
         - name: profile_id
@@ -2114,7 +2114,7 @@ components:
 
 
     ui_profiles_status:
-      description: Страница данных списка профилей системы
+      description: Страница данных состояний профилей системы
       type: object
       properties:
         lines_total:
@@ -2134,6 +2134,35 @@ components:
           description: Массив строк
           items:
             $ref: '#/components/schemas/system_profile_record'
+      required:
+        - lines_total
+        - pages
+        - page
+        - lines_on_page
+        - d
+
+
+    ui_profiles_list:
+      description: Страница данных списка профилей системы
+      type: object
+      properties:
+        lines_total:
+          type: integer
+          description: Всего строк данных
+        pages:
+          type: integer
+          description: Всего страниц данных
+        page:
+          type: integer
+          description: Текущая страница, возвращенная в данном объекте. Равна параметру запроса.
+        lines_on_page:
+          type: integer
+          description: Строк на одной странице. Равно параметру запроса.
+        d:
+          type: array
+          description: Массив строк
+          items:
+            $ref: '#/components/schemas/profile_full_record'
       required:
         - lines_total
         - pages
@@ -2689,13 +2718,60 @@ components:
         - name
 
 
-    system_profile_record:
-      description: Профиль (описание объекта) системы R2D2
+    profile_full_record:
+      description: Profile record including agents list
       type: object
       properties:
         id:
           type: integer
-          description: Код профиля. Возвращается только по запросу /ui/profiles/list.
+          description: Код профиля
+        profile:
+          type: string
+          description: Ключ профиля
+        name:
+          type: string
+          description: Наименование профиля
+        agents:
+          type: array
+          description: Массив записей об агентах
+          items:
+            description: Агент системы
+            type: object
+            properties:
+              id:
+                type: integer
+                description: Код агента
+              name:
+                type: string
+                description: Имя агента
+              type:
+                type: string
+                description: Тип агента
+                enum: [fwsyn, dhcpsyn, rtsyn, gwsyn]
+              url:
+                type: string
+                description: Url агента
+              block:
+                type: integer
+                enum: [0, 1]
+                description: '1-агент использует (и поддерживает) блокировку, 0-нет'
+            required:
+              - id
+              - name
+              - type
+              - url
+              - block
+      required:
+        - id
+        - profile
+        - name
+        - agents
+
+
+    system_profile_record:
+      description: Profile record including agents list (system state)
+      type: object
+      properties:
         profile:
           type: string
           description: Ключ профиля
@@ -2749,7 +2825,8 @@ components:
         - name
         - lastcheck
         - agents
-        
+
+
     database_info_object:
       description: Информация по базе данных
       type: object

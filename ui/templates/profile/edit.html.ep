@@ -1,0 +1,137 @@
+% layout 'default', title => 'Профиль объекта', back_url => '/profiles';
+% if (my $toast_msg = flash 'oper') {
+%   content_with done_toast => begin
+<script>$(document).ready(function(){M.toast({html:'<%= $toast_msg %>',displayLength:3000})})</script>
+%   end
+% }
+% if (validation->has_error) {
+%   content_with validation_toast => begin
+<script>$(document).ready(function(){M.toast({html:'Ошибка. Неверные данные.',displayLength:3000})})</script>
+%   end
+% }
+<div class="scont">
+
+  <div class="row">
+    <div class="col s12 m12 l10">
+
+      %= form_for profileedit => (method=>'POST') => begin
+
+      <div id="profile" class="section scrollspy margin-top">
+	%= hidden_field id => $profile_id, id => 'profile_id'
+
+	<div class="row">
+	  <div class="input-field col s11 m7 l4">
+	    %= text_field profile => $rec->{profile}, id => 'profile'
+	    %= label_for profile => 'Имя профиля'
+	    %= t 'span', class => 'helper-text', 'data-error' => 'Ошибка. Неверное значение.', 'Уникальный идентификатор, например: gwtest1'
+	  </div>
+	</div>
+	<div class="row">
+	  <div class="input-field col s12 m8 l5">
+	    %= text_field name => $rec->{name}, id => 'name'
+	    %= label_for name => 'Наименование объекта'
+	    %= t 'span', class => 'helper-text', 'data-error' => 'Ошибка. Поле не должно быть пустым.'
+	  </div>
+	</div>
+
+	<div class="row">
+	  <div class="col s12">
+	    <button class="btn-large waves-effect waves-light" type="submit">Сохранить изменения</button>
+	    %= link_to 'Удалить...' => url_for('profiledelete')->query(id => $profile_id) => (class => 'btn-large waves-effect waves-light spaceleft')
+	  </div>
+	</div>
+
+      </div>
+      % end
+
+      <div id="agentsmanagement" class="section scrollspy">
+	<div class="row">
+	  <h5>Управление агентами</h5>
+	  <p class="no-margin-bottom">Нажмите на запись агента в таблице для его редактирования.</p>
+	  <table class="highlight">
+	    <thead>
+	      <tr>
+		<th style="width:4%">N</th>
+		<th>Наименование агента</th>
+		<th>Тип</th>
+		<th>Адрес (URL)</th>
+		<th>Поддержка блокировки</th>
+	      </tr>
+	    </thead>
+	    <tbody>
+	      % my $line_num = 1;
+	      % for (@{$rec->{agents}}) {
+	      <tr class="tr-agent-edit" data-agentid="<%== $_->{id} %>">
+		<td><%== $line_num++ %></td>
+		<td>
+		  %= link_to url_for('agentedit')->query(back => 1, profileid => $profile_id, id => $_->{id}) => (class => "listlink") => begin
+		  % if ($_->{name} ne '') {
+		  %= $_->{name}
+                  % } else {
+		  ID:&nbsp;<%= $_->{id} %>
+	          % }
+		  % end
+		</td>
+		<td>
+		  %= $_->{type}
+		</td>
+		<td>
+		  %= $_->{url}
+		</td>
+		<td>
+		  %= $_->{block} ? 'Да' : 'Нет'
+		</td>
+	      </tr>
+	      % }
+	      % unless (@{$rec->{agents}}) {
+	      <tr><td colspan="4">Агенты отсутствуют</td></tr>
+	      % }
+	    </tbody>
+	  </table>
+	</div>
+
+	<div class="row">
+	  <div class="col s12">
+	  %= form_for agentnew => (method=>'POST', style=>'display:inline-block;') => begin
+	    %= hidden_field profile_id => $profile_id
+	    %#= hidden_field profile_a => $rec->{profile}
+	    %#= hidden_field profile_name_a => $rec->{name}
+	    <button class="btn-large waves-effect waves-light" type="submit">Добавить нового агента&hellip;</button>
+	  % end
+	  </div>
+	</div>
+      </div>
+
+    </div>
+
+    <div class="col hide-on-med-and-down l2">
+      <div class="toc-wrapper">
+	<ul class="section table-of-contents">
+	  <li><a href="#profile">Объект</a></li>
+	  <li><a href="#agentsmanagement">Управление агентами</a></li>
+	</ul>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+% content_for script0 => begin
+<script>
+$(document).ready(function(){
+  $('.scrollspy').scrollSpy();
+  //$('.table-tooltips').tooltip({enterDelay:500});
+
+  $('input.field-with-error,textarea.field-with-error').removeClass('valid').addClass('invalid');
+
+  $('.tr-agent-edit').click(function(){
+    var agentid = $(this).attr('data-agentid');
+    if (agentid==undefined)
+      M.toast({html:'Ошибка. Не выбран агент.',displayLength:3000});
+    else {
+      location.assign('<%== url_for('agentedit')->query(back => 1, profileid => $profile_id) %>&id='+agentid);
+    }
+  });
+});
+</script>
+% end
