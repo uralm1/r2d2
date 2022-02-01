@@ -125,6 +125,8 @@ __DATA__
     "flagged": { "type":"integer", "enum":[0,1] },
     "profile": { "type":"string", "minLength":1 },
     "profile_name": { "type":"string", "minLength":1 },
+    "client_id": { "type":"integer" },
+    "client_type": { "type":"integer", "enum":[0,1] },
     "client_cn": { "type":"string", "minLength":1 },
     "client_login": { "type":"string", "minLength":1 }
   }
@@ -154,6 +156,19 @@ __DATA__
       "pattern":"^[A-Za-z_][A-Za-z0-9_\\.\\-]*$"
     },
     "name": { "type":"string", "minLength":1 }
+  }
+}
+
+@@ profile_agent_record
+{
+  "type": "object",
+  "required": ["name", "type", "url", "block"],
+  "properties": {
+    "id": { "type":"integer" },
+    "name": { "type":"string", "minLength":1 },
+    "type": { "type":"string", "minLength":1 },
+    "url": { "type":"string", "minLength":1 },
+    "block": { "type":"integer", "enum":[0,1] }
   }
 }
 

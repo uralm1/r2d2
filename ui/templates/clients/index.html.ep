@@ -174,12 +174,12 @@
     </thead>
     <tbody>
     % for (@{$rec->{d}}) {
-    <tr class="tr-device-edit <%== dev_blocked ? 'blocked':'' %>" data-type="<%== defined $_->{client_login} && $_->{client_login} ne '' ? 0 : 1 %>" data-clientid="<%== $_->{client_id} %>" data-deviceid="<%== $_->{id} %>">
+    <tr class="tr-device-edit <%== dev_blocked ? 'blocked':'' %>" data-type="<%== $_->{client_type} %>" data-clientid="<%== $_->{client_id} %>" data-deviceid="<%== $_->{id} %>">
 	<td style="width:13%">
 	  %= dev_flagged ? img_html 'flagged' : ''
 	  %= dev_warnedorblocked ? img_html(blocked => $_->{qs}) : ''
 	  % my $name_tooltip = (defined $_->{desc} && $_->{desc} ne '') ? 'table-tooltips' : '';
-	  %= link_to url_for('deviceedit')->query(clientid => $_->{client_id}, id => $_->{id}) => (class => "listlink $name_tooltip", 'data-tooltip' => $_->{desc}, 'data-position' => 'bottom') => begin
+	  %= link_to $_->{client_type} == 1 ? url_for('serveredit')->query(id => $_->{client_id}) : url_for('deviceedit')->query(clientid => $_->{client_id}, id => $_->{id}) => (class => "listlink $name_tooltip", 'data-tooltip' => $_->{desc}, 'data-position' => 'bottom') => begin
 	  % if ($_->{name} ne '') {
 	  %= $_->{name}
 	  % } else {
