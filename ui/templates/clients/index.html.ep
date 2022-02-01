@@ -179,7 +179,7 @@
 	  %= dev_flagged ? img_html 'flagged' : ''
 	  %= dev_warnedorblocked ? img_html(blocked => $_->{qs}) : ''
 	  % my $name_tooltip = (defined $_->{desc} && $_->{desc} ne '') ? 'table-tooltips' : '';
-	  %= link_to url_for('deviceedit')->query(clientid => $_->{id}, id => $_->{id}) => (class => "listlink $name_tooltip", 'data-tooltip' => $_->{desc}, 'data-position' => 'bottom') => begin
+	  %= link_to url_for('deviceedit')->query(clientid => $_->{client_id}, id => $_->{id}) => (class => "listlink $name_tooltip", 'data-tooltip' => $_->{desc}, 'data-position' => 'bottom') => begin
 	  % if ($_->{name} ne '') {
 	  %= $_->{name}
 	  % } else {
