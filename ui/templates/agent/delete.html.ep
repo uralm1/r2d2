@@ -1,0 +1,53 @@
+% layout 'default', title => 'Удаление агента', back_url => url_with('agentedit')->query({id => $agent_id, profileid => $profile_id});
+<div class="scont">
+  <div class="row">
+    <div class="col s12">
+      <h5>Вы действительно желаете удалить данного агента?</h5>
+    </div>
+  </div>
+  %= form_for agentdelete => (method=>'POST') => begin
+    %= hidden_field id => $agent_id
+    %= hidden_field profileid => $profile_id
+    %= hidden_field name_a => $rec->{name}
+    %= hidden_field type_a => $rec->{type}
+    %= hidden_field url_a => $rec->{url}
+    %= hidden_field profile_a => $rec->{profile}
+    %= hidden_field profile_name_a => $rec->{profile_name}
+    <div class="row">
+      <div class="input-field col s12 m8 l5">
+	%= text_field name => $rec->{name}, id => 'name', disabled => undef
+	%= label_for name => 'Наименование агента'
+	%= t 'span', class => 'helper-text'
+      </div>
+    </div>
+    <div class="row">
+      <div class="input-field col s5 m5 l3">
+	%= text_field 'profile' => $rec->{profile}, id => 'profile', disabled => undef
+	%= label_for 'profile' => 'Имя профиля'
+      </div>
+      <div class="input-field col s5 m5 l4">
+	%= text_field 'profile-name' => $rec->{profile_name}, id => 'profile-name', disabled => undef
+	%= label_for 'profile-name' => 'Наименование объекта'
+      </div>
+    </div>
+    <div class="row">
+      <div class="input-field col s10 m6 l4">
+	%= text_field type => $rec->{type}, id => 'type', disabled => undef
+	%= label_for type => 'Тип агента'
+      </div>
+    </div>
+    <div class="row">
+      <div class="input-field col s12 m8 l5">
+	%= text_field url => $rec->{url}, id => 'url', disabled => undef
+	%= label_for url => 'Адрес (URL)'
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col s12">
+	<button class="btn-large waves-effect waves-light red darken-2" type="submit">Выполнить удаление</button>
+	<span class="spaceleft">Операция необратима.</span>
+      </div>
+    </div>
+  % end
+</div>

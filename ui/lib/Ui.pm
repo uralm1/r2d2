@@ -10,6 +10,7 @@ sub startup {
   # Load configuration from hash returned by config file
   my $config = $self->plugin('Config', { default => {
     secrets => ['4098673ahdde74de78ab0980a098'],
+    agent_types => [],
     rt_names => [],
     qs_names => [],
     defjump_names => [],
@@ -126,6 +127,12 @@ sub startup {
   $r->post('/profile/edit')->to('profile#editpost');
   $r->get('/profile/delete')->to('profile#delete');
   $r->post('/profile/delete')->to('profile#deletepost');
+
+  $r->post('/agent/new')->to('agent#newpost');
+  $r->get('/agent/edit')->to('agent#edit');
+  $r->post('/agent/edit')->to('agent#editpost');
+  $r->get('/agent/delete')->to('agent#delete');
+  $r->post('/agent/delete')->to('agent#deletepost');
 }
 
 
@@ -141,11 +148,16 @@ sub validate_config {
     }
   }
 
+  # agent_types shouldn't be empty
+  my $agent_types = $c->{agent_types};
+  $e = 'Config parameter agent_types is empty!' unless @$agent_types;
+
   if ($e) {
     say $e if $self->log->path;
     $self->log->fatal($e);
     return undef;
   }
+
   1;
 }
 

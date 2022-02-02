@@ -21,7 +21,7 @@
 	<td style="width:5%"><span class="listprofiletype">Объект</span></td>
 	<td style="width:20%">
 	  %= link_to url_for('profileedit')->query(id => $_->{id}) => (class => 'listlink') => begin
-	  <%= $_->{profile} %>
+	  %= $_->{profile}
 	  % end
 	</td>
 	<td style="width:75%"><%= $_->{name} %></td>
@@ -41,9 +41,11 @@
 	    % $th = 1; }
 	    <tbody>
 	    % for my $a (@{$_->{agents}}) {
-	    <tr class="tr-agent">
+	    <tr class="tr-agent" data-profileid="<%== $_->{id} %>" data-agentid="<%== $a->{id} %>">
 	      <td style="width:25%">
+		%= link_to url_for('agentedit')->query(id => $a->{id}, profileid => $_->{id}) => (class => 'listlink') => begin
 		%= $a->{name} ne '' ? $a->{name} : 'н/д'
+		% end
 	      </td>
 	      <td style="width:10%">
 		%= $a->{type}
@@ -88,9 +90,18 @@ $(document).ready(function(){
     var id = $(this).attr('data-profileid');
     if (id==undefined)
       M.toast({html:'Ошибка. Объект не выбран.',displayLength:3000});
-    else {
+    else
       location.assign('<%== url_for('profileedit') %>?id='+id);
-    }
+  });
+  $('.tr-agent').click(function(){
+    var r = $(this);
+    var profileid = r.attr('data-profileid');
+    var agentid = r.attr('data-agentid');
+
+    if (profileid==undefined || agentid==undefined)
+      M.toast({html:'Ошибка. Объект не выбран.',displayLength:3000});
+    else
+      location.assign('<%== url_for('agentedit') %>?id='+agentid+'&profileid='+profileid);
   });
 });
 </script>

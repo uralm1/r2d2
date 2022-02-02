@@ -1,7 +1,6 @@
 % layout 'default', title => 'Удаление объекта', back_url => url_with('profileedit')->query({id => $profile_id});
 <div class="scont">
-  %# if (my $num_devs = @{$rec->{devices}}) {
-  % if (0) {
+  % if (@{$rec->{agents}}) {
     <div class="row">
       <div class="col s12">
 	<h5>В удалении объекта отказано.</h5>

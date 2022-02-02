@@ -13,6 +13,7 @@ tags:
   - name: Ui devices
   - name: Ui stats
   - name: Ui profiles
+  - name: Ui agents
   - name: Ui logging
 
 paths:
@@ -1669,7 +1670,7 @@ paths:
       summary: Добавление нового объекта (профиля)
       tags: ['Ui profiles']
       requestBody:
-        description: Profile data
+        description: New profile data
         required: true
         content:
           'application/json':
@@ -1686,6 +1687,171 @@ paths:
                 description: Inserted profile id
         '400':
           description: Refused, duplicate profile exist
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message      
+
+
+  /ui/agent/{profile_id}/{agent_id}:
+    get:
+      summary: Запрос данных по агенту
+      tags: ['Ui agents']
+      parameters:
+        - name: profile_id
+          in: path
+          required: true
+          description: Profile id
+          schema:
+            type: integer
+        - name: agent_id
+          in: path
+          required: true
+          description: Agent id
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/profile_agent_record'
+        '404':
+          description: Not found, including bad profile_id or agent_id parameter
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+
+    put:
+      summary: Редактирование агента
+      description: Свойство id необязательное, если указывается то должно совпадать с параметром agent_id.
+      tags: ['Ui agents']
+      parameters:
+        - name: profile_id
+          in: path
+          required: true
+          description: Profile id
+          schema:
+            type: integer
+        - name: agent_id
+          in: path
+          required: true
+          description: Agent id
+          schema:
+            type: integer
+
+      requestBody:
+        description: Agent data
+        required: true
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/profile_agent_record'
+
+      responses:
+        '200':
+          description: Success
+        '404':
+          description: Not found, including bad profile_id or agent_id parameter
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+
+    delete:
+      summary: Удаление агента
+      tags: ['Ui agents']
+      parameters:
+        - name: profile_id
+          in: path
+          required: true
+          description: Profile id
+          schema:
+            type: integer
+        - name: agent_id
+          in: path
+          required: true
+          description: Agent id
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: Success
+        '404':
+          description: Not found, including bad profile_id or agent_id parameter
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+
+  /ui/agent/{profile_id}:
+    post:
+      summary: Добавление нового агента
+      tags: ['Ui agents']
+      parameters:
+        - name: profile_id
+          in: path
+          required: true
+          description: Profile id
+          schema:
+            type: integer
+      requestBody:
+        description: New agent data
+        required: true
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/profile_agent_record'
+
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                type: integer
+                description: Inserted agent id
+        '404':
+          description: Not found, including bad profile_id parameter
           content:
             text/plain:
               schema:
@@ -2460,6 +2626,9 @@ components:
           type: integer
           description: Код клиента владельца устройства (передается в операции чтения данных, игнорируется в операциях записи, редактирования)
           example: 456
+        client_type:
+          type: integer
+          description: 'Тип клиента: 0-клиент, 1-сервер (передается в операции чтения данных, игнорируется в операциях записи, редактирования)'
         client_cn:
           type: string
           description: ФИО клиента владельца устройства (передается в операции чтения данных, игнорируется в операциях записи, редактирования)
@@ -2735,37 +2904,48 @@ components:
           type: array
           description: Массив записей об агентах
           items:
-            description: Агент системы
-            type: object
-            properties:
-              id:
-                type: integer
-                description: Код агента
-              name:
-                type: string
-                description: Имя агента
-              type:
-                type: string
-                description: Тип агента
-                enum: [fwsyn, dhcpsyn, rtsyn, gwsyn]
-              url:
-                type: string
-                description: Url агента
-              block:
-                type: integer
-                enum: [0, 1]
-                description: '1-агент использует (и поддерживает) блокировку, 0-нет'
-            required:
-              - id
-              - name
-              - type
-              - url
-              - block
+            $ref: '#/components/schemas/profile_agent_record'
       required:
         - id
         - profile
         - name
         - agents
+
+
+    profile_agent_record:
+      description: Agent record
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Код агента. Not required on new.
+        name:
+          type: string
+          description: Наименование агента
+        type:
+          type: string
+          description: Тип агента
+          enum: [fwsyn, dhcpsyn, rtsyn, gwsyn]
+        url:
+          type: string
+          description: Url агента
+        block:
+          type: integer
+          enum: [0, 1]
+          description: '1-агент использует (и поддерживает) блокировку, 0-нет'
+        profile:
+          type: string
+          description: device profile (передается в операциях чтения данных, игнорируется в операциях записи, редактирования)
+          example: 'gwtest1'
+        profile_name:
+          type: string
+          description: device profile human readable name (передается в операциях чтения данных, игнорируется в операциях записи, редактирования)
+          example: 'Тестовое подразделение'
+      required:
+        - name
+        - type
+        - url
+        - block
 
 
     system_profile_record:
@@ -2790,7 +2970,7 @@ components:
             properties:
               name:
                 type: string
-                description: Имя агента
+                description: Наименование агента
               type:
                 type: string
                 description: Тип агента

@@ -88,7 +88,7 @@ sub handle_profiles {
   # reconcile agents
   my %_ah;
   while (my $next = $agents_p->[0]->hash) {
-    my $ag = eval { _build_agent_rec($next) };
+    my $ag = eval { Head::Controller::UiAgents::_build_agent_rec($next) };
     return 'Profile attribute error (agent)' unless $ag;
     push @{$_ah{ $next->{profile_id} }}, $ag;
   }
@@ -118,18 +118,6 @@ sub _build_profile_rec {
 }
 
 
-# { agent_rec_hash } = _build_agent_rec( { hash_from_database } );
-sub _build_agent_rec {
-  my $h = shift;
-  my $r = {};
-  for (qw/id name type url block/) {
-    die 'Undefined agent record attribute' unless exists $h->{$_};
-    $r->{$_} = $h->{$_};
-  }
-  return $r;
-}
-
-
 
 sub profileget {
   my $self = shift;
@@ -149,15 +137,16 @@ FROM profiles WHERE id = ?", $id =>
         return $self->render(text => 'Profile attribute error', status => 503) unless $pr;
         $results->finish;
 
-        $db->query("SELECT id, name, type, url, block \
-FROM profiles_agents WHERE profile_id = ? ORDER BY id ASC LIMIT 100", $pr->{id} =>
+        $db->query("SELECT a.id, a.name, a.type, a.url, a.block, p.profile, p.name AS profile_name \
+FROM profiles_agents a INNER JOIN profiles p ON a.profile_id = p.id \
+WHERE a.profile_id = ? ORDER BY a.id ASC LIMIT 100", $pr->{id} =>
           sub {
             my ($db, $err, $results) = @_;
             return $self->render(text => "Database error, retrieving profile agents: $err", status => 503) if $err;
 
             my $agents = undef;
             if (my $a = $results->hashes) {
-              $agents = $a->map(sub { return eval { _build_agent_rec($_) } })->compact;
+              $agents = $a->map(sub { return eval { Head::Controller::UiAgents::_build_agent_rec($_) } })->compact;
             } else {
               return $self->render(text => 'Database error, bad result', status => 503);
             }

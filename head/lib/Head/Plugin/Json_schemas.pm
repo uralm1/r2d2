@@ -168,7 +168,9 @@ __DATA__
     "name": { "type":"string", "minLength":1 },
     "type": { "type":"string", "minLength":1 },
     "url": { "type":"string", "minLength":1 },
-    "block": { "type":"integer", "enum":[0,1] }
+    "block": { "type":"integer", "enum":[0,1] },
+    "profile": { "type":"string", "minLength":1 },
+    "profile_name": { "type":"string", "minLength":1 }
   }
 }
 

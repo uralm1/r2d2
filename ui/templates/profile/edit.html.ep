@@ -94,8 +94,8 @@
 	  <div class="col s12">
 	  %= form_for agentnew => (method=>'POST', style=>'display:inline-block;') => begin
 	    %= hidden_field profile_id => $profile_id
-	    %#= hidden_field profile_a => $rec->{profile}
-	    %#= hidden_field profile_name_a => $rec->{name}
+	    %= hidden_field profile_a => $rec->{profile}
+	    %= hidden_field profile_name_a => $rec->{name}
 	    <button class="btn-large waves-effect waves-light" type="submit">Добавить нового агента&hellip;</button>
 	  % end
 	  </div>

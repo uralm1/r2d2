@@ -139,11 +139,7 @@ sub edit {
       return unless $self->request_success($res);
       return unless my $v = $self->request_json($res);
 
-      return $self->render(
-        client_id => $client_id,
-        device_id => $id,
-        rec => $v
-      );
+      return $self->render(client_id => $client_id, device_id => $id, rec => $v);
     } # get closure
   );
 }

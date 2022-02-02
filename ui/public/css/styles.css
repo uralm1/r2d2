@@ -96,7 +96,7 @@ tr.tr-client, tr.tr-device, tr.tr-status, tr.tr-agent, tr.tr-profile {
   transition: background-color .25s ease;
 }
 
-.tr-client:hover, .tr-device:hover, .tr-device-edit:hover, .tr-profile:hover, .tr-agent-edit:hover {
+.tr-client:hover, .tr-device:hover, .tr-device-edit:hover, .tr-profile:hover, .tr-agent:hover, .tr-agent-edit:hover {
   cursor:pointer;
   background-color: rgba(225,225,225,.5) !important;
 }

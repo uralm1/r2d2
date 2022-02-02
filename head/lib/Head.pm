@@ -106,6 +106,11 @@ sub startup {
   $r->put('/ui/profile/#id')->to('ui_profiles#profileput');
   $r->delete('/ui/profile/#id')->to('ui_profiles#profiledelete');
 
+  $r->get('/ui/agent/#profile_id/#agent_id')->to('ui_agents#agentget');
+  $r->put('/ui/agent/#profile_id/#agent_id')->to('ui_agents#agentput');
+  $r->delete('/ui/agent/#profile_id/#agent_id')->to('ui_agents#agentdelete');
+  $r->post('/ui/agent/#profile_id')->to('ui_agents#agentpost');
+
   $r->get('/ui/log/oplog')->to('ui_log#oplog');
   $r->get('/ui/log/audit')->to('ui_log#auditlog');
 

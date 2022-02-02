@@ -16,6 +16,9 @@
   lines_on_page => 20,
   log_lines_on_page => 100,
 
+  # all supported agents types
+  agent_types => ['gwsyn', 'fwsyn', 'rtsyn', 'dhcpsyn'],
+
   rt_names => [
     [ 'Уфанет' => '0' ],
     [ 'Билайн' => '1' ],

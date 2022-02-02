@@ -35,7 +35,7 @@ WHERE d.id = ? AND d.client_id = ?", $device_id, $client_id =>
 }
 
 
-# { devices_rec_hash } = _build_device_rec( { hash_from_database } );
+# { device_rec_hash } = _build_device_rec( { hash_from_database } );
 sub _build_device_rec {
   my $h = shift;
   my $ipo = NetAddr::IP::Lite->new($h->{ip}) || die 'IP address failure';

@@ -6,6 +6,7 @@ CHANGELOG.md
 cpanfile
 Dockerfile
 lib/Ui.pm
+lib/Ui/Controller/Agent.pm
 lib/Ui/Controller/Client.pm
 lib/Ui/Controller/Clients.pm
 lib/Ui/Controller/Device.pm
@@ -60,6 +61,9 @@ t/101_get_about.t
 t/102_get_oplog.t
 t/55_LogColorer.t
 t/72_OperatorResolver.t
+templates/agent/delete.html.ep
+templates/agent/edit.html.ep
+templates/agent/new.html.ep
 templates/client/delete.html.ep
 templates/client/edit.html.ep
 templates/client/new.html.ep
