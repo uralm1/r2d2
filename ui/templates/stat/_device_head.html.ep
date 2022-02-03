@@ -1,8 +1,10 @@
 <div class="row row-leftbottom-no-margin" style="width:100%">
   <div class="col icon-col">
+    % my $dont_call_warning = '';
     % if (dev_warnedorblocked($rec)) {
     %   if ($rec->{qs} == 1) { # warn
     <i class="material-icons medium amber-text" title="Лимит исчерпан. Предупреждение! Ваше потребление трафика превысило установленную норму.">warning</i>
+    %     $dont_call_warning = ' Режим <b>предупреждение</b> - НЕ ТРЕБУЕТСЯ ЗВОНИТЬ ИЛИ ДАВАТЬ ЗАЯВКУ В СЛУЖБУ АСУ!';
     %   } elsif ($rec->{qs} == 2) { # speed
     <i class="material-icons medium red-text" title="Лимит исчерпан. Доступ в Интернет ограничен по скорости. Полные возможности будут доступны с начала нового месяца.">cancel</i>
     %   } elsif ($rec->{qs} == 3) { # drop
@@ -22,7 +24,7 @@
     %# print limit info only if quota enabled
     % if ($rec->{qs} != 0) {
     %   my $check_text_style = $rec->{sum_limit_in} <= 0 ? 'style="color:#ff0000"' : '';
-    <b>Текущий лимит:</b>&nbsp;<%= traftomb($rec->{limit_in}) %>, <span <%== $check_text_style %>><b>Осталось:</b>&nbsp;<%= traftomb($rec->{sum_limit_in}) %></span>.<br>
+    <b>Текущий лимит:</b>&nbsp;<%= traftomb($rec->{limit_in}) %>, <span <%== $check_text_style %>><b>Осталось:</b>&nbsp;<%= traftomb($rec->{sum_limit_in}) %></span>.<%== $dont_call_warning %><br>
     % }
     % if ($rec->{defjump} =~ /^drop$/i) {
     <span style="color:#ff0000;">Доступ в Интернет на устройстве отключен администратором</span><br>
