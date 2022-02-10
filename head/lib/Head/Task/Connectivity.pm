@@ -33,9 +33,8 @@ sub register {
 sub _do {
   my ($app, $profile) = @_;
 
-  my $profiles = $app->profiles->hash;
-  if (defined $profile) {
-    die "Requested profile configuration doesn't exist!\n" unless $profiles->{$profile};
+  if (defined $profile && !$app->profiles->exist($profile)) {
+    die "Requested profile configuration doesn't exist!\n";
   }
 
   # undefined $profile means - all profiles
@@ -85,6 +84,7 @@ sub _do {
 
     })->wait;
   });
+
   return 1;
 }
 

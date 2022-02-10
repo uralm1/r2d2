@@ -64,7 +64,7 @@ sub agentput {
   $self->render_later;
 
   $self->mysql_inet->db->query("UPDATE profiles_agents \
-SET name = ?, type = ?, url = ?, block = ?, state = 0, status = '' \
+SET name = ?, type = ?, url = ?, block = ?, state = 2, status = '' \
 WHERE id = ? AND profile_id = ? AND EXISTS (SELECT 1 FROM profiles WHERE profiles.id = ?)",
     $j->{name},
     $j->{type},
@@ -113,7 +113,7 @@ sub agentpost {
 
       $db->query("INSERT INTO profiles_agents \
 (name, type, url, block, state, status, profile_id) \
-VALUES (?, ?, ?, ?, 0, '', ?)",
+VALUES (?, ?, ?, ?, 2, '', ?)",
         $j->{name},
         $j->{type},
         $j->{url},

@@ -22,17 +22,22 @@ sub run {
     my ($id, $prof) = @_;
     #say "$id => $prof has been removed!";
     # loop by agents
-    my $res = $profiles->eachagent($prof, sub {
-      my ($profile_key, $agent_key, $agent) = @_;
+    if ($profiles->exist($prof)) {
+      my $res = $profiles->eachagent($prof, sub {
+        my ($profile_key, $agent_key, $agent) = @_;
 
-      my $agent_url = $agent->{url};
-      my $m = "REFRESH deleted device id $id $agent_url";
-      $app->log->info($m);
-      $app->dblog->info($m);
+        my $agent_url = $agent->{url};
+        my $m = "REFRESH deleted device id $id $agent_url";
+        $app->log->info($m);
+        $app->dblog->info($m);
 
-      $app->refresh_id($agent_url, $id);
-    });
-    $app->log->error("Refresh deleted device id $id failed: invalid profile!") unless $res;
+        $app->refresh_id($agent_url, $id);
+      });
+      $app->log->error("Refresh failed, database error!") unless $res;
+
+    } else {
+      $app->log->error("Refresh deleted device id $id failed: invalid profile!");
+    }
 
   })->update();
 

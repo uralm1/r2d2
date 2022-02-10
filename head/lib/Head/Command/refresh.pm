@@ -27,13 +27,18 @@ sub run {
         my $n = $results->hash;
         #say "profile: $n->{profile}";
         # loop by agents
-        my $res = $profiles->eachagent($n->{profile}, sub {
-          my ($profile_key, $agent_key, $agent) = @_;
+        if ($profiles->exist($n->{profile})) {
+          my $res = $profiles->eachagent($n->{profile}, sub {
+            my ($profile_key, $agent_key, $agent) = @_;
 
-          $app->refresh_id($agent->{url}, $id);
+            $app->refresh_id($agent->{url}, $id);
 
-        });
-        $app->log->error("Refresh device id $id failed: invalid profile!") unless $res;
+          });
+          $app->log->error("Refresh failed, database error!") unless $res;
+
+        } else {
+          $app->log->error("Refresh device id $id failed: invalid profile!");
+        }
 
       } else {
         $app->log->error('Device refresh: database operation error.');

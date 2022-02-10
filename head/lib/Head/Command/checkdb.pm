@@ -28,21 +28,26 @@ sub run {
 
           #say "id: $id, profile: $n->{profile}";
           # loop by agents
-          my $res = $profiles->eachagent($n->{profile}, sub {
-            my ($profile_key, $agent_key, $agent) = @_;
+          if ($profiles->exist($n->{profile})) {
+            my $res = $profiles->eachagent($n->{profile}, sub {
+              my ($profile_key, $agent_key, $agent) = @_;
 
-            my $agent_type = $agent->{type};
+              my $agent_type = $agent->{type};
 
-            if (exists $oldflags{$agent_type}) {
-              # rtsyn/dhcpsyn/fwsyn use the only corresponding flag
-              $app->refresh_id($agent->{url}, $id) if $oldflags{$agent_type};
-            } else {
-              # gwsyn and others use any of the flags
-              $app->refresh_id($agent->{url}, $id);
-            }
+              if (exists $oldflags{$agent_type}) {
+                # rtsyn/dhcpsyn/fwsyn use the only corresponding flag
+                $app->refresh_id($agent->{url}, $id) if $oldflags{$agent_type};
+              } else {
+                # gwsyn and others use any of the flags
+                $app->refresh_id($agent->{url}, $id);
+              }
 
-          });
-          $app->log->error("Refresh device id $id failed: invalid profile!") unless $res;
+            });
+            $app->log->error("Refresh failed, database error!") unless $res;
+
+          } else {
+            $app->log->error("Refresh device id $id failed: invalid profile!");
+          }
 
         } # while
       } else {

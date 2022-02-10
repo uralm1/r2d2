@@ -19,39 +19,43 @@ sub run {
   die "Bad <profile> argument\n" unless defined $p;
 
   # loop by agents
-  my $res1 = $app->profiles->eachagent($p, sub {
-    my ($profile_key, $agent_key, $agent) = @_;
+  if ($app->profiles->exist($p)) {
+    my $res1 = $app->profiles->eachagent($p, sub {
+      my ($profile_key, $agent_key, $agent) = @_;
 
-    my $t = $agent->{type};
+      my $t = $agent->{type};
 
-    # agents that support runstat
-    if (grep(/^$t$/, @{$app->config('agent_types_stat')})) {
-      $app->log->info("$p agent $t: Initiate traffic statistics collection.");
+      # agents that support runstat
+      if (grep(/^$t$/, @{$app->config('agent_types_stat')})) {
+        $app->log->info("$p agent $t: Initiate traffic statistics collection.");
 
-      $app->ua->post(Mojo::URL->new("$agent->{url}/runstat") =>
-        sub {
-          my ($ua, $tx) = @_;
-          my $res = eval { $tx->result };
-          if (defined $res) {
-            if ($res->is_success) {
-              # successful update
-              $app->log->info("Successful.");
+        $app->ua->post(Mojo::URL->new("$agent->{url}/runstat") =>
+          sub {
+            my ($ua, $tx) = @_;
+            my $res = eval { $tx->result };
+            if (defined $res) {
+              if ($res->is_success) {
+                # successful update
+                $app->log->info("Successful.");
 
+              } else {
+                # request error 50x
+                $app->log->error("Runstat request error: ".$res->body) if $res->is_error;
+              }
             } else {
-              # request error 50x
-              $app->log->error("Runstat request error: ".$res->body) if $res->is_error;
+              # connection failed
+              $app->log->error("Connection to agent failed, probably connect timeout");
             }
-          } else {
-            # connection failed
-            $app->log->error("Connection to agent failed, probably connect timeout");
           }
-        }
-      );
-    } else {
-      $app->log->info("$p agent $t: Agent doesn't support traffic statistics collection.");
-    }
-  });
-  die "Given <profile> is not found!\n" unless $res1;
+        );
+      } else {
+        $app->log->info("$p agent $t: Agent doesn't support traffic statistics collection.");
+      }
+    });
+    die "Database error!\n" unless $res1;
+  } else {
+    die "Given profile $p is not found!\n";
+  }
 
   Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
 

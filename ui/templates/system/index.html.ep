@@ -90,7 +90,7 @@
 	    % $th = 1; }
 	    <tbody>
 	    % for my $a (@{$_->{agents}}) {
-	    <tr class="tr-agent">
+	    <tr class="tr-agentstat">
 	      <td style="width:25%">
 	        <i class="material-icons tiny">extension</i>
 		%= $a->{name} ne '' ? $a->{name} : 'н/д'

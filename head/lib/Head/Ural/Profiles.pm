@@ -3,28 +3,13 @@ use Mojo::Base -base;
 
 use Carp;
 use Mojo::mysql;
-use Mojo::Promise;
-use Time::Piece;
 
-# profiles hash structure:
+# agent hash structure:
 # {
-#   profile_key => {
-#     name => 'Profile name',
-#     lastcheck => 'чч:мм:сс дд-мм-гг' or undef,
-#     agents => {
-#       agent_id => {
-#         name => 'Agent name',
-#         type => 'gwsyn',
-#         url => 'https://1.2.3.4:2275',
-#         block => 1 or 0,
-#         state => 0/1/2, # 1-good, 0-bad, 2-unknown
-#         status => 'test@host (3.00)',
-#         lastcheck => 'чч:мм:сс дд-мм-гг' or undef
-#       },
-#       ...
-#     }
-#   },
-#   ...
+#   name => 'Agent name',
+#   type => 'gwsyn',
+#   url => 'https://1.2.3.4:2275',
+#   block => 1 or 0,
 # }
 
 # new constructor
@@ -35,158 +20,66 @@ sub new {
   croak 'App parameter required!' unless $app;
   my $self = bless {
     app => $app,
-    profiles => {},
   }, $class;
   #say 'Ural::Profiles constructor!';
 
-  unless (defined eval { $self->load }) {
-    chomp $@;
-    die "Profiles loading error: $@\n";
-  }
-
-  return $self;
-}
-
-
-# load all profiles from db syncronously
-# $obj->load
-sub load {
-  my $self = shift;
-  my $app = $self->{app};
-  my $db = $app->mysql_inet->db;
-
-  my $agent_types = $app->config('agent_types');
-
-  my %_ren;
-  my $results = eval { $db->query("SELECT id, profile, name, \
-DATE_FORMAT(lastcheck, '%k:%i:%s %e-%m-%y') AS lastcheck FROM profiles") };
-  die "Profile select error\n" unless $results;
-  my $p = $self->{profiles};
-  while (my $next = $results->hash) {
-    my $profile_key = $next->{profile};
-    $p->{$profile_key} = {
-      name => $next->{name} // 'Имя не задано',
-      lastcheck => $next->{lastcheck}
-    };
-    $_ren{$next->{id}} = $profile_key;
-  }
-  # agents
-  $results = eval { $db->query("SELECT id, profile_id, name, type, url, block, \
-DATE_FORMAT(lastcheck, '%k:%i:%s %e-%m-%y') AS lastcheck, state, status \
-FROM profiles_agents") };
-  die "Profile agents select error\n" unless $results;
-  while (my $next = $results->hash) {
-    my $type = $next->{type};
-    die "Bad agent type!\n" unless grep($_ eq $type, @$agent_types);
-    my $url = $next->{url};
-    die "Bad agent url\n" unless defined $url and $url ne '';
-
-    my $aa = {
-      name => $next->{name} // 'Имя не задано',
-      type => $type,
-      url => $url,
-      block => $next->{block} ? 1 : 0,
-      lastcheck => $next->{lastcheck},
-      state => $next->{state},
-      status => $next->{status}
-    };
-
-    my $profile_key = $_ren{$next->{profile_id}};
-    $p->{$profile_key}{agents}{$next->{id}} = $aa if defined $profile_key and exists $p->{$profile_key};
-  }
-
-  return 1;
-}
-
-
-# my $profiles = $obj->hash
-sub hash {
-  $_[0]->{profiles};
-}
-
-
-# $obj->each(sub { my ($profile_key, $profile) = @_; say "$profile_key => $profile->{name}" });
-sub each {
-  my ($self, $cb) = @_;
-  while (my @e = CORE::each %{$self->{profiles}}) { $cb->(@e) }
-  return $self;
-}
-
-
-# sorted by profile_key
-# $obj->each_sorted(sub { my ($profile_key, $profile) = @_; say "$profile_key => $profile->{name}" });
-sub each_sorted {
-  my ($self, $cb) = @_;
-  my $p = $self->{profiles};
-  $cb->($_, $p->{$_}) for (sort keys %$p);
   return $self;
 }
 
 
 # $obj->eachagent('this_profile_key', sub { my ($profile_key, $agent_key, $agent) = @_; say "$profile_key => $agent->{name}" });
 # $obj->eachagent(sub { my ($profile_key, $agent_key, $agent) = @_; say "$profile_key => $agent->{name}" });
-# returns 1 if ok, 0 - 'this_profile_key' is not found.
+# returns 1 if ok, 0 - database error.
 sub eachagent {
   my ($self, $pk, $cb) = @_;
+  my $db = $self->{app}->mysql_inet->db;
+  my $results;
   if (!defined $pk or ref $pk eq 'CODE') {
     $cb = $pk if defined $pk;
-    while (my ($profile_key, $profile) = CORE::each %{$self->{profiles}}) {
-      while (my @e = CORE::each %{$profile->{agents}}) {
-        $cb->($profile_key, @e)
-      }
-    }
+    # multiple profiles
+    $results = eval { $db->query("SELECT p.profile, a.id, a.name, a.type, a.url, a.block \
+FROM profiles_agents a INNER JOIN profiles p ON a.profile_id = p.id ORDER BY p.profile, a.id") };
+
   } else {
-    if (my $p = $self->{profiles}{$pk}) {
-      while (my @e = CORE::each %{$p->{agents}}) {
-        $cb->($pk, @e)
-      }
-    } else {
-      return 0;
-    }
+    # one profile
+    $results = eval { $db->query("SELECT p.profile, a.id, a.name, a.type, a.url, a.block \
+FROM profiles_agents a INNER JOIN profiles p ON a.profile_id = p.id \
+WHERE p.profile = ? ORDER BY a.id", $pk) };
+
   }
+  unless ($results) {
+    carp 'Database error (eachagent)';
+    return 0;
+  }
+  while (my $n = $results->hash) {
+    $cb->(
+      $n->{profile},
+      $n->{id},
+      { name => $n->{name} // 'Имя не задано',
+        type => $n->{type},
+        url => $n->{url},
+        block => $n->{block} ? 1 : 0
+      }
+    )
+  }
+
   return 1;
 }
 
 
-# update state, status, lastcheck from db
-# my $all_db_promise = $obj->loadchecks_p
-sub loadchecks_p {
-  my $self = shift;
-  my $db = $self->{app}->mysql_inet->db;
-
-  my $profiles_p = $db->query_p("SELECT id, profile, \
-DATE_FORMAT(lastcheck, '%k:%i:%s %e-%m-%y') AS lastcheck FROM profiles");
-  # agents
-  my $agents_p = $db->query_p("SELECT id, profile_id, \
-DATE_FORMAT(lastcheck, '%k:%i:%s %e-%m-%y') AS lastcheck, state, status \
-FROM profiles_agents");
-
-  # return compound promise
-  Mojo::Promise->all($profiles_p, $agents_p);
-}
-
-
-# '' = $obj->handle_loadchecks(@all_db_promise_resolve)
-sub handle_loadchecks {
-  my ($self, $profiles_p, $agents_p) = @_;
-
-  my %_ren;
-  my $p = $self->{profiles};
-  while (my $next = $profiles_p->[0]->hash) {
-    my $profile_key = $next->{profile};
-    $p->{$profile_key}{lastcheck} = $next->{lastcheck};
-    $_ren{$next->{id}} = $profile_key;
+# check profile exists
+# 0|1 = $obj->exist($profile_key)
+sub exist {
+  my ($self, $profile_key) = @_;
+  my $results = eval {
+    $self->{app}->mysql_inet->db->query('SELECT 1 FROM profiles WHERE profile = ?',
+      $profile_key)
+  };
+  unless ($results) {
+    carp 'Database error (exists)';
+    return 0;
   }
-  while (my $next = $agents_p->[0]->hash) {
-    my $profile_key = $_ren{$next->{profile_id}};
-    if (defined $profile_key and exists $p->{$profile_key}) {
-      my $aref = $p->{$profile_key}{agents}{$next->{id}};
-      $aref->{lastcheck} = $next->{lastcheck};
-      $aref->{state} = $next->{state};
-      $aref->{status} = $next->{status};
-    }
-  }
-  return ''; # always success
+  $results->rows < 1 ? 0 : 1;
 }
 
 
@@ -212,124 +105,7 @@ WHERE profile = ?",
     $profile_key
   )};
   return 'Profile update error' unless $results;
-
-  # and assign to memory hashes
-  my $t = localtime;
-  my $cur_t = $t->strftime('%H:%M:%S %d-%m-%y');
-
-  my $p = $self->{profiles};
-  if (exists $p->{$profile_key}) {
-    my $profile = $p->{profile_key};
-
-    if (exists $profile->{agents}{$agent_key}) {
-      my $agent = $profile->{agents}{$agent_key};
-      $agent->{state} = $state;
-      $agent->{status} = $status;
-      $agent->{lastcheck} = $cur_t;
-    }
-    $profile->{lastcheck} = $cur_t;
-  }
-  return '';
-}
-
-
-=for comment
-# old configuration scheme in head.conf
-#profiles_source => {
-#  'plk' => {
-#    name => 'Производственно-лабораторный комплекс',
-#    agents => [
-#      {
-#        name => 'Агент роутера',
-#        type => 'rtsyn',
-#        url => 'https://localhost:2275'
-#      },
-#      #{
-#      #  name => 'Агент DHCP',
-#      #  type => 'dhcpsyn',
-#      #  url => 'https://localhost:2275'
-#      #},
-#      #{
-#      #  name => 'Агент Firewall',
-#      #  type => 'fwsyn',
-#      #  url => 'https://localhost:2275',
-#      #  block => 1
-#      #},
-#    ],
-#  },
-#  'gwtest1' => {
-#    name => 'Тестовое подразделение',
-#    agents => [
-#      {
-#        name => 'Универсальный агент',
-#        type => 'gwsyn',
-#        url => 'https://1.2.3.4:2275',
-#        block => 1
-#      },
-#    ],
-#  },
-#  'atcsev' => {
-#    name => 'АТЦ Севастопольская',
-#    agents => [
-#    ],
-#  },
-#}
-
-# deprecated
-# upload configuration from config file to db,
-# old db tables will be emptied!
-# dies on error.
-sub _compat_from_config_to_db {
-  my $app = shift->{app};
-  my $db = $app->mysql_inet->db;
-
-  my $e = eval {
-    $db->query('DELETE FROM profiles_agents');
-    $db->query('DELETE FROM profiles');
-  };
-  die "Tables cleanup error\n" unless defined $e;
-
-  my $profiles = $app->config('profiles_source');
-  my $agent_types = $app->config('agent_types');
-
-  while (my ($profile_key, $v) = CORE::each %$profiles) {
-    my $results = eval { $db->query("INSERT INTO profiles (profile, name) \
-VALUES (?, ?)",
-      $profile_key,
-      $v->{name} // 'Имя не задано'
-    )};
-    die "Profile insert error\n" unless $results;
-
-    my $last_id = $results->last_insert_id;
-
-    for my $agent (@{$v->{agents}}) {
-      die "Agent url is not defined!\n" unless defined $agent->{url} && $agent->{url} ne '';
-      my $a_t = $agent->{type};
-      die "Agent type is invalid!\n" unless grep($_ eq $a_t, @$agent_types);
-
-      $results = eval { $db->query("INSERT INTO profiles_agents \
-(profile_id, name, type, url, block, state, status) \
-VALUES (?, ?, ?, ?, ?, 2, 'Ожидание проверки...')",
-        $last_id,
-        $agent->{name} // 'Имя не задано',
-        $a_t,
-        $agent->{url},
-        $agent->{block} ? 1 : 0
-      )};
-      die "Profile agent insert error\n" unless $results;
-    } # agents loop
-
-  } # profiles loop
-
-  return 1;
-}
-=cut
-
-# internal
-sub _test_assign {
-  my ($self, $profs) = @_;
-  $self->{profiles} = $profs;
-  return 1;
+  return q{};
 }
 
 
