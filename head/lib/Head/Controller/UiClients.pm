@@ -22,9 +22,10 @@ FROM clients c WHERE id = ?", $id =>
         return $self->render(text => 'Client attribute error', status => 503) unless $cl;
         $results->finish;
 
-        # FIXME sync_flags field is deprecated
         $db->query("SELECT d.id, d.name, d.desc, DATE_FORMAT(d.create_time, '%k:%i:%s %e-%m-%y') AS create_time, \
-ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, sum_limit_in, blocked, IF(sync_flags > 0, 1, 0) AS flagged, d.profile, p.name AS profile_name, d.client_id AS client_id, c.cn AS client_cn, c.login AS client_login \
+ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, sum_limit_in, blocked, \
+IF(EXISTS (SELECT 1 FROM sync_flags sf WHERE sf.device_id = d.id), 1, 0) AS flagged, \
+d.profile, p.name AS profile_name, d.client_id AS client_id, c.cn AS client_cn, c.login AS client_login \
 FROM devices d INNER JOIN clients c ON d.client_id = c.id LEFT OUTER JOIN profiles p ON d.profile = p.profile \
 WHERE d.client_id = ? \
 ORDER BY d.id ASC LIMIT 100", $cl->{id} =>

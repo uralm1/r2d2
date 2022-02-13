@@ -14,9 +14,10 @@ sub deviceget {
 
   $self->render_later;
 
-  # FIXME sync_flags field is deprecated
   $self->mysql_inet->db->query("SELECT d.id, d.name, d.desc, DATE_FORMAT(d.create_time, '%k:%i:%s %e-%m-%y') AS create_time, \
-ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, sum_limit_in, blocked, IF(sync_flags > 0, 1, 0) AS flagged, d.profile, p.name AS profile_name, d.client_id AS client_id, c.type AS client_type, c.cn AS client_cn, c.login AS client_login \
+ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, sum_limit_in, blocked, \
+IF(EXISTS (SELECT 1 FROM sync_flags sf WHERE sf.device_id = d.id), 1, 0) AS flagged, \
+d.profile, p.name AS profile_name, d.client_id AS client_id, c.type AS client_type, c.cn AS client_cn, c.login AS client_login \
 FROM devices d INNER JOIN clients c ON d.client_id = c.id LEFT OUTER JOIN profiles p ON d.profile = p.profile \
 WHERE d.id = ? AND d.client_id = ?", $device_id, $client_id =>
     sub {
@@ -131,6 +132,7 @@ WHERE id = ? AND type = 0", $client_id) };
   my $tx = eval { $db->begin };
   return $self->render(text => "Database error, transaction failure: $@", status => 503) unless $tx;
 
+  # sync_flags field is set via field default value
   $results = eval { $db->query("INSERT INTO devices \
 (name, devices.desc, create_time, ip, mac, no_dhcp, rt, defjump, speed_in, speed_out, qs, limit_in, sum_limit_in, profile, notified, blocked, bot, client_id) \
 VALUES (?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, ?)",

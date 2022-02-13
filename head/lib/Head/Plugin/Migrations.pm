@@ -152,3 +152,20 @@ DROP TABLE IF EXISTS `audit_log`;
 DROP TABLE IF EXISTS `profiles`;
 DROP TABLE IF EXISTS `profiles_agents`;
 
+
+-- 2 up
+CREATE TABLE IF NOT EXISTS `sync_flags` (
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `device_id` int(11) UNSIGNED NOT NULL,
+  `agent_id` int(11) UNSIGNED NOT NULL,
+  PRIMARY KEY(`id`),
+  KEY `device_id` (`device_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+ALTER TABLE `sync_flags`
+  ADD CONSTRAINT `sync_flags_ibfk_1` FOREIGN KEY (`device_id`) REFERENCES `devices` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+
+-- 2 down
+DROP TABLE IF EXISTS `sync_flags`;
+

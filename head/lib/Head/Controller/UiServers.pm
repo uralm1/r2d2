@@ -11,9 +11,11 @@ sub serverget {
   return unless $self->exists_and_number404($id);
 
   $self->render_later;
-  # FIXME sync_flags field is deprecated
+
   $self->mysql_inet->db->query("SELECT c.id, cn, c.desc, DATE_FORMAT(c.create_time, '%k:%i:%s %e-%m-%y') AS create_time, email, c.email_notify, \
-ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, sum_limit_in, blocked, IF(sync_flags > 0, 1, 0) AS flagged, d.profile, p.name AS profile_name \
+ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, sum_limit_in, blocked, \
+IF(EXISTS (SELECT 1 FROM sync_flags sf WHERE sf.device_id = d.id), 1, 0) AS flagged, \
+d.profile, p.name AS profile_name \
 FROM clients c INNER JOIN devices d ON d.client_id = c.id \
 LEFT OUTER JOIN profiles p ON d.profile = p.profile \
 WHERE type = 1 AND c.id = ?", $id =>
@@ -150,6 +152,7 @@ VALUES (NOW(), 1, '', '', ?, ?, ?, ?, 0)",
 
   my $last_id = $results->last_insert_id;
 
+  # sync_flags field is set via default field value
   $results = eval { $db->query("INSERT INTO devices \
 (name, devices.desc, create_time, ip, mac, no_dhcp, rt, defjump, speed_in, speed_out, qs, limit_in, sum_limit_in, profile, notified, blocked, bot, client_id) \
 VALUES ('Подключение сервера', '', NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 1, ?)",
