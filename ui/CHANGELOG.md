@@ -2,6 +2,7 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+- Обновлен chartjs.
 
 ## [0.9] - 2022-02-10
 - Одинаковая сортировка списка объектов и списка состояния системы.
