@@ -22,21 +22,30 @@ sub index {
     return unless $self->request_success($res);
     return unless my $v = $self->request_json($res);
     my $head_status = $v->{subsys} ? "OK: $v->{subsys}" : 'НЕВЕРНЫЕ ДАННЫЕ';
-    $head_status .=  " ($v->{version})" if defined $v->{version};
+    $head_status .= " ($v->{version})" if defined $v->{version};
     $self->stash(head_status => $head_status,
       db => $v->{db}, 'db-minion' => $v->{'db-minion'});
 
     return $self->ua->get_p(Mojo::URL->new('/ui/profiles/status')->to_abs($self->head_url)->
-        query({page => $active_page, lop => $self->config('lines_on_page')}) =>
-        {Accept => 'application/json'});
+      query({page => $active_page, lop => $self->config('lines_on_page')}) =>
+      {Accept => 'application/json'});
+  })->then(sub {
+    my $tx = shift;
+    my $res = $tx->result;
+    return unless $self->request_success($res);
+    return unless my $v = $self->request_json($res);
+    $self->stash(profiles_status => $v);
+
+    return $self->ua->get_p(Mojo::URL->new('/ui/syncqueue/status')->to_abs($self->head_url) =>
+      {Accept => 'application/json'});
   })->then(sub {
     my $tx = shift;
     my $res = $tx->result;
     return unless $self->request_success($res);
     return unless my $v = $self->request_json($res);
 
-    # stash: head_status
-    $self->render(rec => $v);
+    # stash: head_status, profiles_status
+    $self->render(sync_queue => $v);
 
   })->catch(sub {
     my $err = shift;

@@ -59,8 +59,6 @@
   <table>
     <thead>
       <tr class="tr-status-head">
-	<!--th style="width:5%"></th>
-	<th style="width:75%">Наименование объекта</th-->
 	<th style="width:80%" colspan="2">Наименование объекта</th>
 	<th style="width:20%">Последняя проверка</th>
       </tr>
@@ -68,7 +66,7 @@
     <tbody>
     % my $th;
     % my ($agents_total, $agents_good, $agents_bad) = (0, 0, 0);
-    % for (@{$rec->{d}}) {
+    % for (@{$profiles_status->{d}}) {
       <tr class="tr-status">
 	<td style="width:5%"><span class="listprofiletype">Объект</span></td>
 	<td style="width:75%"><%= $_->{name} ne '' ? $_->{name} : 'Профиль: '.$_->{profile} %></td>
@@ -132,19 +130,53 @@
       </tr>
 
     % }
-    % unless (@{$rec->{d}}) {
+    % unless (@{$profiles_status->{d}}) {
       <tr class="tr-status">
 	<td colspan="3">Объекты отсутствуют. Добавьте объекты и агенты через меню "Объекты".</td>
       </tr>
     % }
     </tbody>
   </table>
-  %= m_page_nav($rec->{page}, $rec->{pages}, {round=>3, outer=>1, start=>1, class=>'center-align', param=>'p', query=>'#top'});
+  %= m_page_nav($profiles_status->{page}, $profiles_status->{pages}, {round=>3, outer=>1, start=>1, class=>'center-align', param=>'p', query=>'#top'});
   <p>
-    Всего объектов:&nbsp;<%= $rec->{lines_total} %>, агентов:&nbsp;<%= $agents_total %>,
+    Всего объектов:&nbsp;<%= $profiles_status->{lines_total} %>, агентов:&nbsp;<%= $agents_total %>,
     <span class="listagenttype green lighten-3">исправных:&nbsp;<%= $agents_good %></span>,
     <span class="listagenttype red lighten-2">с&nbsp;ошибками:&nbsp;<%= $agents_bad %></span>.
   </p>
+  <h6>Очередь синхронизации</h6>
+  <table>
+    <thead>
+      <tr class="tr-status-head">
+	<th style="width:5%">N</th>
+	<th>Наименование объекта</th>
+	<th>IP</th>
+	<th>Место</th>
+	<th>Наименование агента</th>
+	<th>Тип агента</th>
+      </tr>
+    </thead>
+    <tbody>
+    % my $queue_cnt = 1;
+    % for (@$sync_queue) {
+      <tr class="tr-head-status">
+	<td style="width:5%">
+	  %= img_html 'flagged'
+	  %== $queue_cnt++
+	</td>
+	<td><%= $_->{name} %></td>
+	<td><%= $_->{ip} %></td>
+	<td><%= $_->{profile_name} ne '' ? $_->{profile_name} : 'Профиль: '.$_->{profile} %></td>
+	<td><%= $_->{agent_name} %></td>
+	<td><%= $_->{agent_type} %></td>
+      </tr>
+    % }
+    % unless (@$sync_queue) {
+      <tr class="tr-head-status">
+	<td colspan="6">Синхронизируемые объекты отсутствуют.</td>
+      </tr>
+    % }
+    </tbody>
+  </table>
   <p>Автоматическое обновление страницы каждые 2 мин.</p>
 </div>
 <div class="fixed-action-btn">

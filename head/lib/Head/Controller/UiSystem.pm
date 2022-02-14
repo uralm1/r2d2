@@ -5,6 +5,7 @@ use POSIX qw(ceil);
 use Time::Piece;
 use Mojo::Promise;
 use Mojo::mysql;
+use NetAddr::IP::Lite;
 
 sub profilesstatus {
   my $self = shift;
@@ -151,6 +152,55 @@ sub profileshash {
       $self->render(json => $j);
     }
   );
+}
+
+
+sub syncqueuestatus {
+  my $self = shift;
+
+  $self->render_later;
+
+  $self->mysql_inet->db->query("SELECT sf.device_id, d.name, d.ip, \
+d.profile, p.name AS profile_name, \
+sf.agent_id, a.name AS agent_name, a.type AS agent_type \
+FROM sync_flags sf \
+INNER JOIN devices d ON sf.device_id = d.id \
+INNER JOIN profiles_agents a ON sf.agent_id = a.id \
+LEFT OUTER JOIN profiles p ON d.profile = p.profile \
+ORDER BY sf.id ASC LIMIT 100" =>
+    sub {
+      my ($db, $err, $results) = @_;
+      return $self->render(text => "Database error, querying syncqueue: $err", status => 503) if $err;
+
+      my $j = undef;
+      if (my $d = $results->hashes) {
+        $j = $d->map(sub { return eval { _build_syncqueue_rec($_) } })->compact;
+      } else {
+        return $self->render(text => 'Database error, bad result', status => 503);
+      }
+
+      $self->render(json => $j);
+    }
+  );
+}
+
+
+# { syncqueue_rec_hash } = _build_syncqueue_rec( { hash_from_database } );
+sub _build_syncqueue_rec {
+  my $h = shift;
+  my $ipo = NetAddr::IP::Lite->new($h->{ip}) || die 'IP address failure';
+  my $r = { ip => $ipo->addr };
+  for (qw/profile agent_type/) {
+    die 'Undefined syncqueue record attribute' unless exists $h->{$_};
+    $r->{$_} = $h->{$_};
+  }
+  my $name = $h->{name};
+  my $agent_name = $h->{agent_name};
+  $r->{name} = defined $name && $name ne q{} ? $name : "ID: $h->{device_id}";
+  $r->{profile_name} = $h->{profile_name} if defined $h->{profile_name};
+  $r->{agent_name} = defined $agent_name && $agent_name ne q{} ? $agent_name : "ID: $h->{agent_id}";
+
+  return $r;
 }
 
 

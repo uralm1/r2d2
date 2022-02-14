@@ -2,6 +2,8 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+- Отображение очереди синхронизации на странице состояния.
+- Новая реализация очереди синхронизации.
 - Обновлен chartjs.
 
 ## [0.9] - 2022-02-10

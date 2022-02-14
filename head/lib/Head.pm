@@ -111,6 +111,8 @@ sub startup {
   $r->delete('/ui/agent/#profile_id/#agent_id')->to('ui_agents#agentdelete');
   $r->post('/ui/agent/#profile_id')->to('ui_agents#agentpost');
 
+  $r->get('/ui/syncqueue/status')->to('ui_system#syncqueuestatus');
+
   $r->get('/ui/log/oplog')->to('ui_log#oplog');
   $r->get('/ui/log/audit')->to('ui_log#auditlog');
 

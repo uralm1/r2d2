@@ -14,6 +14,7 @@ tags:
   - name: Ui stats
   - name: Ui profiles
   - name: Ui agents
+  - name: Ui syncqueue
   - name: Ui logging
 
 paths:
@@ -1866,6 +1867,28 @@ paths:
                 description: error message      
 
 
+  /ui/syncqueue/status:
+    get:
+      summary: Получение состояния очереди синхронизации
+      description: Запрос текущего состояния очереди синхронизации.
+      tags: ['Ui syncqueue']
+
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ui_syncqueue_status'
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+
   /ui/log/oplog:
     get:
       summary: Получение лога операций
@@ -2342,6 +2365,44 @@ components:
       type: array
       items:
         $ref: '#/components/schemas/client_record'
+
+
+
+    ui_syncqueue_status:
+      description: Содержимое очереди синхронизации (массив)
+      type: array
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+            description: Наименование устройства
+            example: 'Рабочий ноутбук'
+          ip:
+            type: string
+            description: device ip4
+            example: '10.15.0.33'
+          profile:
+            type: string
+            description: device profile (key)
+            example: 'gwtest1'
+          profile_name:
+            type: string
+            description: device profile human readable name
+            example: 'Тестовое подразделение'
+          agent_name:
+            type: string
+            description: Наименование агента
+          agent_type:
+            type: string
+            description: Тип агента
+            enum: [fwsyn, dhcpsyn, rtsyn, gwsyn]
+        required:
+        - name
+        - ip
+        - profile
+        - agent_name
+        - agent_type
 
 
     server_record:
