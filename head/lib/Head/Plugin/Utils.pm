@@ -6,6 +6,7 @@ use Mojo::mysql;
 use Head::Ural::Dblog;
 use Head::Ural::CompatChk;
 use Head::Ural::Profiles;
+use Head::Ural::SyncQueue;
 
 sub register {
   my ($self, $app, $args) = @_;
@@ -25,6 +26,11 @@ sub register {
   # profiles singleton
   $app->helper(profiles => sub {
     state $profiles = Head::Ural::Profiles->new(@_);
+  });
+
+  # sync queue singleton
+  $app->helper(syncqueue => sub {
+    state $syncqueue = Head::Ural::SyncQueue->new(@_);
   });
 
   # del_compat_check singleton

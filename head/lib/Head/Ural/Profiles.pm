@@ -2,6 +2,7 @@ package Head::Ural::Profiles;
 use Mojo::Base -base;
 
 use Carp;
+use Mojo::Promise;
 use Mojo::mysql;
 
 # agent hash structure:
@@ -67,7 +68,7 @@ WHERE p.profile = ? ORDER BY a.id", $pk) };
 }
 
 
-# check profile exists
+# check profile exist
 # 0|1 = $obj->exist($profile_key)
 sub exist {
   my ($self, $profile_key) = @_;
@@ -106,6 +107,115 @@ WHERE profile = ?",
   )};
   return 'Profile update error' unless $results;
   return q{};
+}
+
+
+# query profiles as a hash asyncronously (in /ui/profiles hash format)
+# $resolved_or_rejected_promise = $obj->hash_p()
+#
+# $obj->hash_p
+# ->then(sub {my $j = shift;...use $j...})
+# ->catch(sub {my $err = shift;...report $err...});
+sub hash_p {
+  $_[0]->{app}->mysql_inet->db->query_p('SELECT profile, name FROM profiles')
+  ->then(sub {
+    my $results = shift;
+
+    my $j = {};
+    while (my $n = $results->array) { $j->{$n->[0]} = $n->[1] }
+    return Mojo::Promise->resolve($j);
+  });
+}
+
+
+# query profiles count asyncronously
+# $resolved_or_rejected_promise = $obj->count_p()
+#
+# $obj->count_p
+# ->then(sub {my $c = shift;...use $c...})
+# ->catch(sub {my $err = shift;...report $err...});
+sub count_p {
+  $_[0]->{app}->mysql_inet->db->query_p('SELECT COUNT(*) FROM profiles')
+  ->then(sub {
+    return Mojo::Promise->resolve(shift->array->[0]);
+  });
+}
+
+
+# query profiles status asyncronously (in /ui/profiles/status "d" attribute format - array)
+# $resolved_or_rejected_promise = $obj->status_p($lines_on_page, $current_page)
+#
+# $obj->status_p($lines_on_page, $current_page)
+# ->then(sub {my $j = shift;...use $j...})
+# ->catch(sub {my $err = shift;...report $err...});
+sub status_p {
+  my ($self, $lines_on_page, $page) = @_;
+  my $db = $self->{app}->mysql_inet->db;
+
+  my $profiles_p = $db->query_p("SELECT id, profile, name, \
+DATE_FORMAT(lastcheck, '%k:%i:%s %e-%m-%y') AS lastcheck \
+FROM profiles ORDER BY profile, id LIMIT ? OFFSET ?",
+    $lines_on_page,
+    ($page - 1) * $lines_on_page
+  );
+
+  my $agents_p = $db->query_p("SELECT id, profile_id, name, type, url, block, \
+DATE_FORMAT(lastcheck, '%k:%i:%s %e-%m-%y') AS lastcheck, state, status \
+FROM profiles_agents ORDER BY id");
+
+  # return compound promise
+  Mojo::Promise->all($profiles_p, $agents_p)
+  ->then(sub {
+    my ($profiles_p, $agents_p) = @_;
+
+    # reconcile agents
+    my %_ah;
+    while (my $next = $agents_p->[0]->hash) {
+      my $ag = eval { _build_system_agent_rec($next) };
+      return Mojo::Promise->reject('System profile attribute error (agent)') unless $ag;
+      push @{$_ah{ $next->{profile_id} }}, $ag;
+    }
+
+    my $j = [];
+    while (my $next = $profiles_p->[0]->hash) {
+      my $pr = eval { _build_system_profile_rec($next) };
+      return Mojo::Promise->reject('System profile attribute error') unless $pr;
+
+      $pr->{agents} = $_ah{ $next->{id} } // [];
+      push @$j, $pr;
+    }
+
+    # success
+    return Mojo::Promise->resolve($j);
+  });
+}
+
+
+# internal
+# { profile_rec_hash } = _build_system_profile_rec( { hash_from_database } );
+sub _build_system_profile_rec {
+  my $h = shift;
+  my $r = {};
+  for (qw/profile name lastcheck/) {
+    die 'Undefined system profile record attribute' unless exists $h->{$_};
+    $r->{$_} = $h->{$_};
+  }
+  $r->{lastcheck} //= q{};
+  return $r;
+}
+
+
+# internal
+# { agent_rec_hash } = _build_system_agent_rec( { hash_from_database } );
+sub _build_system_agent_rec {
+  my $h = shift;
+  my $r = {};
+  for (qw/name type url block lastcheck state status/) {
+    die 'Undefined system agent record attribute' unless exists $h->{$_};
+    $r->{$_} = $h->{$_};
+  }
+  $r->{lastcheck} //= '';
+  return $r;
 }
 
 
