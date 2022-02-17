@@ -87,11 +87,11 @@ pre.newversion-hist {
   padding:0 0 0 18px;
 }
 
-.tr-client, .tr-devices, .tr-device, .tr-device-head, .tr-head-status, .tr-head-database, .tr-status, .tr-agents, .tr-agentstat, .tr-agent, .tr-agent-head, .tr-profile {
+.tr-client, .tr-devices, .tr-device, .tr-device-none, .tr-device-head, .tr-head-status, .tr-head-database, .tr-status, .tr-agents, .tr-agentstat, .tr-agentstat-none, .tr-agent, .tr-agent-none, .tr-agent-head, .tr-profile {
   border-bottom:none;
 }
 
-tr.tr-client, tr.tr-device, tr.tr-status, tr.tr-agent, tr.tr-agentstat, tr.tr-profile {
+tr.tr-client, tr.tr-device, tr.tr-device-none, tr.tr-status, tr.tr-agent, tr.tr-agent-none, tr.tr-agentstat, tr.tr-agentstat-none, tr.tr-profile {
   -webkit-transition: background-color .25s ease;
   transition: background-color .25s ease;
 }
@@ -131,7 +131,7 @@ tr.tr-device-head>th, tr.tr-agent-head>th {
   border:1px solid #adadad;
 }
 
-tr.tr-device>td, tr.tr-agent>td, tr.tr-agentstat>td {
+tr.tr-device>td, tr.tr-device-none>td, tr.tr-agent>td, tr.tr-agent-none>td, tr.tr-agentstat>td, tr.tr-agentstat-none>td {
   padding:5px;
   border:1px solid #e3e3e3;
 }

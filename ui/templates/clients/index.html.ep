@@ -139,7 +139,7 @@
 	    </tr>
 	    % }
 	    % unless (@{$c->{devices}}) {
-	    <tr class="tr-device">
+	    <tr class="tr-device-none">
 	      <td colspan="7">Клиентские устройства отсутствуют</td>
 	    </tr>
 	    % }

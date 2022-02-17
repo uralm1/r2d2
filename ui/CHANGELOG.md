@@ -2,6 +2,7 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+- Исправлены стили отсутствующих объектов в списках.
 - Отображение очереди синхронизации на странице состояния.
 - Новая реализация очереди синхронизации.
 - Обновлен chartjs.

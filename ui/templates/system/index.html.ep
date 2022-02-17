@@ -117,7 +117,7 @@
             % $agents_total++;
 	    % }
 	    % unless (@{$_->{agents}}) {
-	    <tr>
+	    <tr class="tr-agentstat-none">
 	      <td colspan="5">
 		<i class="material-icons tiny">report</i>
 		<span>Агенты отсутствуют</span>

@@ -60,7 +60,7 @@
             % $agents_total++;
 	    % }
 	    % unless (@{$_->{agents}}) {
-	    <tr><td colspan="4">Агенты отсутствуют</td></tr>
+	    <tr class="tr-agent-none"><td colspan="4">Агенты отсутствуют</td></tr>
 	    % }
 	    </tbody>
 	  </table>
