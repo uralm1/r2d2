@@ -112,7 +112,7 @@
 	    %= label_for qs => 'Режим квоты'
 	  </div>
 	  <div class="input-field col s10 m6 l4">
-	    % param limit_in => 1024 unless defined param 'limit_in';
+	    % param limit_in => config('default_limit_in') unless defined param 'limit_in';
 	    %= text_field 'limit_in', id => 'limit-in'
 	    %= label_for 'limit-in' => 'Лимит (Мегабайт в месяц)'
 	    %= t 'span', class => 'helper-text', 'data-error' => 'Ошибка', 'Формат: число без добавления "Мб".'

@@ -15,6 +15,7 @@ sub startup {
     qs_names => [],
     defjump_names => [],
     speed_plans => [],
+    default_limit_in => 2048,
   }});
   delete $self->defaults->{config}; # safety - not to pass passwords to stashes
 

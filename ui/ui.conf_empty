@@ -63,6 +63,8 @@
       in => '', out => '' },
   ],
 
+  default_limit_in => 2048,
+
   ldap_servers => ['ldap://dcsrv1', 'ldap://dcsrv2'],
   ldap_user => 'ldapuser',
   ldap_pass => 'ldappass',
