@@ -28,8 +28,13 @@ sub run {
 
           #say "id: $id, profile: $n->{profile}";
           # loop by agents
-          if ($profiles->exist($n->{profile})) {
-            my $res = $profiles->eachagent($n->{profile}, sub {
+          my $e = eval { $profiles->exist($n->{profile}) };
+          if (!defined $e) {
+            $app->log->error("Refresh failed: database error (exist)!");
+          } elsif (!$e) {
+            $app->log->error("Refresh device id $id failed: invalid profile!");
+          } else {
+            my $res = eval { $profiles->eachagent($n->{profile}, sub {
               my ($profile_key, $agent_key, $agent) = @_;
 
               my $agent_type = $agent->{type};
@@ -42,11 +47,8 @@ sub run {
                 $app->refresh_id($agent->{url}, $id);
               }
 
-            });
-            $app->log->error("Refresh failed, database error!") unless $res;
-
-          } else {
-            $app->log->error("Refresh device id $id failed: invalid profile!");
+            }) };
+            $app->log->error("Refresh failed, database error (eachagent)!") unless $res;
           }
 
         } # while

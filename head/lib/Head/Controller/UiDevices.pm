@@ -69,12 +69,16 @@ sub deviceput {
   return $self->render(text=>'Bad ip', status => 503) unless $ipo;
 
   $self->log->debug($self->dumper($j));
-  $self->render_later;
 
-  # FIXME sync_flags field is deprecated
-  $self->mysql_inet->db->query("UPDATE devices \
+  my $db = $self->mysql_inet->db;
+
+  # start transaction
+  my $tx = eval { $db->begin };
+  return $self->render(text => "Database error, transaction failure: $@", status => 503) unless $tx;
+
+  my $results = eval { $db->query("UPDATE devices \
 SET name = ?, devices.desc = ?, ip = ?, mac = ?, no_dhcp = ?, rt = ?, defjump = ?, speed_in = ?, speed_out = ?, qs = ?, limit_in = ?, sync_flags = 15 \
-WHERE id = ? AND client_id = ? AND EXISTS (SELECT 1 FROM clients WHERE clients.id = ? AND type = 0)",
+WHERE id = ? AND client_id = ? AND profile = ? AND EXISTS (SELECT 1 FROM clients WHERE clients.id = ? AND type = 0)",
     $j->{name},
     $j->{desc} // '',
     scalar($ipo->numeric),
@@ -86,20 +90,25 @@ WHERE id = ? AND client_id = ? AND EXISTS (SELECT 1 FROM clients WHERE clients.i
     $j->{speed_out},
     $j->{qs},
     $j->{limit_in},
-    $device_id, $client_id, $client_id =>
-    sub {
-      my ($db, $err, $results) = @_;
-      return $self->render(text => "Database error, updating device: $err", status => 503) if $err;
+    $device_id, $client_id, $j->{profile}, $client_id
+  ) };
+  return $self->render(text => "Database error, updating device: $@", status => 503) unless $results;
 
-      if ($results->affected_rows > 0) {
-        $self->dblog->info("UI: Device id $device_id updated successfully");
-        $self->rendered(200);
-      } else {
-        $self->dblog->info("UI: Device id $device_id not updated");
-        $self->render(text => "Device id $device_id not found or client invalid", status => 404);
-      }
-    }
-  );
+  if ($results->affected_rows == 0) {
+    $self->dblog->info("UI: Device id $device_id not updated");
+    return $self->render(text => "Device id $device_id not found, profile or client invalid", status => 404);
+  }
+
+  # insert sync flags
+  my $err = eval { $self->syncqueue->set_flag($db, $device_id, $j->{profile}) };
+  return $self->render(text => $@, status => 503) unless defined $err;
+
+  eval { $tx->commit };
+  return $self->render(text => "Database error, transaction commit failure: $@", status => 503) if $@;
+
+  # finished
+  $self->dblog->info("UI: Device id $device_id updated successfully");
+  $self->rendered(200);
 }
 
 
@@ -132,7 +141,7 @@ WHERE id = ? AND type = 0", $client_id) };
   my $tx = eval { $db->begin };
   return $self->render(text => "Database error, transaction failure: $@", status => 503) unless $tx;
 
-  # sync_flags field is set via field default value
+  # deprecated sync_flags field is set via field default value
   $results = eval { $db->query("INSERT INTO devices \
 (name, devices.desc, create_time, ip, mac, no_dhcp, rt, defjump, speed_in, speed_out, qs, limit_in, sum_limit_in, profile, notified, blocked, bot, client_id) \
 VALUES (?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, ?)",
@@ -158,6 +167,10 @@ VALUES (?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, ?)",
   $results = eval { $db->query("INSERT INTO amonthly (device_id, date, m_in, m_out) \
 VALUES (?, CURDATE(), 0, 0)", $last_id) };
   return $self->render(text => "Database error, inserting amonthly: $@", status => 503) unless $results;
+
+  # insert sync flags
+  my $err = eval { $self->syncqueue->set_flag($db, $last_id, $j->{profile}) };
+  return $self->render(text => $@, status => 503) unless defined $err;
 
   eval { $tx->commit };
   return $self->render(text => "Database error, transaction commit failure: $@", status => 503) if $@;

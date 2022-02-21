@@ -45,7 +45,7 @@ ON DUPLICATE KEY UPDATE m_in = sum_in, m_out = sum_out") };
     }
 
     # send RELOAD to all block agents to unblock devices in one request
-    $app->profiles->eachagent(sub {
+    $r = eval { $app->profiles->eachagent(sub {
       my ($profile_key, $agent_key, $agent) = @_;
 
       return unless $agent->{block};
@@ -57,32 +57,38 @@ ON DUPLICATE KEY UPDATE m_in = sum_in, m_out = sum_out") };
       $app->log->info($m);
       $app->dblog->info($m, sync=>1);
 
-      $r = eval {
+      my $r1 = eval {
         $app->ua->post(Mojo::URL->new("$agent_url/reload"))->result;
       };
-      unless (defined $r) {
+      unless (defined $r1) {
         # connection to agent failed
         $m = "Connection to agent $agent_type [$agent_url] failed";
         $app->log->error($m.": $@");
         $app->dblog->error($m, sync=>1);
 
       } else {
-        if ($r->is_success) {
+        if ($r1->is_success) {
           # successful reload
           $m = "Agent $agent_type [$agent_url] reload request successfully sent";
           $app->log->info($m);
           $app->dblog->info($m, sync=>1);
         } else {
           # request error 503
-          if ($r->is_error) {
-            $m = "Agent $agent_type [$agent_url] reload error: ".$r->body;
+          if ($r1->is_error) {
+            $m = "Agent $agent_type [$agent_url] reload error: ".$r1->body;
             $app->log->error($m);
             $app->dblog->error($m, sync=>1);
           }
         }
 
       }
-    });
+    }) };
+    unless ($r) {
+      $m = 'Unblocking blocked devices failed (eachagent)';
+      $app->log->error($m.": $@");
+      $app->dblog->error($m, sync=>1);
+      $error = 1;
+    }
 
     $m = 'MONTHLY processing finished'.($error) ? ' (FAILED with ERRORS)' : '';
     $app->log->info($m);

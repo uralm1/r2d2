@@ -601,7 +601,7 @@ paths:
 
     put:
       summary: Редактирование данных сервера
-      description: Свойство id необязательное, если указывается то должно совпадать с параметром server_id. Свойства create_time и profile игнорируются.
+      description: Свойство id необязательное, если указывается то должно совпадать с параметром server_id. Свойство create_time игнорируется.
       tags: ['Ui servers']
       parameters:
         - name: server_id

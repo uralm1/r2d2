@@ -19,8 +19,13 @@ sub run {
   die "Bad <profile> argument\n" unless defined $p;
 
   # loop by agents
-  if ($app->profiles->exist($p)) {
-    my $res1 = $app->profiles->eachagent($p, sub {
+  my $e = eval { $app->profiles->exist($p) };
+  if (!defined $e) {
+    die "Database error (exist)!\n";
+  } elsif (!$e) {
+    die "Given profile $p is not found!\n";
+  } else {
+    my $res1 = eval { $app->profiles->eachagent($p, sub {
       my ($profile_key, $agent_key, $agent) = @_;
 
       my $t = $agent->{type};
@@ -51,10 +56,8 @@ sub run {
       } else {
         $app->log->info("$p agent $t: Agent doesn't support traffic statistics collection.");
       }
-    });
-    die "Database error!\n" unless $res1;
-  } else {
-    die "Given profile $p is not found!\n";
+    }) };
+    die "Database error (eachagent)!\n" unless $res1;
   }
 
   Mojo::IOLoop->start unless Mojo::IOLoop->is_running;

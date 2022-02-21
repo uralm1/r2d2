@@ -30,7 +30,7 @@ sub new {
 
 # $obj->eachagent('this_profile_key', sub { my ($profile_key, $agent_key, $agent) = @_; say "$profile_key => $agent->{name}" });
 # $obj->eachagent(sub { my ($profile_key, $agent_key, $agent) = @_; say "$profile_key => $agent->{name}" });
-# returns 1 if ok, 0 - database error.
+# returns 1, dies on database error.
 sub eachagent {
   my ($self, $pk, $cb) = @_;
   my $db = $self->{app}->mysql_inet->db;
@@ -48,10 +48,8 @@ FROM profiles_agents a INNER JOIN profiles p ON a.profile_id = p.id \
 WHERE p.profile = ? ORDER BY a.id", $pk) };
 
   }
-  unless ($results) {
-    carp 'Database error (eachagent)';
-    return 0;
-  }
+  croak 'Database error (eachagent)' unless $results;
+
   while (my $n = $results->hash) {
     $cb->(
       $n->{profile},
@@ -70,27 +68,26 @@ WHERE p.profile = ? ORDER BY a.id", $pk) };
 
 # check profile exist
 # 0|1 = $obj->exist($profile_key)
+# dies on error
 sub exist {
   my ($self, $profile_key) = @_;
   my $results = eval {
     $self->{app}->mysql_inet->db->query('SELECT 1 FROM profiles WHERE profile = ?',
       $profile_key)
   };
-  unless ($results) {
-    carp 'Database error (exists)';
-    return 0;
-  }
+  croak "Database error (exists): $@" unless $results;
+
   $results->rows < 1 ? 0 : 1;
 }
 
 
 # set state, status, update lastchecks
-# ''|'error string' = $obj->setcheck($profile_key, $agent_key, $state, $status)
-sub setcheck {
+# $obj->set_check($profile_key, $agent_key, $state, $status)
+# return true, dies on error
+sub set_check {
   my ($self, $profile_key, $agent_key, $state, $status) = @_;
   my $db = $self->{app}->mysql_inet->db;
 
-  # database first
   my $results = eval { $db->query("UPDATE profiles_agents \
 SET lastcheck = NOW(), state = ?, status = ? \
 WHERE id = ?",
@@ -98,15 +95,15 @@ WHERE id = ?",
     $status,
     $agent_key
   )};
-  return 'Profile agent update error' unless $results;
+  croak "Profile agent update error\n" unless $results;
 
   $results = eval { $db->query("UPDATE profiles \
 SET lastcheck = NOW() \
 WHERE profile = ?",
     $profile_key
   )};
-  return 'Profile update error' unless $results;
-  return q{};
+  croak "Profile update error\n" unless $results;
+  return 1;
 }
 
 

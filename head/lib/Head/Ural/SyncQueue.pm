@@ -26,6 +26,26 @@ sub new {
 }
 
 
+# add new flag to queue
+# uses external $db parameter, to call this function inside transaction
+# $rows_inserted = $obj->set_flag($db, $device_id, 'plk')
+# dies on errors
+sub set_flag {
+  my ($self, $db, $device_id, $profile) = @_;
+  croak 'Bad set_flag parameter!' unless defined $db && defined $device_id && defined $profile;
+
+  my $results = eval { $db->query("INSERT INTO sync_flags (device_id, agent_id) \
+SELECT ?, a.id FROM profiles_agents a \
+INNER JOIN profiles p ON a.profile_id = p.id \
+WHERE p.profile = ? ORDER BY a.id",
+    $device_id,
+    $profile
+  ) };
+  croak "Set new flag database error: $@" unless $results;
+  return $results->affected_rows;
+}
+
+
 # query sync queue status asyncronously (in /ui/syncqueue/status format)
 # $resolved_or_rejected_promise = $obj->status_p();
 #

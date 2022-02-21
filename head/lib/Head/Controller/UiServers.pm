@@ -66,52 +66,66 @@ sub serverput {
   return $self->render(text=>'Bad ip', status => 503) unless $ipo;
 
   $self->log->debug($self->dumper($j));
-  $self->render_later;
+
+  my $db = $self->mysql_inet->db;
 
   # check duplicates
-  $self->mysql_inet->db->query("SELECT id FROM clients WHERE type = 1 AND cn = ? AND id != ?",
-    $j->{cn},
-    $id =>
-    sub {
-      my ($db, $err, $results) = @_;
-      return $self->render(text => "Database error, checking duplicate server: $err", status => 503) if $err;
-      return $self->render(text => 'Refused, duplicate server exist', status => 400) if $results->rows > 0;
+  my $results = eval { $db->query("SELECT id FROM clients WHERE type = 1 AND cn = ? AND id != ?",
+    $j->{cn}, $id) };
+  return $self->render(text => "Database error, checking duplicate server: $@", status => 503) unless $results;
+  return $self->render(text => 'Refused, duplicate server exist', status => 400) if $results->rows > 0;
 
-      $results->finish;
+  $results->finish;
 
-      # FIXME sync_flags field is deprecated
-      $db->query("UPDATE clients c INNER JOIN devices d ON d.client_id = c.id \
+  # get device id
+  $results = eval { $db->query("SELECT d.id \
+FROM clients c INNER JOIN devices d ON d.client_id = c.id \
+WHERE type = 1 AND c.id = ?", $id) };
+  return $self->render(text => "Database error, retriving server device: $@", status => 503) unless $results;
+  return $self->render(text => "Server id $id not found", status => 404) if $results->rows < 1;
+  my $device_id = $results->array->[0];
+  $results->finish;
+
+  # start transaction
+  my $tx = eval { $db->begin };
+  return $self->render(text => "Database error, transaction failure: $@", status => 503) unless $tx;
+
+  $results = eval { $db->query("UPDATE clients c \
+INNER JOIN devices d ON d.client_id = c.id \
 SET cn = ?, c.desc = ?, name = 'Подключение сервера', d.desc = '', email = ?, c.email_notify = ?, ip = ?, mac = ?, no_dhcp = ?, rt = ?, defjump = ?, speed_in = ?, speed_out = ?, qs = ?, limit_in = ?, sync_flags = 15 \
-WHERE c.type = 1 AND c.id = ?",
-        $j->{cn},
-        $j->{desc} // '',
-        $j->{email} // '',
-        $j->{email_notify} // 1,
-        scalar($ipo->numeric),
-        $j->{mac},
-        $j->{no_dhcp},
-        $j->{rt},
-        $j->{defjump},
-        $j->{speed_in},
-        $j->{speed_out},
-        $j->{qs},
-        $j->{limit_in},
-        $id =>
-        sub {
-          my ($db, $err, $results) = @_;
-          return $self->render(text => "Database error, updating server: $err", status => 503) if $err;
+WHERE c.type = 1 AND c.id = ? AND d.profile = ?",
+    $j->{cn},
+    $j->{desc} // '',
+    $j->{email} // '',
+    $j->{email_notify} // 1,
+    scalar($ipo->numeric),
+    $j->{mac},
+    $j->{no_dhcp},
+    $j->{rt},
+    $j->{defjump},
+    $j->{speed_in},
+    $j->{speed_out},
+    $j->{qs},
+    $j->{limit_in},
+    $id, $j->{profile}
+  ) };
+  return $self->render(text => "Database error, updating server: $@", status => 503) unless $results;
 
-          if ($results->affected_rows > 0) {
-            $self->dblog->info("UI: Server id $id updated successfully");
-            $self->rendered(200);
-          } else {
-            $self->dblog->info("UI: Server id $id not updated");
-            $self->render(text => "Server id $id not found", status => 404);
-          }
-        }
-      ); # inner query
-    }
-  ); # outer query
+  if ($results->affected_rows == 0) {
+    $self->dblog->info("UI: Server id $id not updated");
+    return $self->render(text => "Server id $id not found or profile invalid", status => 404);
+  }
+
+  # insert sync flags
+  my $err = eval { $self->syncqueue->set_flag($db, $device_id, $j->{profile}) };
+  return $self->render(text => $@, status => 503) unless defined $err;
+
+  eval { $tx->commit };
+  return $self->render(text => "Database error, transaction commit failure: $@", status => 503) if $@;
+
+  # finished
+  $self->dblog->info("UI: Server id $id updated successfully");
+  $self->rendered(200);
 }
 
 
@@ -134,6 +148,7 @@ sub serverpost {
   my $results = eval { $db->query("SELECT id FROM clients WHERE type = 1 AND cn = ?", $j->{cn}) };
   return $self->render(text => "Database error, checking duplicate server: $@", status => 503) unless $results;
   return $self->render(text => 'Refused, duplicate server exist', status => 400) if $results->rows > 0;
+
   $results->finish;
 
   # start transaction
@@ -152,7 +167,7 @@ VALUES (NOW(), 1, '', '', ?, ?, ?, ?, 0)",
 
   my $last_id = $results->last_insert_id;
 
-  # sync_flags field is set via default field value
+  # deprecated sync_flags field is set via default field value
   $results = eval { $db->query("INSERT INTO devices \
 (name, devices.desc, create_time, ip, mac, no_dhcp, rt, defjump, speed_in, speed_out, qs, limit_in, sum_limit_in, profile, notified, blocked, bot, client_id) \
 VALUES ('Подключение сервера', '', NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 1, ?)",
@@ -176,6 +191,10 @@ VALUES ('Подключение сервера', '', NOW(), ?, ?, ?, ?, ?, ?, ?,
   $results = eval { $db->query("INSERT INTO amonthly (device_id, date, m_in, m_out) \
 VALUES (?, CURDATE(), 0, 0)", $last_device_id) };
   return $self->render(text => "Database error, inserting amonthly: $@", status => 503) unless $results;
+
+  # insert sync flags
+  my $err = eval { $self->syncqueue->set_flag($db, $last_device_id, $j->{profile}) };
+  return $self->render(text => $@, status => 503) unless defined $err;
 
   eval { $tx->commit };
   return $self->render(text => "Database error, transaction commit failure: $@", status => 503) if $@;

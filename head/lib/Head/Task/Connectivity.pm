@@ -54,8 +54,8 @@ sub _do {
         $ok = undef if ref($v->{profiles}) ne 'ARRAY';
         if ($ok) {
           $app->log->info("OK: [subsys: $v->{subsys}, version: $v->{version}, profiles: ".join(',', @{$v->{profiles}}).']');
-          my $e = $app->profiles->setcheck($profile_key, $agent_key, 1, "$v->{subsys} ($v->{version})");
-          $app->log->error($e) if $e;
+          my $e = eval { $app->profiles->set_check($profile_key, $agent_key, 1, "$v->{subsys} ($v->{version})") };
+          $app->log->error($@) unless $e;
 
           # check the requested $profile in returned [profiles] array
           my $f = 0;
@@ -66,21 +66,21 @@ sub _do {
 
         } else {
           $app->log->error("ERROR: received invalid json from agent!");
-          my $e = $app->profiles->setcheck($profile_key, $agent_key, 0, 'Ошибка формата');
-          $app->log->error($e) if $e;
+          my $e = eval { $app->profiles->set_check($profile_key, $agent_key, 0, 'Ошибка формата') };
+          $app->log->error($@) unless $e;
 
         }
       } else {
         $app->log->error("ERROR: received invalid response from agent!");
-        my $e = $app->profiles->setcheck($profile_key, $agent_key, 0, 'Неверные данные');
-        $app->log->error($e) if $e;
+        my $e = eval { $app->profiles->set_check($profile_key, $agent_key, 0, 'Неверные данные') };
+        $app->log->error($@) unless $e;
 
       }
     })->catch(sub {
       my $err = shift;
       $app->log->error("ERROR: $err");
-      my $e = $app->profiles->setcheck($profile_key, $agent_key, 0, $err);
-      $app->log->error($e) if $e;
+      my $e = eval { $app->profiles->set_check($profile_key, $agent_key, 0, $err) };
+      $app->log->error($@) unless $e;
 
     })->wait;
   });

@@ -22,8 +22,13 @@ sub run {
     my ($id, $prof) = @_;
     #say "$id => $prof has been removed!";
     # loop by agents
-    if ($profiles->exist($prof)) {
-      my $res = $profiles->eachagent($prof, sub {
+    my $e = eval { $profiles->exist($prof) };
+    if (!defined $e) {
+      $app->log->error("Refresh failed: database error (exist)!");
+    } elsif (!$e) {
+      $app->log->error("Refresh deleted device id $id failed: invalid profile!");
+    } else {
+      my $res = eval { $profiles->eachagent($prof, sub {
         my ($profile_key, $agent_key, $agent) = @_;
 
         my $agent_url = $agent->{url};
@@ -32,11 +37,8 @@ sub run {
         $app->dblog->info($m);
 
         $app->refresh_id($agent_url, $id);
-      });
-      $app->log->error("Refresh failed, database error!") unless $res;
-
-    } else {
-      $app->log->error("Refresh deleted device id $id failed: invalid profile!");
+      }) };
+      $app->log->error("Refresh failed, database error (eachagent)!") unless $res;
     }
 
   })->update();
