@@ -148,7 +148,8 @@
     <thead>
       <tr class="tr-status-head">
 	<th style="width:5%">N</th>
-	<th>Наименование объекта</th>
+	<th>Устройство</th>
+	<th>Клиент</th>
 	<th>IP</th>
 	<th>Место</th>
 	<th>Наименование агента</th>
@@ -164,6 +165,7 @@
 	  %== $queue_cnt++
 	</td>
 	<td><%= $_->{name} %></td>
+	<td><%= $_->{client_cn} // 'н/д' %></td>
 	<td><%= $_->{ip} %></td>
 	<td><%= $_->{profile_name} ne '' ? $_->{profile_name} : 'Профиль: '.$_->{profile} %></td>
 	<td><%= $_->{agent_name} %></td>
@@ -172,7 +174,7 @@
     % }
     % unless (@$sync_queue) {
       <tr class="tr-head-status">
-	<td colspan="6">Синхронизируемые объекты отсутствуют.</td>
+	<td colspan="7">Синхронизируемые объекты отсутствуют.</td>
       </tr>
     % }
     </tbody>

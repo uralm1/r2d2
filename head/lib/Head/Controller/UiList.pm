@@ -242,7 +242,7 @@ sub _build_device_where {
 
   my $where;
   #$where = '' if $view =~ /^devices$/;
-  $where = 'sync_flags > 0' if $view =~ /^flagged$/; #FIXME
+  $where = 'EXISTS (SELECT 1 FROM sync_flags sf WHERE sf.device_id = d.id)' if $view =~ /^flagged$/;
   $where = 'blocked > 0' if $view =~ /^blocked$/;
 
   if (_isip($search)) {

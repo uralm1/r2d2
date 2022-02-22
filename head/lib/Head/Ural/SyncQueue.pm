@@ -54,11 +54,13 @@ WHERE p.profile = ? ORDER BY a.id",
 # ->catch(sub {my $err = shift;...report $err...});
 sub status_p {
   $_[0]->{app}->mysql_inet->db->query_p("SELECT sf.device_id, d.name, d.ip, \
+c.cn AS client_cn, \
 d.profile, p.name AS profile_name, \
 sf.agent_id, a.name AS agent_name, a.type AS agent_type \
 FROM sync_flags sf \
 INNER JOIN devices d ON sf.device_id = d.id \
 INNER JOIN profiles_agents a ON sf.agent_id = a.id \
+LEFT OUTER JOIN clients c ON d.client_id = c.id \
 LEFT OUTER JOIN profiles p ON d.profile = p.profile \
 ORDER BY sf.id ASC LIMIT 100")
   ->then(sub {
@@ -89,8 +91,10 @@ sub _build_syncqueue_rec {
   my $name = $h->{name};
   my $agent_name = $h->{agent_name};
   $r->{name} = defined $name && $name ne q{} ? $name : "ID: $h->{device_id}";
-  $r->{profile_name} = $h->{profile_name} if defined $h->{profile_name};
   $r->{agent_name} = defined $agent_name && $agent_name ne q{} ? $agent_name : "ID: $h->{agent_id}";
+  for (qw/client_cn profile_name/) {
+    $r->{$_} = $h->{$_} if defined $h->{$_};
+  }
 
   return $r;
 }

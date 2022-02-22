@@ -2378,6 +2378,10 @@ components:
             type: string
             description: Наименование устройства
             example: 'Рабочий ноутбук'
+          client_cn:
+            type: string
+            description: ФИО клиента владельца устройства
+            example: 'Иванов Иван Иванович'
           ip:
             type: string
             description: device ip4
