@@ -48,55 +48,26 @@ sub list {
 
   $self->count_warn_p($db)
   ->then(sub {
-    my $err = $self->handle_count_warn(@_);
-    if ($err) {
-      Mojo::Promise->reject($err);
+    if ($_view_mode_clients) {
+      $view_mode = 'clients';
+      $self->count_clients_p($db);
+    } elsif ($_view_mode_devices) {
+      $view_mode = 'devices';
+      $self->count_devices_p($db);
     } else {
-      if ($_view_mode_clients) {
-        $view_mode = 'clients';
-        $self->count_clients_p($db);
-      } elsif ($_view_mode_devices) {
-        $view_mode = 'devices';
-        $self->count_devices_p($db);
-      } else {
-        die;
-      }
+      die;
     }
 
   })->then(sub {
     if ($_view_mode_clients) {
-      my $err = $self->handle_count_clients(@_);
-      if ($err) {
-        Mojo::Promise->reject($err);
-      } else {
-        $self->clients_p($db);
-      }
+      $self->clients_p($db);
     } elsif ($_view_mode_devices) {
-      my $err = $self->handle_count_devices(@_);
-      if ($err) {
-        Mojo::Promise->reject($err);
-      } else {
-        $self->devices_p($db);
-      }
+      $self->devices_p($db);
     }
 
   })->then(sub {
     if ($_view_mode_clients) {
-      my $err = $self->handle_clients(@_);
-      if ($err) {
-        Mojo::Promise->reject($err);
-      } else {
-        $self->client_devices_p($db);
-      }
-    } elsif ($_view_mode_devices) {
-      my $err = $self->handle_devices(@_);
-      Mojo::Promise->reject($err) if $err;
-    }
-
-  })->then(sub {
-    if ($_view_mode_clients) {
-      my $err = $self->handle_client_devices(@_);
-      Mojo::Promise->reject($err) if $err;
+      $self->client_devices_p($db);
     }
 
   })->then(sub {
@@ -129,7 +100,11 @@ sub list {
 }
 
 
-# $all_db_promise = $self->count_warn_p($db)
+# $promise = $self->count_warn_p($db)
+#
+# $self->count_warn_p($db)
+# ->then(sub {...values stored to stash...})
+# ->catch(sub {my $err = shift;...report $err...});
 sub count_warn_p {
   my ($self, $db) = @_;
 
@@ -137,26 +112,27 @@ sub count_warn_p {
   my $count_pain_p = $db->query_p("SELECT COUNT(*) FROM clients WHERE type = 0 AND guid = ''");
 
   # return compound promise
-  Mojo::Promise->all($count_lost_p, $count_pain_p);
+  Mojo::Promise->all($count_lost_p, $count_pain_p)
+  ->then(sub {
+    my ($count_lost_p, $count_pain_p) = @_;
+
+    my $lines_lost = $count_lost_p->[0]->array->[0];
+    my $lines_pain = $count_pain_p->[0]->array->[0];
+    $self->stash(lines_lost => $lines_lost);
+    $self->stash(has_pain_clients => $lines_pain > 0 ? 1 : 0);
+    $self->stash(has_lost_clients => $lines_lost > 0 ? 1 : 0);
+
+    # success
+    return Mojo::Promise->resolve(1);
+  });
 }
 
 
-# ''|'error string' = $self->handle_count_warn($all_db_promise_resolve)
-sub handle_count_warn {
-  my ($self, $count_lost_p, $count_pain_p) = @_;
-
-  my $lines_lost = $count_lost_p->[0]->array->[0];
-  my $lines_pain = $count_pain_p->[0]->array->[0];
-  $self->stash(lines_lost => $lines_lost);
-  $self->stash(has_pain_clients => $lines_pain > 0 ? 1 : 0);
-  $self->stash(has_lost_clients => $lines_lost > 0 ? 1 : 0);
-
-  # success
-  return '';
-}
-
-
-# $all_db_promise = $self->count_clients_p($db)
+# $promise = $self->count_clients_p($db)
+#
+# $self->count_clients_p($db)
+# ->then(sub {...values stored to stash...})
+# ->catch(sub {my $err = shift;...report $err...});
 sub count_clients_p {
   my ($self, $db) = @_;
 
@@ -166,31 +142,32 @@ sub count_clients_p {
   my $count_p = $db->query_p("SELECT COUNT(*) FROM clients $where");
 
   # return compound promise
-  Mojo::Promise->all($count_all_p, $count_p);
+  Mojo::Promise->all($count_all_p, $count_p)
+  ->then(sub {
+    my ($count_all_p, $count_p) = @_;
+
+    my $lines_total_all = $count_all_p->[0]->array->[0];
+    my $lines_total = $count_p->[0]->array->[0];
+
+    my $page = $self->stash('page');
+    my $lines_on_page = $self->stash('lines_on_page');
+
+    my $num_pages = ceil($lines_total / $lines_on_page);
+    return Mojo::Promise->reject('Bad parameter value') if $page < 1 || ($num_pages > 0 && $page > $num_pages);
+
+    $self->stash(lines_total_all => $lines_total_all, lines_total => $lines_total, num_pages => $num_pages);
+
+    # success
+    return Mojo::Promise->resolve(1);
+  });
 }
 
 
-# ''|'error string' = $self->handle_count_clients($all_db_promise_resolve)
-sub handle_count_clients {
-  my ($self, $count_all_p, $count_p) = @_;
-
-  my $lines_total_all = $count_all_p->[0]->array->[0];
-  my $lines_total = $count_p->[0]->array->[0];
-
-  my $page = $self->stash('page');
-  my $lines_on_page = $self->stash('lines_on_page');
-
-  my $num_pages = ceil($lines_total / $lines_on_page);
-  return 'Bad parameter value' if $page < 1 || ($num_pages > 0 && $page > $num_pages);
-
-  $self->stash(lines_total_all => $lines_total_all, lines_total => $lines_total, num_pages => $num_pages);
-
-  # success
-  return '';
-}
-
-
-# $db_promise = $self->clients_p($db)
+# $promise = $self->clients_p($db)
+#
+# $self->clients_p($db)
+# ->then(sub {...values stored to stash...})
+# ->catch(sub {my $err = shift;...report $err...});
 sub clients_p {
   my ($self, $db) = @_;
   my $lines_on_page = $self->stash('lines_on_page');
@@ -202,7 +179,21 @@ FROM clients c \
 $where $order LIMIT ? OFFSET ?",
     $lines_on_page,
     ($self->stash('page') - 1) * $lines_on_page
-  );
+  )
+  ->then(sub {
+    my $results = shift;
+
+    my $j = $self->stash('j');
+
+    while (my $next = $results->hash) {
+      my $cl = eval { Head::Controller::UiClients::_build_client_rec($next) };
+      return Mojo::Promise->reject('Client attribute error') unless $cl;
+
+      push @$j, $cl;
+    }
+    # success
+    return Mojo::Promise->resolve(1);
+  });
 }
 
 
@@ -287,24 +278,11 @@ sub _build_device_order {
 }
 
 
-# ''|'error string' = $self->handle_clients($db_promise_resolve)
-sub handle_clients {
-  my ($self, $results) = @_;
-
-  my $j = $self->stash('j');
-
-  while (my $next = $results->hash) {
-    my $cl = eval { Head::Controller::UiClients::_build_client_rec($next) };
-    return 'Client attribute error' unless $cl;
-
-    push @$j, $cl;
-  }
-  # success
-  return '';
-}
-
-
-# $all_db_promise = $self->client_devices_p($db)
+# $promise = $self->client_devices_p($db)
+#
+# $self->client_devices_p($db)
+# ->then(sub {...values stored to stash...})
+# ->catch(sub {my $err = shift;...report $err...});
 sub client_devices_p {
   my ($self, $db) = @_;
   my $j = $self->stash('j');
@@ -322,35 +300,36 @@ FROM devices d LEFT OUTER JOIN profiles p ON d.profile = p.profile WHERE d.clien
 ORDER BY ip ASC LIMIT 100", $_->{id})
       },
       @$j
-    );
+    )
+    ->then(sub {
+      my $j = $self->stash('j');
+
+      my $i = 0;
+      for my $dev_p (@_) {
+        my $devs = undef;
+        if (my $d = $dev_p->[0]->hashes) {
+          $devs = $d->map(sub { return eval { Head::Controller::UiDevices::_build_device_rec($_) } })->compact;
+        } else {
+          return Mojo::Promise->reject('bad result'); # will output 'Database error: bad result', status => 503
+        }
+        $j->[$i]{devices} = $devs;;
+        $i++;
+      }
+      # success
+      return Mojo::Promise->resolve(1);
+
+    });
   } else {
-    Mojo::Promise->resolve();
+    Mojo::Promise->resolve(1);
   }
 }
 
 
-# ''|'error string' = $self->handle_client_devices(@db_map_promise_resolve)
-sub handle_client_devices {
-  my $self = shift;
-  my $j = $self->stash('j');
-
-  my $i = 0;
-  for my $dev_p (@_) {
-    my $devs = undef;
-    if (my $d = $dev_p->[0]->hashes) {
-      $devs = $d->map(sub { return eval { Head::Controller::UiDevices::_build_device_rec($_) } })->compact;
-    } else {
-      return 'bad result'; # will output 'Database error: bad result', status => 503
-    }
-    $j->[$i]{devices} = $devs;;
-    $i++;
-  }
-  # success
-  return '';
-}
-
-
-# $all_db_promise = $self->count_devices_p($db)
+# $promise = $self->count_devices_p($db)
+#
+# $self->count_devices_p($db)
+# ->then(sub {...values stored to stash...})
+# ->catch(sub {my $err = shift;...report $err...});
 sub count_devices_p {
   my ($self, $db) = @_;
 
@@ -360,61 +339,61 @@ sub count_devices_p {
   my $count_p = $db->query_p("SELECT COUNT(*) FROM devices d INNER JOIN clients c ON d.client_id = c.id $where");
 
   # return compound promise
-  Mojo::Promise->all($count_all_p, $count_p);
+  Mojo::Promise->all($count_all_p, $count_p)
+  ->then(sub {
+    my ($count_all_p, $count_p) = @_;
+
+    my $lines_total_all = $count_all_p->[0]->array->[0];
+    my $lines_total = $count_p->[0]->array->[0];
+
+    my $page = $self->stash('page');
+    my $lines_on_page = $self->stash('lines_on_page');
+
+    my $num_pages = ceil($lines_total / $lines_on_page);
+    return Mojo::Promise->reject('Bad parameter value') if $page < 1 || ($num_pages > 0 && $page > $num_pages);
+
+    $self->stash(lines_total_all => $lines_total_all, lines_total => $lines_total, num_pages => $num_pages);
+
+    # success
+    return Mojo::Promise->resolve(1);
+  });
 }
 
 
-# ''|'error string' = $self->handle_count_devices($all_db_promise_resolve)
-sub handle_count_devices {
-  my ($self, $count_all_p, $count_p) = @_;
-
-  my $lines_total_all = $count_all_p->[0]->array->[0];
-  my $lines_total = $count_p->[0]->array->[0];
-
-  my $page = $self->stash('page');
-  my $lines_on_page = $self->stash('lines_on_page');
-
-  my $num_pages = ceil($lines_total / $lines_on_page);
-  return 'Bad parameter value' if $page < 1 || ($num_pages > 0 && $page > $num_pages);
-
-  $self->stash(lines_total_all => $lines_total_all, lines_total => $lines_total, num_pages => $num_pages);
-
-  # success
-  return '';
-}
-
-
-# $db_promise = $self->devices_p($db)
+# $promise = $self->devices_p($db)
+#
+# $self->devices_p($db)
+# ->then(sub {...values stored to stash...})
+# ->catch(sub {my $err = shift;...report $err...});
 sub devices_p {
   my ($self, $db) = @_;
   my $lines_on_page = $self->stash('lines_on_page');
 
   my $where = $self->_build_device_where;
   my $order = $self->_build_device_order;
-  # FIXME sync_flags field is deprecated
+
   $db->query_p("SELECT d.id, d.name, d.desc, DATE_FORMAT(d.create_time, '%k:%i:%s %e-%m-%y') AS create_time, \
-ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, sum_limit_in, blocked, IF(sync_flags > 0, 1, 0) AS flagged, d.profile, p.name AS profile_name, d.client_id AS client_id, c.type AS client_type, c.cn AS client_cn, c.login AS client_login \
+ip, mac, rt, no_dhcp, defjump, speed_in, speed_out, qs, limit_in, sum_limit_in, blocked, \
+IF(EXISTS (SELECT 1 FROM sync_flags sf WHERE sf.device_id = d.id), 1, 0) AS flagged, \
+d.profile, p.name AS profile_name, d.client_id AS client_id, c.type AS client_type, c.cn AS client_cn, c.login AS client_login \
 FROM devices d INNER JOIN clients c ON d.client_id = c.id LEFT OUTER JOIN profiles p ON d.profile = p.profile \
 $where $order LIMIT ? OFFSET ?",
     $lines_on_page,
     ($self->stash('page') - 1) * $lines_on_page
-  );
-}
+  )
+  ->then(sub {
+    my $results = shift;
+    my $j = $self->stash('j');
 
+    while (my $next = $results->hash) {
+      my $d = eval { Head::Controller::UiDevices::_build_device_rec($next) };
+      return Mojo::Promise->reject('Device attribute error') unless $d;
 
-# ''|'error string' = $self->handle_devices($db_promise_resolve)
-sub handle_devices {
-  my ($self, $results) = @_;
-  my $j = $self->stash('j');
-
-  while (my $next = $results->hash) {
-    my $d = eval { Head::Controller::UiDevices::_build_device_rec($next) };
-    return 'Device attribute error' unless $d;
-
-    push @$j, $d;
-  }
-  # success
-  return '';
+      push @$j, $d;
+    }
+    # success
+    return Mojo::Promise->resolve(1);
+  });
 }
 
 

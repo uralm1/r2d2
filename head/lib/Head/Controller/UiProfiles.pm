@@ -22,10 +22,6 @@ sub list {
 
   $self->profiles_p($db)
   ->then(sub {
-    my $err = $self->handle_profiles(@_);
-    Mojo::Promise->reject($err) if $err;
-
-  })->then(sub {
     my $j = $self->stash('j');
     #say $self->dumper($j);
     $self->render(json => {
@@ -50,7 +46,11 @@ sub list {
 }
 
 
-# $all_db_promise = $self->profiles_p($db)
+# $promise = $self->profiles_p($db)
+#
+# $self->profiles_p($db)
+# ->then(sub {...values stored to stash...})
+# ->catch(sub {my $err = shift;...report $err...});
 sub profiles_p {
   my ($self, $db) = @_;
   my $lines_on_page = $self->stash('lines_on_page');
@@ -67,42 +67,39 @@ ORDER BY profile, id LIMIT ? OFFSET ?",
 FROM profiles_agents ORDER BY id");
 
   # return compound promise
-  Mojo::Promise->all($count_p, $profiles_p, $agents_p);
-}
+  Mojo::Promise->all($count_p, $profiles_p, $agents_p)
+  ->then(sub {
+    my ($count_p, $profiles_p, $agents_p) = @_;
 
+    my $j = $self->stash('j');
+    my $page = $self->stash('page');
+    my $lines_on_page = $self->stash('lines_on_page');
 
-# ''|'error string' = $self->handle_profiles($all_db_promise_resolve)
-sub handle_profiles {
-  my ($self, $count_p, $profiles_p, $agents_p) = @_;
+    my $lines_total = $count_p->[0]->array->[0];
+    my $num_pages = ceil($lines_total / $lines_on_page);
+    return Mojo::Promise->reject('Bad parameter value') if $page < 1 || ($num_pages > 0 && $page > $num_pages);
 
-  my $j = $self->stash('j');
-  my $page = $self->stash('page');
-  my $lines_on_page = $self->stash('lines_on_page');
+    $self->stash(lines_total => $lines_total, num_pages => $num_pages);
 
-  my $lines_total = $count_p->[0]->array->[0];
-  my $num_pages = ceil($lines_total / $lines_on_page);
-  return 'Bad parameter value' if $page < 1 || ($num_pages > 0 && $page > $num_pages);
+    # reconcile agents
+    my %_ah;
+    while (my $next = $agents_p->[0]->hash) {
+      my $ag = eval { Head::Controller::UiAgents::_build_agent_rec($next) };
+      return Mojo::Promise->reject('Profile attribute error (agent)') unless $ag;
+      push @{$_ah{ $next->{profile_id} }}, $ag;
+    }
 
-  $self->stash(lines_total => $lines_total, num_pages => $num_pages);
+    while (my $next = $profiles_p->[0]->hash) {
+      my $pr = eval { _build_profile_rec($next) };
+      return Mojo::Promise->reject('Profile attribute error') unless $pr;
 
-  # reconcile agents
-  my %_ah;
-  while (my $next = $agents_p->[0]->hash) {
-    my $ag = eval { Head::Controller::UiAgents::_build_agent_rec($next) };
-    return 'Profile attribute error (agent)' unless $ag;
-    push @{$_ah{ $next->{profile_id} }}, $ag;
-  }
+      $pr->{agents} = $_ah{ $next->{id} } // [];
+      push @$j, $pr;
+    }
 
-  while (my $next = $profiles_p->[0]->hash) {
-    my $pr = eval { _build_profile_rec($next) };
-    return 'Profile attribute error' unless $pr;
-
-    $pr->{agents} = $_ah{ $next->{id} } // [];
-    push @$j, $pr;
-  }
-
-  # success
-  return '';
+    # success
+    return Mojo::Promise->resolve(1);
+  });
 }
 
 
