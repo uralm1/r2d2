@@ -79,9 +79,9 @@
 	    <thead>
 	      <tr class="tr-agent-head">
 		<th style="width:25%">Наименование агента</th>
-		<th style="width:5%">Тип</th>
+		<th style="width:10%">Тип (подсистема)</th>
 		<th style="width:25%">Адрес</th>
-		<th style="width:25%">Состояние</th>
+		<th style="width:20%">Состояние</th>
 		<th style="width:20%">Последняя проверка</th>
 	      </tr>
 	    </thead>
@@ -93,13 +93,13 @@
 	        <i class="material-icons tiny">extension</i>
 		%= $a->{name} ne '' ? $a->{name} : 'н/д'
 	      </td>
-	      <td style="width:5%">
+	      <td style="width:10%">
 		<span class="listagenttype"><%= $a->{type} %></span>
 	      </td>
 	      <td style="width:25%">
 		<%= $a->{url} %>
 	      </td>
-	      <td style="width:25%">
+	      <td style="width:20%">
 	      % if ($a->{state} == 1) {
 	        <span class="listagenttype green lighten-3"><%= 'OK: '.$a->{status} %></span>
               % $agents_good++;
@@ -153,7 +153,7 @@
 	<th>IP</th>
 	<th>Место</th>
 	<th>Наименование агента</th>
-	<th>Тип агента</th>
+	<th>Тип (подсистема)</th>
       </tr>
     </thead>
     <tbody>

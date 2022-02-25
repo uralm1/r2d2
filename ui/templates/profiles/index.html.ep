@@ -33,9 +33,9 @@
 	    <thead>
 	      <tr class="tr-agent-head">
 		<th style="width:25%">Наименование агента</th>
-		<th style="width:10%">Тип</th>
+		<th style="width:15%">Тип (подсистема)</th>
 		<th style="width:25%">Адрес (URL)</th>
-		<th style="width:40%">Поддержка блокировки</th>
+		<th style="width:35%">Поддержка блокировки</th>
 	      </tr>
 	    </thead>
 	    % $th = 1; }
@@ -47,13 +47,13 @@
 		%= $a->{name} ne '' ? $a->{name} : 'н/д'
 		% end
 	      </td>
-	      <td style="width:10%">
+	      <td style="width:15%">
 		%= $a->{type}
 	      </td>
 	      <td style="width:25%">
 		%= $a->{url}
 	      </td>
-	      <td style="width:40%">
+	      <td style="width:35%">
 		%= $a->{block} ? 'Да':'Нет'
 	      </td>
 	    </tr>

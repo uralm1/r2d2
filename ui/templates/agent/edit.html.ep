@@ -29,11 +29,19 @@
       </div>
     </div>
     <div class="row">
-      <div class="input-field col s10 m6 l4">
-	% param type => $rec->{type} unless defined param 'type';
-	%= select_field type => config('agent_types'), id => 'type'
-	%= label_for type => 'Тип агента'
+      % if (defined $rec->{type} && $rec->{type} =~ /^([^@]+)(?:@(.*))?$/) {
+      %   param 'subsys-type' => $1 unless defined param 'subsys-type';
+      %   param 'subsys-hostname' => $2 if !defined param 'subsys-hostname' && defined $2;
+      % }
+      <div class="input-field col s6 m4 l3">
+	%= select_field 'subsys-type' => config('agent_types'), id => 'subsys-type'
+	%= label_for 'subsys-type' => 'Подсистема: тип агента, имя хоста*'
 	%= t 'span', class => 'helper-text', 'data-error' => 'Ошибка, не должно быть пустым', ''
+      </div>
+      <div class="input-field col s6 m6 l4">
+	%= text_field 'subsys-hostname', id => 'subsys-hostname'
+	%= label_for 'subsys-hostname' => 'Имя хоста'
+	%= t 'span', class => 'helper-text', 'data-error' => 'Ошибка, недопустимые символы', '* Внимание: указывайте только для нескольких агентов одного типа, находящихся одном профиле (например: dhcpsyn@plksrv1, dhcpsyn@plksrv2)'
       </div>
     </div>
     <div class="row">

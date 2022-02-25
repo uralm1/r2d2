@@ -166,7 +166,11 @@ __DATA__
   "properties": {
     "id": { "type":"integer" },
     "name": { "type":"string", "minLength":1 },
-    "type": { "type":"string", "minLength":1 },
+    "type": {
+      "type":"string",
+      "description":"type or type@hostname",
+      "pattern":"^([^@]+)(?:@([^@]+))?$"
+    },
     "url": { "type":"string", "minLength":1 },
     "block": { "type":"integer", "enum":[0,1] },
     "profile": { "type":"string", "minLength":1 },

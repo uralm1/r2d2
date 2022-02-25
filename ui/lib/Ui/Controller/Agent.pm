@@ -30,7 +30,8 @@ sub newpost {
 
   my $j = { }; # resulting json
   $j->{name} = $v->required('name', 'not_empty')->param;
-  $j->{type} = $v->required('type', 'not_empty')->param;
+  my $subsys_type = $v->required('subsys-type', 'not_empty')->param;
+  my $subsys_hostname = $v->optional('subsys-hostname')->like(qr/^[a-z0-9\-.]*$/i)->param // '';
   $j->{url} = $v->required('url', 'not_empty')->param;
   $j->{block} = $v->optional('block')->like(qr/^[01]$/)->param // 0;
 
@@ -38,6 +39,9 @@ sub newpost {
 
   # rerender page with errors
   return $self->_render_new_agent_page($profile_id, $audit_profile_rec) if $v->has_error;
+
+  # build subsys (type) value
+  $j->{type} = $subsys_type . ($subsys_hostname ne q{} ? '@'.$subsys_hostname : '');
 
   #$self->log->debug("J: ".$self->dumper($j));
 
@@ -116,7 +120,8 @@ sub editpost {
 
   my $j = { id => $id }; # resulting json
   $j->{name} = $v->required('name', 'not_empty')->param;
-  $j->{type} = $v->required('type', 'not_empty')->param;
+  my $subsys_type = $v->required('subsys-type', 'not_empty')->param;
+  my $subsys_hostname = $v->optional('subsys-hostname')->like(qr/^[a-z0-9\-.]*$/i)->param // '';
   $j->{url} = $v->required('url', 'not_empty')->param;
   $j->{block} = $v->optional('block')->like(qr/^[01]$/)->param // 0;
 
@@ -125,6 +130,9 @@ sub editpost {
   # rerender page with errors
   return $self->render(template => 'agent/edit',
     profile_id => $profile_id, agent_id => $id, rec => $audit_profile_rec) if $v->has_error;
+
+  # build subsys (type) value
+  $j->{type} = $subsys_type . ($subsys_hostname ne q{} ? '@'.$subsys_hostname : '');
 
   #$self->log->debug("J: ".$self->dumper($j));
 
