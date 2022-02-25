@@ -76,7 +76,6 @@ WHERE id = ? AND profile_id = ? AND EXISTS (SELECT 1 FROM profiles WHERE profile
       return $self->render(text => "Database error, updating agent: $err", status => 503) if $err;
 
       if ($results->affected_rows > 0) {
-        # FIXME: update local profile hash!
         $self->dblog->info("UI: Agent id $agent_id updated successfully");
         $self->rendered(200);
       } else {
@@ -126,7 +125,6 @@ VALUES (?, ?, ?, ?, 2, '', ?)",
           my $last_id = $results->last_insert_id;
 
           # finished
-          # FIXME: update local profile hash!
           $self->dblog->info("UI: Agent id $last_id added successfully");
           $self->render(text => $last_id);
         }
@@ -155,7 +153,6 @@ sub agentdelete {
       return $self->render(text => "Database error, deleting agent: $err", status => 503) if $err;
 
       if ($results->affected_rows > 0) {
-        # FIXME: update local profile hash!
         $self->dblog->info("UI: Agent id $agent_id deleted successfully");
         $self->rendered(200);
       } else {

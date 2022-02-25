@@ -8,12 +8,12 @@ sub refreshed {
   my $profs = $self->req->query_params->every_param('profile');
   croak 'Bad parameter' unless $profs;
   # at least one profile parameter is required
-  return $self->render(text=>'Bad parameter', status=>503) unless(@$profs);
+  return $self->render(text=>'Bad parameter', status=>503) unless @$profs;
 
   return unless my $j = $self->json_content($self->req);
   my $id = $j->{id};
   my $subsys = $j->{subsys};
-  return $self->render(text=>'Bad body parameter', status=>503) unless($id and $subsys);
+  return $self->render(text=>'Bad body parameter', status=>503) unless $id and $subsys;
 
   $self->render_later;
 
@@ -28,7 +28,7 @@ sub refreshed {
 # $self->update_db_flags($profs, $id, $subsys)
 sub update_db_flags {
   my ($self, $profs, $id, $subsys) = @_;
-  croak 'Bad arguments' unless ($profs and $id and $subsys);
+  croak 'Bad arguments' unless $profs and $id and $subsys;
 
   my ($agent_type) = ($subsys =~ /^([^@]+)/);
   die "device id $id bad subsys parameter $subsys" unless $agent_type;

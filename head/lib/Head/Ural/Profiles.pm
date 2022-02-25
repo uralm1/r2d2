@@ -5,10 +5,13 @@ use Carp;
 use Mojo::Promise;
 use Mojo::mysql;
 
+use Exporter qw(import);
+our @EXPORT_OK = qw(split_agent_type);
+
 # agent hash structure:
 # {
 #   name => 'Agent name',
-#   type => 'gwsyn',
+#   type => 'gwsyn' or 'dhcpsyn@plksrv1',
 #   url => 'https://1.2.3.4:2275',
 #   block => 1 or 0,
 # }
@@ -63,6 +66,19 @@ WHERE p.profile = ? ORDER BY a.id", $pk) };
   }
 
   return 1;
+}
+
+
+# not an object metod
+# my ($type, $hostname) = split_agent_type($type_or_subsys)
+sub split_agent_type {
+  my $t = shift;
+  my ($type, $hostname) = (q{}, q{});
+  if (defined $t && $t =~ /^([^@]+)(?:@(.*))?$/) {
+    $type = $1;
+    $hostname = $2 if defined $2;
+  }
+  return ($type, $hostname);
 }
 
 

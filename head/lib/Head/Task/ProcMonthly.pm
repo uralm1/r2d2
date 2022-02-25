@@ -90,7 +90,7 @@ ON DUPLICATE KEY UPDATE m_in = sum_in, m_out = sum_out") };
       $error = 1;
     }
 
-    $m = 'MONTHLY processing finished'.($error) ? ' (FAILED with ERRORS)' : '';
+    $m = 'MONTHLY processing finished'.($error ? ' (FAILED with ERRORS)' : '');
     $app->log->info($m);
     $app->dblog->info($m, sync=>1);
 

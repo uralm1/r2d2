@@ -2,7 +2,7 @@ package Head::Command::checkdb;
 use Mojo::Base 'Mojolicious::Command';
 
 use Carp;
-use Head::Ural::Profiles;
+use Head::Ural::Profiles qw(split_agent_type);
 
 has description => '* Run check for database changes (run from cron cmd, compatibility)';
 has usage => "Usage: APPLICATION checkdb\n";

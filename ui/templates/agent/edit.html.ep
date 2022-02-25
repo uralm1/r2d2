@@ -29,10 +29,9 @@
       </div>
     </div>
     <div class="row">
-      % if (defined $rec->{type} && $rec->{type} =~ /^([^@]+)(?:@(.*))?$/) {
-      %   param 'subsys-type' => $1 unless defined param 'subsys-type';
-      %   param 'subsys-hostname' => $2 if !defined param 'subsys-hostname' && defined $2;
-      % }
+      % my ($type, $hostname) = split_agent_type($rec->{type});
+      % param 'subsys-type' => $type unless defined param 'subsys-type';
+      % param 'subsys-hostname' => $hostname unless defined param 'subsys-hostname';
       <div class="input-field col s6 m4 l3">
 	%= select_field 'subsys-type' => config('agent_types'), id => 'subsys-type'
 	%= label_for 'subsys-type' => 'Подсистема: тип агента, имя хоста*'

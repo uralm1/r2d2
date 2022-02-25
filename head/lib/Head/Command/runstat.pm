@@ -3,7 +3,7 @@ use Mojo::Base 'Mojolicious::Command';
 
 use Mojo::URL;
 use Mojo::Util qw(getopt);
-use Head::Ural::Profiles;
+use Head::Ural::Profiles qw(split_agent_type);
 #use Carp;
 
 has description => '* Manually run traffic statistics collection for <profile>';
@@ -28,11 +28,12 @@ sub run {
     my $res1 = eval { $app->profiles->eachagent($p, sub {
       my ($profile_key, $agent_key, $agent) = @_;
 
-      my $t = $agent->{type};
+      my $type_subsys = $agent->{type};
+      my ($t) = split_agent_type($type_subsys);
 
       # agents that support runstat
       if (grep(/^$t$/, @{$app->config('agent_types_stat')})) {
-        $app->log->info("$p agent $t: Initiate traffic statistics collection.");
+        $app->log->info("$p agent $type_subsys: Initiate traffic statistics collection.");
 
         $app->ua->post(Mojo::URL->new("$agent->{url}/runstat") =>
           sub {
@@ -54,7 +55,7 @@ sub run {
           }
         );
       } else {
-        $app->log->info("$p agent $t: Agent doesn't support traffic statistics collection.");
+        $app->log->info("$p agent $type_subsys: Agent doesn't support traffic statistics collection.");
       }
     }) };
     die "Database error (eachagent)!\n" unless $res1;

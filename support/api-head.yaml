@@ -2097,7 +2097,7 @@ components:
           example: agent@host
         id:
           type: integer
-          description: client id
+          description: device id
           example: 11
 
           
@@ -2399,8 +2399,7 @@ components:
             description: Наименование агента
           agent_type:
             type: string
-            description: Тип агента
-            enum: [fwsyn, dhcpsyn, rtsyn, gwsyn]
+            description: 'Тип (подсистема) агента, возможны 2 формата: тип или тип@имя_хоста. Второй вариант используется в случае, когда в одном профиле имеются несколько агентов одного типа.'
         required:
         - name
         - ip
@@ -2989,8 +2988,8 @@ components:
           description: Наименование агента
         type:
           type: string
-          description: Тип агента
-          enum: [fwsyn, dhcpsyn, rtsyn, gwsyn]
+          description: 'Тип (подсистема) агента, возможны 2 формата: тип или тип@имя_хоста. Второй вариант используется в случае, когда в одном профиле имеются несколько агентов одного типа.'
+          example: dhcpsyn@plksrv1
         url:
           type: string
           description: Url агента
@@ -3038,8 +3037,7 @@ components:
                 description: Наименование агента
               type:
                 type: string
-                description: Тип агента
-                enum: [fwsyn, dhcpsyn, rtsyn, gwsyn]
+                description: 'Тип (подсистема) агента, возможны 2 формата: тип или тип@имя_хоста. Второй вариант используется в случае, когда в одном профиле имеются несколько агентов одного типа.'
               url:
                 type: string
                 description: Url агента
