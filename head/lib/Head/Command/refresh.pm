@@ -15,7 +15,7 @@ sub run {
   #  or die "Error in commandline arguments\n";
 
   my ($id) = @_;
-  die "Bad <device-id> argument.\n" unless (defined($id) && $id =~ /^\d+$/);
+  die "Bad <device-id> argument.\n" unless defined($id) && $id =~ /^\d+$/;
 
   my $profiles = $app->profiles;
   my $db = $app->mysql_inet->db;

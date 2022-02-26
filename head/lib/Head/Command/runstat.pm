@@ -3,7 +3,7 @@ use Mojo::Base 'Mojolicious::Command';
 
 use Mojo::URL;
 use Mojo::Util qw(getopt);
-use Head::Ural::Profiles qw(split_agent_type);
+use Head::Ural::Profiles qw(split_agent_subsys);
 #use Carp;
 
 has description => '* Manually run traffic statistics collection for <profile>';
@@ -29,7 +29,7 @@ sub run {
       my ($profile_key, $agent_key, $agent) = @_;
 
       my $type_subsys = $agent->{type};
-      my ($t) = split_agent_type($type_subsys);
+      my ($t) = split_agent_subsys($type_subsys);
 
       # agents that support runstat
       if (grep(/^$t$/, @{$app->config('agent_types_stat')})) {

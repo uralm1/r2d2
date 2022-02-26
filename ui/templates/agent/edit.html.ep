@@ -29,7 +29,7 @@
       </div>
     </div>
     <div class="row">
-      % my ($type, $hostname) = split_agent_type($rec->{type});
+      % my ($type, $hostname) = split_agent_subsys($rec->{type});
       % param 'subsys-type' => $type unless defined param 'subsys-type';
       % param 'subsys-hostname' => $hostname unless defined param 'subsys-hostname';
       <div class="input-field col s6 m4 l3">

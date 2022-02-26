@@ -233,8 +233,8 @@ sub register {
   });
 
 
-  # my ($type, $hostname) = split_agent_type($type_or_subsys)
-  $app->helper(split_agent_type => sub {
+  # my ($type, $hostname) = split_agent_subsys($type_or_subsys)
+  $app->helper(split_agent_subsys => sub {
     my ($c, $t) = @_;
     my ($type, $hostname) = (q{}, q{});
     if (defined $t && $t =~ /^([^@]+)(?:@(.*))?$/) {

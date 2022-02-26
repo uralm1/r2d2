@@ -6,7 +6,7 @@ use Mojo::Promise;
 use Mojo::mysql;
 
 use Exporter qw(import);
-our @EXPORT_OK = qw(split_agent_type);
+our @EXPORT_OK = qw(split_agent_subsys);
 
 # agent hash structure:
 # {
@@ -70,8 +70,8 @@ WHERE p.profile = ? ORDER BY a.id", $pk) };
 
 
 # not an object metod
-# my ($type, $hostname) = split_agent_type($type_or_subsys)
-sub split_agent_type {
+# my ($type, $hostname) = split_agent_subsys($type_or_subsys)
+sub split_agent_subsys {
   my $t = shift;
   my ($type, $hostname) = (q{}, q{});
   if (defined $t && $t =~ /^([^@]+)(?:@(.*))?$/) {
