@@ -155,6 +155,7 @@ DROP TABLE IF EXISTS `profiles_agents`;
 
 -- 2 up
 ALTER TABLE `profiles_agents` CHANGE `type` `type` VARCHAR(64) NOT NULL;
+ALTER TABLE `profiles_agents` ADD UNIQUE `agent_type_unique` (`profile_id`, `type`);
 
 CREATE TABLE IF NOT EXISTS `sync_flags` (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
