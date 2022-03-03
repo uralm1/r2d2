@@ -15,10 +15,12 @@ sub run {
 
   die "Not supported\n" if $cron;
 
+  $app->log->info('Connectivity check started.');
   unless (defined eval { Head::Task::Connectivity::_do($app, @_) }) {
     chomp $@;
     die "Fatal error. $@\n";
   }
+  $app->log->info('Connectivity check performed.');
 
   return 1;
 }

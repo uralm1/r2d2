@@ -174,7 +174,8 @@ __DATA__
     "url": { "type":"string", "minLength":1 },
     "block": { "type":"integer", "enum":[0,1] },
     "profile": { "type":"string", "minLength":1 },
-    "profile_name": { "type":"string", "minLength":1 }
+    "profile_name": { "type":"string", "minLength":1 },
+    "flagged": { "type":"integer", "enum":[0,1] }
   }
 }
 

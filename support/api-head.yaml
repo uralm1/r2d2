@@ -3005,6 +3005,11 @@ components:
           type: string
           description: device profile human readable name (передается в операциях чтения данных, игнорируется в операциях записи, редактирования)
           example: 'Тестовое подразделение'
+        flagged:
+          type: integer
+          description: sync flag for agent (0-not set, 1-set, передается в операциях чтения данных, игнорируется в операциях записи, редактирования)
+          enum: [0, 1]
+          example: 0
       required:
         - name
         - type

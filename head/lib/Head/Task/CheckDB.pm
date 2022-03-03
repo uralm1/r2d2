@@ -10,17 +10,16 @@ sub register {
     my $job = shift;
     my $app = $job->app;
 
-    $app->log->info('Check sync queue started');
-
     unless (defined eval { _do($app) }) {
       chomp $@;
       $app->log->error("Fatal error. $@");
     } else {
       ###
-      $app->dblog->info('Check sync queue operation performed.', sync=>1);
+      my $m = 'Check sync queue operation performed.';
+      $app->log->info($m);
+      #$app->dblog->info($m, sync => 1);
     }
 
-    $app->log->info('Check sync queue finished');
     $job->finish;
   });
 }
@@ -38,7 +37,7 @@ sub _do {
     if ($@) {
       chomp $@;
       $app->log->error($@);
-      $app->dblog->error($@, sync=>1);
+      $app->dblog->error($@, sync => 1);
     }
   });
 

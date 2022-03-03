@@ -42,7 +42,14 @@
 	%= label_for url => 'Адрес (URL)'
       </div>
     </div>
-
+    % if ($rec->{flagged}) {
+    <div class="row">
+      <div class="col s12">
+	<b>Внимание!</b>
+В очереди синхронизации присутствуют невыполненные задания, связанные с данным агентом. Они будут удалены.
+      </div>
+    </div>
+    % }
     <div class="row">
       <div class="col s12">
 	<button class="btn-large waves-effect waves-light red darken-2" type="submit">Выполнить удаление</button>

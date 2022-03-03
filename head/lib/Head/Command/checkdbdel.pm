@@ -4,7 +4,7 @@ use Mojo::Base 'Mojolicious::Command';
 #use Carp;
 use Mojo::Util qw(getopt);
 
-has description => '* Run check for database deletions (run from cron cmd, compatibility)';
+has description => '* Run check for devices deletions (run from cron cmd, compatibility)';
 has usage => "Usage: APPLICATION checkdbdel\n";
 
 sub run {

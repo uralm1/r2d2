@@ -13,7 +13,8 @@ sub agentget {
 
   $self->render_later;
 
-  $self->mysql_inet->db->query("SELECT a.id, a.name, a.type, a.url, a.block, p.profile, p.name AS profile_name \
+  $self->mysql_inet->db->query("SELECT a.id, a.name, a.type, a.url, a.block, p.profile, p.name AS profile_name, \
+IF(EXISTS (SELECT 1 FROM sync_flags sf WHERE sf.agent_id = a.id), 1, 0) AS flagged \
 FROM profiles_agents a INNER JOIN profiles p ON a.profile_id = p.id \
 WHERE a.id = ? AND a.profile_id = ?", $agent_id, $profile_id =>
     sub {
@@ -40,7 +41,7 @@ sub _build_agent_rec {
     die 'Undefined agent record attribute' unless exists $h->{$_};
     $r->{$_} = $h->{$_};
   }
-  for (qw/profile profile_name/) {
+  for (qw/profile profile_name flagged/) {
     $r->{$_} = $h->{$_} if defined $h->{$_};
   }
   return $r;

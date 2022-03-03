@@ -11,17 +11,16 @@ sub register {
     my $job = shift;
     my $app = $job->app;
 
-    $app->log->info('Check database for deletions started');
-
     unless (defined eval { _do($app) }) {
       chomp $@;
       $app->log->error("Fatal error. $@");
     } else {
       ###
-      $app->dblog->info('Check database for deletions performed.', sync=>1);
+      my $m = 'Check database for deletions performed.';
+      $app->log->info($m);
+      $app->dblog->info($m, sync=>1);
     }
 
-    $app->log->info('Check database for deletions finished');
     $job->finish;
   });
 }

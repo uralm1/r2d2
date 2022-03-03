@@ -124,17 +124,17 @@ sub _cron() {
       if ($task->{task}) {
         $log->warn('Warning! Execution subsystem unavailable.') unless $self->app->check_workers;
         my $id = $self->app->minion->enqueue(@{$task->{task}});
-        $es = "enqueued task @{$task->{task}} $id";
+        $es = ", enqueued task @{$task->{task}} $id";
 
       } elsif ($task->{cmd}) {
         my $e = eval { $self->app->commands->run(@{$task->{cmd}}, '--cron') };
-        $es = (defined $e) ? "result: $e":"with error: $@";
+        $es = (defined $e) ? ", result: $e":" with error: $@";
 
       } else {
         $log->error("No action is defined for $task->{name}.");
-        $es = 'with configuration error';
+        $es = ' with configuration error';
       }
-      $log->info("EVENT from schedule ($task->{name}) finished $es.");
+      $log->info("EVENT from schedule ($task->{name}) finished$es.");
       $fn->();
     });
   };

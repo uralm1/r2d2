@@ -165,6 +165,9 @@ CREATE TABLE IF NOT EXISTS `sync_flags` (
   KEY `agent_id` (`agent_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+ALTER TABLE `sync_flags`
+  ADD CONSTRAINT `sync_flags_ibfk_1` FOREIGN KEY (`agent_id`) REFERENCES `profiles_agents` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
 
 -- 2 down
 DROP TABLE IF EXISTS `sync_flags`;
