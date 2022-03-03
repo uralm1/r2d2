@@ -61,14 +61,10 @@ services:
     hostname: r2d2-head-cron
     domainname: uwc.local
     networks:
-      uwcnet:
-        ipv4_address: 10.14.72.6
       backnet:
     dns:
       - 10.14.0.2
       - 10.14.0.4
-    cap_add:
-      - NET_ADMIN
     volumes:
       - /srv/r2d2/head.conf:/opt/head/head.conf:ro
       - /srv/r2d2/r2d2-head-cert.pem:/opt/head/r2d2-head-cert.pem:ro
@@ -77,8 +73,7 @@ services:
     environment:
       - TZ=Asia/Yekaterinburg
       #- MOJO_MODE=production
-    command: sh -c "script/check_db_hosts && script/add_route && su-exec head:head /usr/bin/perl script/head cron"
-    #command: sh -c "script/check_db_hosts && su-exec head:head /usr/bin/perl script/head cron"
+    command: sh -c "script/check_db_hosts && su-exec head:head /usr/bin/perl script/head cron"
     depends_on:
       - head-worker
       - head

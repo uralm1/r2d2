@@ -1,9 +1,8 @@
 package Head::Command::checkdbdel;
 use Mojo::Base 'Mojolicious::Command';
 
-use Carp;
-use Head::Ural::CompatChk;
-use Head::Ural::Profiles;
+#use Carp;
+use Mojo::Util qw(getopt);
 
 has description => '* Run check for database deletions (run from cron cmd, compatibility)';
 has usage => "Usage: APPLICATION checkdbdel\n";
@@ -11,41 +10,21 @@ has usage => "Usage: APPLICATION checkdbdel\n";
 sub run {
   my $app = shift->app;
 
-  my $profiles = $app->profiles;
+  binmode(STDOUT, ':utf8');
 
-  my $dcc = $app->del_compat_check;
-  return 1 unless $dcc;
-  #$dcc->dump;
+  getopt \@_, 'cron'=>\my $cron
+    or die "Error in commandline arguments";
 
-  $app->log->info('Checking db for deletions');
-  $dcc->eachdel(sub {
-    my ($id, $prof) = @_;
-    #say "$id => $prof has been removed!";
-    # loop by agents
-    my $e = eval { $profiles->exist($prof) };
-    if (!defined $e) {
-      $app->log->error("Refresh failed: database error (exist)!");
-    } elsif (!$e) {
-      $app->log->error("Refresh deleted device id $id failed: invalid profile!");
-    } else {
-      my $res = eval { $profiles->eachagent($prof, sub {
-        my ($profile_key, $agent_key, $agent) = @_;
+  die "Not supported\n" if $cron;
 
-        my $agent_url = $agent->{url};
-        my $m = "REFRESH deleted device id $id $agent_url";
-        $app->log->info($m);
-        $app->dblog->info($m);
+  $app->log->info('Check device database for deleted devices.');
+  unless (defined eval { Head::Task::CheckDBDel::_do($app) }) {
+    chomp $@;
+    die "Fatal error. $@\n";
+  }
+  $app->log->info('Check for deleted devices completed.');
 
-        $app->refresh_id($agent_url, $id);
-      }) };
-      $app->log->error("Refresh failed, database error (eachagent)!") unless $res;
-    }
-
-  })->update();
-
-  Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
-
-  return 0;
+  return 1;
 }
 
 

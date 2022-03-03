@@ -15,7 +15,7 @@ use Head::Command::checkclients;
 
 use Sys::Hostname;
 
-our $VERSION = '2.77';
+our $VERSION = '2.78';
 
 # This method will run once at server start
 sub startup {
@@ -47,7 +47,6 @@ sub startup {
 
   $self->plugin('Head::Plugin::Utils');
   $self->plugin('Head::Plugin::Migrations');
-  $self->plugin('Head::Plugin::Refresh_impl');
   $self->plugin('Head::Plugin::Json_schemas');
   $self->plugin('Head::Task::BlockClient');
   $self->plugin('Head::Task::NotifyClient');
@@ -58,6 +57,8 @@ sub startup {
   $self->plugin('Head::Task::TruncateLog');
   $self->plugin('Head::Task::Connectivity');
   $self->plugin('Head::Task::CheckClients');
+  $self->plugin('Head::Task::CheckDB');
+  $self->plugin('Head::Task::CheckDBDel');
   $self->commands->namespaces(['Mojolicious::Command', 'Minion::Command', 'Head::Command']);
 
   my $subsys = $self->moniker.'@'.hostname;

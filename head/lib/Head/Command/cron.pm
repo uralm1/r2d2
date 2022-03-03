@@ -23,11 +23,11 @@ sub run {
   my $tasks = [
     { name => 'checkdb',
       crontab => $app->config('check_compat_schedule'),
-      cmd => ['checkdb']
+      task => ['check_db']
     },
     { name => 'checkdbdel',
       crontab => $app->config('checkdel_compat_schedule'),
-      cmd => ['checkdbdel']
+      task => ['check_db_del']
     },
     { name => 'block',
       crontab => $app->config('block_schedule'),

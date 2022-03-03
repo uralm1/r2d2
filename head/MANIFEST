@@ -40,10 +40,11 @@ lib/Head/Controller/UiSystem.pm
 lib/Head/Controller/Utils.pm
 lib/Head/Plugin/Json_schemas.pm
 lib/Head/Plugin/Migrations.pm
-lib/Head/Plugin/Refresh_impl.pm
 lib/Head/Plugin/Utils.pm
 lib/Head/Task/BlockClient.pm
 lib/Head/Task/CheckClients.pm
+lib/Head/Task/CheckDB.pm
+lib/Head/Task/CheckDBDel.pm
 lib/Head/Task/Connectivity.pm
 lib/Head/Task/NotifyClient.pm
 lib/Head/Task/ProcDaily.pm

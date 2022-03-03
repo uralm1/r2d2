@@ -162,11 +162,8 @@ CREATE TABLE IF NOT EXISTS `sync_flags` (
   `device_id` int(11) UNSIGNED NOT NULL,
   `agent_id` int(11) UNSIGNED NOT NULL,
   PRIMARY KEY(`id`),
-  KEY `device_id` (`device_id`)
+  KEY `agent_id` (`agent_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-ALTER TABLE `sync_flags`
-  ADD CONSTRAINT `sync_flags_ibfk_1` FOREIGN KEY (`device_id`) REFERENCES `devices` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 
 -- 2 down
