@@ -109,20 +109,50 @@ sub remove_flags_p {
     }
   }
   $profile_rule .= ') AND' if $profile_rule ne q{};
-  #$self->log->debug("WHERE rule: *$profile_rule*");
+  #$self->{app}->log->debug("WHERE profile rule: *$profile_rule*");
 
-  # delete sync_flags
-  $db->query_p("DELETE sf FROM sync_flags sf \
+  # query flags to delete
+  $db->query_p("SELECT sf.id FROM sync_flags sf \
 INNER JOIN profiles_agents a ON sf.agent_id = a.id \
 INNER JOIN profiles p ON a.profile_id = p.id \
 WHERE $profile_rule \
-sf.device_id = ? AND (a.type = ? OR a.type = ?)",
+sf.device_id = ? AND (a.type = ? OR a.type = ?) ORDER BY sf.id LIMIT 50",
     $id,
     $subsys,
-    $agent_type)
-  ->then(sub {
+    $agent_type
+  )->then(sub {
     my $results = shift;
-    return Mojo::Promise->resolve($results->affected_rows);
+
+    my $c = $results->arrays;
+    my $c_size = $c->size;
+    $c = $c->head($c_size > 1 ? $c_size - 1 : $c_size);
+
+    my $id_rule = q{};
+    $c->each(sub {
+      if ($id_rule eq q{}) { # first
+        $id_rule = "id IN ($_->[0]";
+      } else { # second etc
+        $id_rule .= ",$_->[0]";
+      }
+    });
+
+    if ($id_rule ne q{}) {
+      $id_rule .= ')';
+      #$self->{app}->log->debug("WHERE id rule: *$id_rule*");
+
+      # delete sync_flags, return promise
+      $db->query_p("DELETE FROM sync_flags WHERE $id_rule");
+    } else {
+      Mojo::Promise->resolve(undef);
+    }
+
+  })->then(sub {
+    my $results = shift;
+    if ($results) {
+      Mojo::Promise->resolve($results->affected_rows);
+    } else {
+      Mojo::Promise->resolve(0);
+    }
   });
 }
 
