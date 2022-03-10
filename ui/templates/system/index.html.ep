@@ -149,7 +149,7 @@
       <tr class="tr-status-head">
 	<th style="width:5%">N</th>
 	<th>Устройство</th>
-	<th>Клиент</th>
+	<th>Клиент/Сервер</th>
 	<th>IP</th>
 	<th>Место</th>
 	<th>Наименование агента</th>

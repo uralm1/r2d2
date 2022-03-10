@@ -90,9 +90,11 @@ WHERE type = 1 AND c.id = ?", $id) };
   my $tx = eval { $db->begin };
   return $self->render(text => "Database error, transaction failure: $@", status => 503) unless $tx;
 
+  my $server_dev_name = 'Подключение сервера';
+
   $results = eval { $db->query("UPDATE clients c \
 INNER JOIN devices d ON d.client_id = c.id \
-SET cn = ?, c.desc = ?, name = 'Подключение сервера', d.desc = '', email = ?, c.email_notify = ?, ip = ?, mac = ?, no_dhcp = ?, rt = ?, defjump = ?, speed_in = ?, speed_out = ?, qs = ?, limit_in = ?, sync_flags = 15 \
+SET cn = ?, c.desc = ?, name = '$server_dev_name', d.desc = '', email = ?, c.email_notify = ?, ip = ?, mac = ?, no_dhcp = ?, rt = ?, defjump = ?, speed_in = ?, speed_out = ?, qs = ?, limit_in = ?, sync_flags = 15 \
 WHERE c.type = 1 AND c.id = ? AND d.profile = ?",
     $j->{cn},
     $j->{desc} // '',
@@ -117,7 +119,10 @@ WHERE c.type = 1 AND c.id = ? AND d.profile = ?",
   }
 
   # insert sync flags
-  my $err = eval { $self->syncqueue->set_flag($db, $device_id, $j->{profile}) };
+  my $err = eval { $self->syncqueue->set_flag(
+    $db, $device_id, $j->{profile},
+    {name => $server_dev_name, client_cn => $j->{cn}, ip => $j->{ip}, _s => 'serverput'}
+  ) };
   return $self->render(text => $@, status => 503) unless defined $err;
 
   eval { $tx->commit };
@@ -166,11 +171,12 @@ VALUES (NOW(), 1, '', '', ?, ?, ?, ?, 0)",
   return $self->render(text => "Database error, inserting servers: $@", status => 503) unless $results;
 
   my $last_id = $results->last_insert_id;
+  my $server_dev_name = 'Подключение сервера';
 
   # deprecated sync_flags field is set via default field value
   $results = eval { $db->query("INSERT INTO devices \
 (name, devices.desc, create_time, ip, mac, no_dhcp, rt, defjump, speed_in, speed_out, qs, limit_in, sum_limit_in, profile, notified, blocked, bot, client_id) \
-VALUES ('Подключение сервера', '', NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 1, ?)",
+VALUES ('$server_dev_name', '', NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 1, ?)",
     scalar($ipo->numeric),
     $j->{mac},
     $j->{no_dhcp},
@@ -193,7 +199,10 @@ VALUES (?, CURDATE(), 0, 0)", $last_device_id) };
   return $self->render(text => "Database error, inserting amonthly: $@", status => 503) unless $results;
 
   # insert sync flags
-  my $err = eval { $self->syncqueue->set_flag($db, $last_device_id, $j->{profile}) };
+  my $err = eval { $self->syncqueue->set_flag(
+    $db, $last_device_id, $j->{profile},
+    {name => $server_dev_name, client_cn => $j->{cn}, ip => $j->{ip}, _s => 'serverpost'}
+  ) };
   return $self->render(text => $@, status => 503) unless defined $err;
 
   eval { $tx->commit };
@@ -263,8 +272,10 @@ sub serverdelete {
   #$self->log->debug("Deleting id: $id");
 
   my $db = $self->mysql_inet->db;
-  # get device id
-  my $results = eval { $db->query("SELECT devices.id FROM devices INNER JOIN clients ON client_id = clients.id \
+
+  # get device id and profile
+  my $results = eval { $db->query("SELECT devices.id, name, ip, profile, cn AS client_cn \
+FROM devices INNER JOIN clients ON client_id = clients.id \
 WHERE clients.type = 1 AND clients.id = ?", $id) };
   return $self->render(text => "Database error, selecting server device: $@", status => 503) unless $results;
 
@@ -272,9 +283,13 @@ WHERE clients.type = 1 AND clients.id = ?", $id) };
     $self->dblog->info("UI: Server id $id not deleted, not found");
     return $self->render(text => "Server id $id not found", status => 404);
   }
-  my $device_id = $results->array->[0];
+
+  my $n = $results->hash;
+  my $device_id = $n->{id};
+  my %ext = %$n;
+
   $results->finish;
-  #$self->log->debug("Deleting device id: $device_id");
+  #$self->log->debug("Deleting device id: $device_id, profile: $ext{profile}");
 
   # start transaction
   my $tx = eval { $db->begin };
@@ -289,6 +304,15 @@ WHERE clients.type = 1 AND clients.id = ?", $id) };
   return $self->render(text => "Database error, deleting server: $@", status => 503) unless $results;
 
   my $afr = $results->affected_rows;
+
+  # insert sync flags
+  if ($afr > 0) {
+    my $err = eval { $self->syncqueue->set_flag(
+      $db, $device_id, $ext{profile},
+      {name => $ext{name}, client_cn => $ext{client_cn}, ip => $ext{ip}, _s => 'serverdelete'}
+    ) };
+    return $self->render(text => $@, status => 503) unless defined $err;
+  }
 
   eval { $tx->commit };
   return $self->render(text => "Database error, transaction commit failure: $@", status => 503) if $@;

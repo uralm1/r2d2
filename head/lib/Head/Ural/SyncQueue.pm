@@ -4,6 +4,7 @@ use Mojo::Base -base;
 use Carp;
 use Mojo::Promise;
 use Mojo::mysql;
+use Mojo::JSON qw(from_json);
 use NetAddr::IP::Lite;
 use Head::Ural::Profiles qw(split_agent_subsys);
 
@@ -30,19 +31,31 @@ sub new {
 # add new flag to queue
 # uses external $db parameter, to call this function inside transaction
 # $rows_inserted = $obj->set_flag($db, $device_id, 'plk')
+# $rows_inserted = $obj->set_flag($db, $device_id, 'plk',
+#   { name => 'Comp', client_cn => 'FIO', ip => integer_format_ip })
 # dies on errors
 sub set_flag {
-  my ($self, $db, $device_id, $profile) = @_;
-  croak 'Bad set_flag parameter!' unless defined $db && defined $device_id && defined $profile;
+  my ($self, $db, $device_id, $profile, $ext_data) = @_;
+  croak 'Bad set_flag() parameter!' unless defined $db && defined $device_id && defined $profile;
 
-  my $results = eval { $db->query("INSERT INTO sync_flags (device_id, agent_id) \
-SELECT ?, a.id FROM profiles_agents a \
+  my $ext_data_insert = undef;
+  if (defined $ext_data) {
+    croak 'ext_data parameter is invalid' if ref $ext_data ne 'HASH';
+    for (keys %$ext_data) {
+      croak 'Unsupported ext_data key' unless /^name|client_cn|ip|_s$/;
+    }
+    $ext_data_insert = {json => $ext_data};
+  }
+
+  my $results = eval { $db->query("INSERT INTO sync_flags (device_id, agent_id, ext_data) \
+SELECT ?, a.id, ? FROM profiles_agents a \
 INNER JOIN profiles p ON a.profile_id = p.id \
 WHERE p.profile = ? ORDER BY a.id",
     $device_id,
+    $ext_data_insert,
     $profile
   ) };
-  croak "Set new flag database error: $@" unless $results;
+  die "Set new flag database error: $@\n" unless $results;
   return $results->affected_rows;
 }
 
@@ -124,12 +137,13 @@ sub status_p {
   $_[0]->{app}->mysql_inet->db->query_p("SELECT sf.device_id, d.name, d.ip, \
 c.cn AS client_cn, \
 d.profile, p.name AS profile_name, \
-sf.agent_id, a.name AS agent_name, a.type AS agent_type \
+sf.agent_id, a.name AS agent_name, a.type AS agent_type, \
+sf.ext_data \
 FROM sync_flags sf \
-INNER JOIN devices d ON sf.device_id = d.id \
-INNER JOIN profiles_agents a ON sf.agent_id = a.id \
+LEFT OUTER JOIN devices d ON sf.device_id = d.id \
 LEFT OUTER JOIN clients c ON d.client_id = c.id \
-LEFT OUTER JOIN profiles p ON d.profile = p.profile \
+INNER JOIN profiles_agents a ON sf.agent_id = a.id \
+INNER JOIN profiles p ON a.profile_id = p.id \
 ORDER BY sf.id ASC LIMIT 100")
   ->then(sub {
     my $results = shift;
@@ -150,19 +164,29 @@ ORDER BY sf.id ASC LIMIT 100")
 # { syncqueue_rec_hash } = _build_syncqueue_rec( { hash_from_database } );
 sub _build_syncqueue_rec {
   my $h = shift;
-  my $ipo = NetAddr::IP::Lite->new($h->{ip}) || die 'IP address failure';
+
+  my $ext_data = {name => "ID: $h->{device_id}", client_cn => 'н/д', ip => 0};
+  if (defined $h->{ext_data}) {
+    my $t = eval { from_json $h->{ext_data} };
+    if (defined $t && ref $t eq 'HASH') {
+      for (qw/name client_cn ip/) {
+        $ext_data->{$_} = $t->{$_} if exists $t->{$_};
+      }
+    }
+  }
+
+  my $ipo = NetAddr::IP::Lite->new($h->{ip} // $ext_data->{ip}) || die 'IP address failure';
   my $r = { ip => $ipo->addr };
-  for (qw/profile agent_type/) {
+  for (qw/profile profile_name agent_type/) {
     die 'Undefined syncqueue record attribute' unless exists $h->{$_};
     $r->{$_} = $h->{$_};
   }
   my $name = $h->{name};
   my $agent_name = $h->{agent_name};
-  $r->{name} = defined $name && $name ne q{} ? $name : "ID: $h->{device_id}";
+  my $client_cn = $h->{client_cn};
+  $r->{name} = defined $name && $name ne q{} ? $name : $ext_data->{name};
   $r->{agent_name} = defined $agent_name && $agent_name ne q{} ? $agent_name : "ID: $h->{agent_id}";
-  for (qw/client_cn profile_name/) {
-    $r->{$_} = $h->{$_} if defined $h->{$_};
-  }
+  $r->{client_cn} = defined $client_cn && $client_cn ne q{} ? $client_cn : $ext_data->{client_cn};
 
   return $r;
 }

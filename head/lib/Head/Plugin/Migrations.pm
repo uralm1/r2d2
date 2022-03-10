@@ -161,6 +161,7 @@ CREATE TABLE IF NOT EXISTS `sync_flags` (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `device_id` int(11) UNSIGNED NOT NULL,
   `agent_id` int(11) UNSIGNED NOT NULL,
+  `ext_data` text NULL,
   PRIMARY KEY(`id`),
   KEY `agent_id` (`agent_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

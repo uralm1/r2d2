@@ -72,13 +72,22 @@ sub deviceput {
 
   my $db = $self->mysql_inet->db;
 
+  my $results = eval { $db->query("SELECT cn AS client_cn FROM clients \
+WHERE id = ? AND type = 0", $client_id) };
+  return $self->render(text => "Database error, searching client: $@", status => 503) unless $results;
+  return $self->render(text => 'Client not found', status => 404) if ($results->rows < 1);
+
+  my $client_cn = $results->array->[0];
+
+  $results->finish;
+
   # start transaction
   my $tx = eval { $db->begin };
   return $self->render(text => "Database error, transaction failure: $@", status => 503) unless $tx;
 
-  my $results = eval { $db->query("UPDATE devices \
+  $results = eval { $db->query("UPDATE devices \
 SET name = ?, devices.desc = ?, ip = ?, mac = ?, no_dhcp = ?, rt = ?, defjump = ?, speed_in = ?, speed_out = ?, qs = ?, limit_in = ?, sync_flags = 15 \
-WHERE id = ? AND client_id = ? AND profile = ? AND EXISTS (SELECT 1 FROM clients WHERE clients.id = ? AND type = 0)",
+WHERE id = ? AND client_id = ? AND profile = ?",
     $j->{name},
     $j->{desc} // '',
     scalar($ipo->numeric),
@@ -90,17 +99,20 @@ WHERE id = ? AND client_id = ? AND profile = ? AND EXISTS (SELECT 1 FROM clients
     $j->{speed_out},
     $j->{qs},
     $j->{limit_in},
-    $device_id, $client_id, $j->{profile}, $client_id
+    $device_id, $client_id, $j->{profile}
   ) };
   return $self->render(text => "Database error, updating device: $@", status => 503) unless $results;
 
   if ($results->affected_rows == 0) {
     $self->dblog->info("UI: Device id $device_id not updated");
-    return $self->render(text => "Device id $device_id not found, profile or client invalid", status => 404);
+    return $self->render(text => "Device id $device_id not found or profile invalid", status => 404);
   }
 
   # insert sync flags
-  my $err = eval { $self->syncqueue->set_flag($db, $device_id, $j->{profile}) };
+  my $err = eval { $self->syncqueue->set_flag(
+    $db, $device_id, $j->{profile},
+    {name => $j->{name}, client_cn => $client_cn, ip => $j->{ip}, _s => 'deviceput'}
+  ) };
   return $self->render(text => $@, status => 503) unless defined $err;
 
   eval { $tx->commit };
@@ -130,10 +142,12 @@ sub devicepost {
 
   my $db = $self->mysql_inet->db;
 
-  my $results = eval { $db->query("SELECT 1 FROM clients \
+  my $results = eval { $db->query("SELECT cn AS client_cn FROM clients \
 WHERE id = ? AND type = 0", $client_id) };
   return $self->render(text => "Database error, searching client: $@", status => 503) unless $results;
   return $self->render(text => 'Client not found', status => 404) if ($results->rows < 1);
+
+  my $client_cn = $results->array->[0];
 
   $results->finish;
 
@@ -169,7 +183,10 @@ VALUES (?, CURDATE(), 0, 0)", $last_id) };
   return $self->render(text => "Database error, inserting amonthly: $@", status => 503) unless $results;
 
   # insert sync flags
-  my $err = eval { $self->syncqueue->set_flag($db, $last_id, $j->{profile}) };
+  my $err = eval { $self->syncqueue->set_flag(
+    $db, $last_id, $j->{profile},
+    {name => $j->{name}, client_cn => $client_cn, ip => $j->{ip}, _s => 'devicepost'}
+  ) };
   return $self->render(text => $@, status => 503) unless defined $err;
 
   eval { $tx->commit };
@@ -279,23 +296,50 @@ sub devicedelete {
 
   #$self->log->debug("Deleting device id: $device_id");
 
-  $self->render_later;
+  my $db = $self->mysql_inet->db;
 
-  $self->mysql_inet->db->query("DELETE FROM devices WHERE id = ? AND client_id = ?",
-    $device_id, $client_id =>
-    sub {
-      my ($db, $err, $results) = @_;
-      return $self->render(text => "Database error, deleting device: $err", status => 503) if $err;
+  # get deivce profile
+  my $results = eval { $db->query("SELECT name, ip, profile, cn AS client_cn \
+FROM devices INNER JOIN clients ON client_id = clients.id \
+WHERE devices.id = ? AND client_id = ?", $device_id, $client_id) };
+  return $self->render(text => "Database error, getting client: $@", status => 503) unless $results;
+  return $self->render(text => "Device id $device_id not found", status => 404) if $results->rows < 1;
 
-      if ($results->affected_rows > 0) {
-        $self->dblog->info("UI: Device id $device_id deleted successfully");
-        $self->rendered(200);
-      } else {
-        $self->dblog->info("UI: Device id $device_id not deleted");
-        $self->render(text => "Device id $device_id not found", status => 404);
-      }
-    }
-  );
+  my $n = $results->hash;
+  my %ext = %$n;
+
+  $results->finish;
+
+  # start transaction
+  my $tx = eval { $db->begin };
+  return $self->render(text => "Database error, transaction failure: $@", status => 503) unless $tx;
+
+  $results = eval { $db->query("DELETE FROM devices WHERE id = ? AND client_id = ?",
+    $device_id, $client_id) };
+  return $self->render(text => "Database error, deleting device: $@", status => 503) unless $results;
+
+  my $afr = $results->affected_rows;
+
+  # insert sync flags
+  if ($afr > 0) {
+    my $err = eval { $self->syncqueue->set_flag(
+      $db, $device_id, $ext{profile},
+      {name => $ext{name}, client_cn => $ext{client_cn}, ip => $ext{ip}, _s => 'devicedelete'}
+    ) };
+    return $self->render(text => $@, status => 503) unless defined $err;
+  }
+
+  eval { $tx->commit };
+  return $self->render(text => "Database error, transaction commit failure: $@", status => 503) if $@;
+
+  # finished
+  if ($afr > 0) {
+    $self->dblog->info("UI: Device id $device_id deleted successfully");
+    $self->rendered(200);
+  } else {
+    $self->dblog->info("UI: Device id $device_id not deleted. This should not happen.");
+    $self->render(text => "Device id $device_id not deleted", status => 503);
+  }
 }
 
 
