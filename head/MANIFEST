@@ -13,7 +13,6 @@ lib/Head.pm
 lib/Head/Command/block.pm
 lib/Head/Command/checkclients.pm
 lib/Head/Command/checkdb.pm
-lib/Head/Command/checkdbdel.pm
 lib/Head/Command/connectivity.pm
 lib/Head/Command/cron.pm
 lib/Head/Command/refresh.pm
@@ -44,7 +43,6 @@ lib/Head/Plugin/Utils.pm
 lib/Head/Task/BlockClient.pm
 lib/Head/Task/CheckClients.pm
 lib/Head/Task/CheckDB.pm
-lib/Head/Task/CheckDBDel.pm
 lib/Head/Task/Connectivity.pm
 lib/Head/Task/NotifyClient.pm
 lib/Head/Task/ProcDaily.pm
@@ -52,7 +50,6 @@ lib/Head/Task/ProcMonthly.pm
 lib/Head/Task/ProcYearly.pm
 lib/Head/Task/TrafStat.pm
 lib/Head/Task/TruncateLog.pm
-lib/Head/Ural/CompatChk.pm
 lib/Head/Ural/Dblog.pm
 lib/Head/Ural/NotifyClient.pm
 lib/Head/Ural/Profiles.pm

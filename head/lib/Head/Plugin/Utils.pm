@@ -4,7 +4,6 @@ use Mojo::Base 'Mojolicious::Plugin';
 use Carp;
 use Mojo::mysql;
 use Head::Ural::Dblog;
-use Head::Ural::CompatChk;
 use Head::Ural::Profiles;
 use Head::Ural::SyncQueue;
 
@@ -31,11 +30,6 @@ sub register {
   # sync queue singleton
   $app->helper(syncqueue => sub {
     state $syncqueue = Head::Ural::SyncQueue->new(@_);
-  });
-
-  # del_compat_check singleton
-  $app->helper(del_compat_check => sub {
-    state $del_compat_check = Head::Ural::CompatChk->load(shift);
   });
 
 

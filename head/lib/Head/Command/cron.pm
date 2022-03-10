@@ -25,10 +25,6 @@ sub run {
       crontab => $app->config('check_compat_schedule'),
       task => ['check_db']
     },
-    { name => 'checkdbdel',
-      crontab => $app->config('checkdel_compat_schedule'),
-      task => ['check_db_del']
-    },
     { name => 'block',
       crontab => $app->config('block_schedule'),
       cmd => ['block']

@@ -6,7 +6,6 @@ use Head::Command::cron;
 use Head::Command::truncatelog;
 use Head::Command::refresh;
 use Head::Command::checkdb;
-use Head::Command::checkdbdel;
 use Head::Command::runstat;
 use Head::Command::connectivity;
 use Head::Command::block;
@@ -24,7 +23,6 @@ sub startup {
   # Load configuration from hash returned by config file
   my $config = $self->plugin('Config', { default => {
     secrets => ['6ac63578bb604df4865ae802de3098b80c082740'],
-    delcheck_compat_file => 'compat_chk.dat',
     agent_types => [],
     agent_types_stat => [],
     duplicate_rlogs => 0,
@@ -58,7 +56,6 @@ sub startup {
   $self->plugin('Head::Task::Connectivity');
   $self->plugin('Head::Task::CheckClients');
   $self->plugin('Head::Task::CheckDB');
-  $self->plugin('Head::Task::CheckDBDel');
   $self->commands->namespaces(['Mojolicious::Command', 'Minion::Command', 'Head::Command']);
 
   my $subsys = $self->moniker.'@'.hostname;
