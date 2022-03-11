@@ -98,7 +98,7 @@ FROM profiles_agents ORDER BY id");
     }
 
     # success
-    return Mojo::Promise->resolve(1);
+    return 1;
   });
 }
 

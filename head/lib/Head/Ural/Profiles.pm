@@ -136,7 +136,7 @@ sub hash_p {
 
     my $j = {};
     while (my $n = $results->array) { $j->{$n->[0]} = $n->[1] }
-    return Mojo::Promise->resolve($j);
+    return $j;
   });
 }
 
@@ -150,7 +150,7 @@ sub hash_p {
 sub count_p {
   $_[0]->{app}->mysql_inet->db->query_p('SELECT COUNT(*) FROM profiles')
   ->then(sub {
-    return Mojo::Promise->resolve(shift->array->[0]);
+    return shift->array->[0];
   });
 }
 
@@ -199,7 +199,7 @@ FROM profiles_agents ORDER BY id");
     }
 
     # success
-    return Mojo::Promise->resolve($j);
+    return $j;
   });
 }
 

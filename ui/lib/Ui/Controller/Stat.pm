@@ -5,8 +5,8 @@ sub index {
   my $self = shift;
   return undef unless $self->authorize($self->allow_all_roles);
 
-  my $login = $self->stash('remote_user') // '';
-  my $reptype = $self->param('rep') // '';
+  my $login = $self->stash('remote_user') // q{};
+  my $reptype = $self->param('rep') // q{};
 
   my $activetab;
   my $q = '';

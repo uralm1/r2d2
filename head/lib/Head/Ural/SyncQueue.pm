@@ -143,15 +143,15 @@ sf.device_id = ? AND (a.type = ? OR a.type = ?) ORDER BY sf.id LIMIT 50",
       # delete sync_flags, return promise
       $db->query_p("DELETE FROM sync_flags WHERE $id_rule");
     } else {
-      Mojo::Promise->resolve(undef);
+      return undef;
     }
 
   })->then(sub {
     my $results = shift;
     if ($results) {
-      Mojo::Promise->resolve($results->affected_rows);
+      return $results->affected_rows;
     } else {
-      Mojo::Promise->resolve(0);
+      return 0;
     }
   });
 }
@@ -185,7 +185,7 @@ ORDER BY sf.id ASC LIMIT 100")
       return Mojo::Promise->reject('bad result');
     }
 
-    return Mojo::Promise->resolve($j);
+    return $j;
   });
 }
 

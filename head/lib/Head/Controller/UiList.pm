@@ -123,7 +123,7 @@ sub count_warn_p {
     $self->stash(has_lost_clients => $lines_lost > 0 ? 1 : 0);
 
     # success
-    return Mojo::Promise->resolve(1);
+    return 1;
   });
 }
 
@@ -158,7 +158,7 @@ sub count_clients_p {
     $self->stash(lines_total_all => $lines_total_all, lines_total => $lines_total, num_pages => $num_pages);
 
     # success
-    return Mojo::Promise->resolve(1);
+    return 1;
   });
 }
 
@@ -192,7 +192,7 @@ $where $order LIMIT ? OFFSET ?",
       push @$j, $cl;
     }
     # success
-    return Mojo::Promise->resolve(1);
+    return 1;
   });
 }
 
@@ -316,7 +316,7 @@ ORDER BY ip ASC LIMIT 100", $_->{id})
         $i++;
       }
       # success
-      return Mojo::Promise->resolve(1);
+      return 1;
 
     });
   } else {
@@ -355,7 +355,7 @@ sub count_devices_p {
     $self->stash(lines_total_all => $lines_total_all, lines_total => $lines_total, num_pages => $num_pages);
 
     # success
-    return Mojo::Promise->resolve(1);
+    return 1;
   });
 }
 
@@ -392,7 +392,7 @@ $where $order LIMIT ? OFFSET ?",
       push @$j, $d;
     }
     # success
-    return Mojo::Promise->resolve(1);
+    return 1;
   });
 }
 

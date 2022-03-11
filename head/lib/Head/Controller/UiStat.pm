@@ -26,16 +26,7 @@ sub deviceget {
 
   $self->device_attrs_p($db, $device_id, $client_id)
   ->then(sub {
-    my $err = $self->handle_device_attrs(@_);
-    if ($err eq '') {
-      $self->device_traf_p($db, $device_id);
-    } else {
-      Mojo::Promise->reject($err);
-    }
-
-  })->then(sub {
-    my $err = $self->handle_device_traf(@_);
-    Mojo::Promise->reject($err) if $err ne '';
+    $self->device_traf_p($db, $device_id);
 
   })->then(sub {
     my $j = $self->stash('j');
@@ -56,7 +47,11 @@ sub deviceget {
 }
 
 
-# $db_promise = $self->device_attrs_p($db, $device_id, $client_id)
+# $promise = $self->device_attrs_p($db, $device_id, $client_id)
+#
+# $self->device_attrs_p($db, $device_id, $client_id)
+# ->then(sub {...values stored to stash...})
+# ->catch(sub {my $err = shift;...report $err...});
 sub device_attrs_p {
   my ($self, $db, $device_id, $client_id) = @_;
 
@@ -64,45 +59,100 @@ sub device_attrs_p {
 FROM devices d LEFT OUTER JOIN profiles p ON d.profile = p.profile \
 WHERE d.id = ? AND d.client_id = ?",
     $device_id,
-    $client_id
-  );
+    $client_id)
+  ->then(sub {
+    my $result = shift;
+
+    my $j = $self->stash('j');
+    my $t = localtime;
+    $j->{date} = $t->dmy('-');
+
+    if (my $rh = $result->hash) {
+      for (qw/id name limit_in sum_limit_in defjump qs blocked profile/) {
+        die 'Undefined device attribute' unless exists $rh->{$_};
+        $j->{$_} = $rh->{$_};
+      }
+      for (qw/profile_name/) {
+        $j->{$_} = $rh->{$_} if defined $rh->{$_};
+      }
+      for (qw/sum_in sum_out/) {
+        die 'Undefined device stat attribute' unless exists $rh->{$_};
+      }
+      $self->stash(
+        sum_in => $rh->{sum_in} // 0,
+        sum_out => $rh->{sum_out} // 0
+      );
+      # success
+      return 1;
+
+    } else {
+      Mojo::Promise->reject('Not found');
+    }
+  });
 }
 
 
-# ''|'error string' = $self->handle_device_attrs($db_promise_resolve)
-sub handle_device_attrs {
-  my ($self, $result) = @_;
-
-  my $j = $self->stash('j');
-  my $t = localtime;
-  $j->{date} = $t->dmy('-');
-
-  if (my $rh = $result->hash) {
-    for (qw/id name limit_in sum_limit_in defjump qs blocked profile/) {
-      die 'Undefined device attribute' unless exists $rh->{$_};
-      $j->{$_} = $rh->{$_};
-    }
-    for (qw/profile_name/) {
-      $j->{$_} = $rh->{$_} if defined $rh->{$_};
-    }
-    for (qw/sum_in sum_out/) {
-      die 'Undefined device stat attribute' unless exists $rh->{$_};
-    }
-    $self->stash(
-      sum_in => $rh->{sum_in} // 0,
-      sum_out => $rh->{sum_out} // 0
-    );
-    # success
-    return '';
-
-  } else {
-    return 'Not found';
-  }
-}
-
-
-# $all_db_promise = $self->device_traf_p($db, $device_id)
+# $promise = $self->device_traf_p($db, $device_id)
+#
+# $self->device_traf_p($db, $device_id)
+# ->then(sub {...values stored to stash...})
+# ->catch(sub {my $err = shift;...report $err...});
 sub device_traf_p {
+  my ($self, $db, $device_id) = @_;
+
+  $self->_device_traf_p($db, $device_id)
+  ->then(sub {
+    my ($today_traf_p, $curmonth_traf_p, $traf_p) = @_;
+
+    my $j = $self->stash('j');
+    my $sum_in = $self->stash('sum_in');
+    my $sum_out = $self->stash('sum_out');
+
+    if (my $rh = $today_traf_p->[0]->hash) {
+      my $h = {};
+      _push_r($h, 'in', $sum_in, $rh->{d_in});
+      _push_r($h, 'out', $sum_out, $rh->{d_out});
+      $j->{today_traf} = $h;
+    } else {
+      $j->{today_traf} = {in => -1, out => -1};
+    }
+
+    if (my $rh = $curmonth_traf_p->[0]->hash) {
+      my $h = {};
+      _push_r($h, 'in', $sum_in, $rh->{m_in});
+      _push_r($h, 'out', $sum_out, $rh->{m_out});
+      if ($rh->{day} != 1) {
+        $h->{fuzzy_in} = 1;
+        $h->{fuzzy_out} = 1;
+      }
+      $j->{curmonth_traf} = $h;
+    } else {
+      $j->{curmonth_traf} = {in => -1, out => -1};
+    }
+
+    my $traf_arr = [];
+
+    my $rep = $self->stash('rep');
+    if (!defined $rep || $rep eq 'day') {
+      # get_daily_data
+      my $ret = _process_daily_data($traf_p->[0], $traf_arr);
+      return Mojo::Promise->reject($ret) if $ret ne q{};
+
+    } else {
+      # get_monthly_data
+      my $ret = _process_monthly_data($traf_p->[0], $traf_arr);
+      return Mojo::Promise->reject($ret) if $ret ne q{};
+    }
+
+    $j->{traf} = $traf_arr;
+    # success
+    return 1;
+  });
+}
+
+
+# $all_db_promise = $self->_device_traf_p($db, $device_id)
+sub _device_traf_p {
   my ($self, $db, $device_id) = @_;
 
   # promises
@@ -139,59 +189,9 @@ ORDER BY date ASC",
 }
 
 
-# ''|'error string' = $self->handle_device_traf(@db_all_promise_resolve)
-sub handle_device_traf {
-  my ($self, $today_traf_p, $curmonth_traf_p, $traf_p) = @_;
-
-  my $j = $self->stash('j');
-  my $sum_in = $self->stash('sum_in');
-  my $sum_out = $self->stash('sum_out');
-
-  if (my $rh = $today_traf_p->[0]->hash) {
-    my $h = {};
-    _push_r($h, 'in', $sum_in, $rh->{d_in});
-    _push_r($h, 'out', $sum_out, $rh->{d_out});
-    $j->{today_traf} = $h;
-  } else {
-    $j->{today_traf} = {in => -1, out => -1};
-  }
-
-  if (my $rh = $curmonth_traf_p->[0]->hash) {
-    my $h = {};
-    _push_r($h, 'in', $sum_in, $rh->{m_in});
-    _push_r($h, 'out', $sum_out, $rh->{m_out});
-    if ($rh->{day} != 1) {
-      $h->{fuzzy_in} = 1;
-      $h->{fuzzy_out} = 1;
-    }
-    $j->{curmonth_traf} = $h;
-  } else {
-    $j->{curmonth_traf} = {in => -1, out => -1};
-  }
-
-  my $traf_arr = [];
-
-  my $rep = $self->stash('rep');
-  if (!defined $rep || $rep eq 'day') {
-    # get_daily_data
-    my $ret = _process_daily_data($traf_p, $traf_arr);
-    return $ret if $ret ne '';
-
-  } else {
-    # get_monthly_data
-    my $ret = _process_monthly_data($traf_p, $traf_arr);
-    return $ret if $ret ne '';
-  }
-
-  $j->{traf} = $traf_arr;
-  # success
-  return '';
-}
-
-
-# ''|'error string' = _process_daily_data($traf_p_resolve, $traf_arr)
+# ''|'error string' = _process_daily_data($traf_db_result, $traf_arr)
 sub _process_daily_data {
-  my ($traf_p, $traf_arr) = @_;
+  my ($traf_db_result, $traf_arr) = @_;
 
   my $t = localtime;
   my $daycount = $t->truncate(to => 'day');
@@ -206,7 +206,7 @@ sub _process_daily_data {
 
   while ($daycount >= $dayend) {
     if (!$endflag && !$recdate) {
-      if ($next = $traf_p->[0]->hash) {
+      if ($next = $traf_db_result->hash) {
         # use $t to correctly inherit timezone so we can compare objects
         $recdate = $t->strptime($next->{date}, '%Y-%m-%d');
         return 'Date conversion error' unless $recdate;
@@ -249,13 +249,13 @@ sub _process_daily_data {
 }
 
 
-# ''|'error string' = _process_monthly_data($traf_p_resolve, $traf_arr)
+# ''|'error string' = _process_monthly_data($traf_db_result, $traf_arr)
 sub _process_monthly_data {
-  my ($traf_p, $traf_arr) = @_;
+  my ($traf_db_result, $traf_arr) = @_;
 
   my $temp_arr = [];
   my $lastdate = undef;
-  while (my $next = $traf_p->[0]->hash) {
+  while (my $next = $traf_db_result->hash) {
     my $recdate = Time::Piece->strptime($next->{date}, '%Y-%m-%d');
     return 'Date conversion error' unless $recdate;
 
@@ -366,16 +366,7 @@ sub serverget {
 
   $self->server_attrs_p($db, $server_id)
   ->then(sub {
-    my $err = $self->handle_server_attrs(@_);
-    if ($err eq '') {
-      $self->device_traf_p($db, $self->stash('device_id'));
-    } else {
-      Mojo::Promise->reject($err);
-    }
-
-  })->then(sub {
-    my $err = $self->handle_device_traf(@_);
-    Mojo::Promise->reject($err) if $err ne '';
+    $self->device_traf_p($db, $self->stash('device_id'));
 
   })->then(sub {
     my $j = $self->stash('j');
@@ -396,7 +387,11 @@ sub serverget {
 }
 
 
-# $db_promise = $self->server_attrs_p($db, $server_id)
+# $promise = $self->server_attrs_p($db, $server_id)
+#
+# $self->server_attrs_p($db, $server_id)
+# ->then(sub {...values stored to stash...})
+# ->catch(sub {my $err = shift;...report $err...});
 sub server_attrs_p {
   my ($self, $db, $server_id) = @_;
 
@@ -405,46 +400,42 @@ sum_in, sum_out, defjump, qs, limit_in, sum_limit_in, blocked, d.profile, p.name
 FROM clients c INNER JOIN devices d ON d.client_id = c.id \
 LEFT OUTER JOIN profiles p ON d.profile = p.profile \
 WHERE type = 1 AND c.id = ?",
-    $server_id
-  );
-}
+    $server_id)
+  ->then(sub {
+    my $result = shift;
 
+    my $j = $self->stash('j');
+    my $t = localtime;
+    $j->{date} = $t->dmy('-');
 
-# ''|'error string' = $self->handle_server_attrs($db_promise_resolve)
-sub handle_server_attrs {
-  my ($self, $result) = @_;
+    if (my $rh = $result->hash) {
+      for (qw/id cn limit_in sum_limit_in defjump qs blocked profile/) {
+        die 'Undefined server attribute' unless exists $rh->{$_};
+        $j->{$_} = $rh->{$_};
+      }
+      for (qw/profile_name/) {
+        $j->{$_} = $rh->{$_} if defined $rh->{$_};
+      }
+      for (qw/email email_notify sum_in sum_out deviceid/) {
+        die 'Undefined server stat attribute' unless exists $rh->{$_};
+      }
+      my $email = $rh->{email};
+      if (defined $email && $email ne '') {
+        $j->{email} = $email;
+        $j->{email_notify} = $rh->{email_notify};
+      }
+      $self->stash(
+        sum_in => $rh->{sum_in} // 0,
+        sum_out => $rh->{sum_out} // 0,
+        device_id => $rh->{deviceid}
+      );
+      # success
+      return 1;
 
-  my $j = $self->stash('j');
-  my $t = localtime;
-  $j->{date} = $t->dmy('-');
-
-  if (my $rh = $result->hash) {
-    for (qw/id cn limit_in sum_limit_in defjump qs blocked profile/) {
-      die 'Undefined server attribute' unless exists $rh->{$_};
-      $j->{$_} = $rh->{$_};
+    } else {
+      Mojo::Promise->reject('Not found');
     }
-    for (qw/profile_name/) {
-      $j->{$_} = $rh->{$_} if defined $rh->{$_};
-    }
-    for (qw/email email_notify sum_in sum_out deviceid/) {
-      die 'Undefined server stat attribute' unless exists $rh->{$_};
-    }
-    my $email = $rh->{email};
-    if (defined $email && $email ne '') {
-      $j->{email} = $email;
-      $j->{email_notify} = $rh->{email_notify};
-    }
-    $self->stash(
-      sum_in => $rh->{sum_in} // 0,
-      sum_out => $rh->{sum_out} // 0,
-      device_id => $rh->{deviceid}
-    );
-    # success
-    return '';
-
-  } else {
-    return 'Not found';
-  }
+  });
 }
 
 
@@ -466,23 +457,10 @@ sub clientget {
 
   $self->client_attrs_p($db, $client_id)
   ->then(sub {
-    my $err = $self->handle_client_attrs(@_);
-    if ($err eq '') {
-      $self->devices_attrs_p($db, $client_id);
-    } else {
-      Mojo::Promise->reject($err);
-    }
-  })->then(sub {
-    my $err = $self->handle_devices_attrs(@_);
-    if ($err eq '') {
-      $self->devices_trafs_p($db);
-    } else {
-      Mojo::Promise->reject($err);
-    }
+    $self->devices_attrs_p($db, $client_id);
 
   })->then(sub {
-    my $err = $self->handle_devices_trafs(@_);
-    Mojo::Promise->reject($err) if $err ne '';
+    $self->devices_trafs_p($db);
 
   })->then(sub {
     my $j = $self->stash('j');
@@ -503,48 +481,52 @@ sub clientget {
 }
 
 
-# $db_promise = $self->client_attrs_p($db, $client_id)
+# $promise = $self->client_attrs_p($db, $client_id)
+#
+# $self->client_attrs_p($db, $client_id)
+# ->then(sub {...values stored to stash...})
+# ->catch(sub {my $err = shift;...report $err...});
 sub client_attrs_p {
   my ($self, $db, $client_id) = @_;
 
   $db->query_p("SELECT id, cn, guid, login, email, email_notify \
 FROM clients WHERE id = ?",
-    $client_id
-  );
+    $client_id)
+  ->then(sub {
+    my $result = shift;
+
+    my $j = $self->stash('j');
+    my $t = localtime;
+    $j->{date} = $t->dmy('-');
+
+    if (my $rh = $result->hash) {
+      for (qw/id cn guid login/) {
+        die 'Undefined client attribute' unless exists $rh->{$_};
+        $j->{$_} = $rh->{$_};
+      }
+      for (qw/email email_notify/) {
+        die 'Undefined client stat attribute' unless exists $rh->{$_};
+      }
+      my $email = $rh->{email};
+      if (defined $email && $email ne '') {
+        $j->{email} = $email;
+        $j->{email_notify} = $rh->{email_notify};
+      }
+      # success
+      return 1;
+
+    } else {
+      return Mojo::Promise->reject('Not found');
+    }
+  });
 }
 
 
-# ''|'error string' = $self->handle_client_attrs($db_promise_resolve)
-sub handle_client_attrs {
-  my ($self, $result) = @_;
-
-  my $j = $self->stash('j');
-  my $t = localtime;
-  $j->{date} = $t->dmy('-');
-
-  if (my $rh = $result->hash) {
-    for (qw/id cn guid login/) {
-      die 'Undefined client attribute' unless exists $rh->{$_};
-      $j->{$_} = $rh->{$_};
-    }
-    for (qw/email email_notify/) {
-      die 'Undefined client stat attribute' unless exists $rh->{$_};
-    }
-    my $email = $rh->{email};
-    if (defined $email && $email ne '') {
-      $j->{email} = $email;
-      $j->{email_notify} = $rh->{email_notify};
-    }
-    # success
-    return '';
-
-  } else {
-    return 'Not found';
-  }
-}
-
-
-# $db_promise = $self->devices_attrs_p($db, $client_id)
+# $promise = $self->devices_attrs_p($db, $client_id)
+#
+# $self->devices_attrs_p($db, $client_id)
+# ->then(sub {...values stored to stash...})
+# ->catch(sub {my $err = shift;...report $err...});
 sub devices_attrs_p {
   my ($self, $db, $client_id) = @_;
 
@@ -552,51 +534,51 @@ sub devices_attrs_p {
 FROM devices d LEFT OUTER JOIN profiles p ON d.profile = p.profile \
 WHERE d.client_id = ? \
 ORDER BY d.id ASC LIMIT 100",
-    $client_id
-  );
+    $client_id)
+  ->then(sub {
+    my $result = shift;
+
+    my $j = $self->stash('j');
+    $j->{devices} = [];
+
+    my $dev_sums = [];
+
+    while (my $next = $result->hash) {
+      my $dev = {};
+
+      my $t = localtime;
+      $dev->{date} = $t->dmy('-');
+
+      for (qw/id name limit_in sum_limit_in defjump qs blocked profile/) {
+        die 'Undefined devices attribute' unless exists $next->{$_};
+        $dev->{$_} = $next->{$_};
+      }
+      for (qw/profile_name/) {
+        $dev->{$_} = $next->{$_} if defined $next->{$_};
+      }
+
+      push @{$j->{devices}}, $dev;
+
+      for (qw/sum_in sum_out/) {
+        die 'Undefined devices stat attribute' unless exists $next->{$_};
+      }
+      push @$dev_sums, {
+        sum_in => $next->{sum_in} // 0,
+        sum_out => $next->{sum_out} // 0
+      }
+    }
+    $self->stash(devices_sums => $dev_sums);
+    # success
+    return 1;
+  });
 }
 
 
-# ''|'error string' = $self->handle_devices_attrs($db_promise_resolve)
-sub handle_devices_attrs {
-  my ($self, $result) = @_;
-
-  my $j = $self->stash('j');
-  $j->{devices} = [];
-
-  my $dev_sums = [];
-
-  while (my $next = $result->hash) {
-    my $dev = {};
-
-    my $t = localtime;
-    $dev->{date} = $t->dmy('-');
-
-    for (qw/id name limit_in sum_limit_in defjump qs blocked profile/) {
-      die 'Undefined devices attribute' unless exists $next->{$_};
-      $dev->{$_} = $next->{$_};
-    }
-    for (qw/profile_name/) {
-      $dev->{$_} = $next->{$_} if defined $next->{$_};
-    }
-
-    push @{$j->{devices}}, $dev;
-
-    for (qw/sum_in sum_out/) {
-      die 'Undefined devices stat attribute' unless exists $next->{$_};
-    }
-    push @$dev_sums, {
-      sum_in => $next->{sum_in} // 0,
-      sum_out => $next->{sum_out} // 0
-    }
-  }
-  $self->stash(devices_sums => $dev_sums);
-  # success
-  return '';
-}
-
-
-# $all_db_promise = $self->devices_trafs_p($db)
+# $promise = $self->devices_trafs_p($db)
+#
+# $self->devices_trafs_p($db)
+# ->then(sub {...values stored to stash...})
+# ->catch(sub {my $err = shift;...report $err...});
 sub devices_trafs_p {
   my ($self, $db) = @_;
   my $j = $self->stash('j');
@@ -605,73 +587,68 @@ sub devices_trafs_p {
     # return map promise with limited concurrency
     Mojo::Promise->map(
       {concurrency => 1},
-      sub { $self->device_traf_p($db, $_->{id}) },
-      @{$j->{devices}}
-    );
+      sub { $self->_device_traf_p($db, $_->{id}) },
+      @{$j->{devices}})
+    ->then(sub {
+      my $j = $self->stash('j');
+      my $dev_sums = $self->stash('devices_sums');
+
+      my $i = 0;
+      for my $dev_traf_p (@_) {
+        my $dev = $j->{devices}[$i];
+
+        my $ds = $dev_sums->[$i];
+        my $sum_in = $ds->{'sum_in'};
+        my $sum_out = $ds->{'sum_out'};
+
+        my ($today_traf_p, $curmonth_traf_p, $traf_p) = @$dev_traf_p;
+
+        if (my $rh = $today_traf_p->[0]->hash) {
+          my $h = {};
+          _push_r($h, 'in', $sum_in, $rh->{d_in});
+          _push_r($h, 'out', $sum_out, $rh->{d_out});
+          $dev->{today_traf} = $h;
+        } else {
+          $dev->{today_traf} = {in => -1, out => -1};
+        }
+
+        if (my $rh = $curmonth_traf_p->[0]->hash) {
+          my $h = {};
+          _push_r($h, 'in', $sum_in, $rh->{m_in});
+          _push_r($h, 'out', $sum_out, $rh->{m_out});
+          if ($rh->{day} != 1) {
+            $h->{fuzzy_in} = 1;
+            $h->{fuzzy_out} = 1;
+          }
+          $dev->{curmonth_traf} = $h;
+        } else {
+          $dev->{curmonth_traf} = {in => -1, out => -1};
+        }
+
+        my $traf_arr = [];
+
+        my $rep = $self->stash('rep');
+        if (!defined $rep || $rep eq 'day') {
+          # get_daily_data
+          my $ret = _process_daily_data($traf_p->[0], $traf_arr);
+          return Mojo::Promise->reject($ret) if $ret ne q{};
+
+        } else {
+          # get_monthly_data
+          my $ret = _process_monthly_data($traf_p->[0], $traf_arr);
+          return Mojo::Promise->reject($ret) if $ret ne q{};
+        }
+
+        $dev->{traf} = $traf_arr;
+
+        $i++;
+      }
+      # success
+      return 1;
+    });
   } else {
     Mojo::Promise->resolve();
   }
-}
-
-
-# ''|'error string' = $self->handle_devices_trafs(@db_map_promise_resolve)
-sub handle_devices_trafs {
-  my $self = shift;
-  my $j = $self->stash('j');
-  my $dev_sums = $self->stash('devices_sums');
-
-  my $i = 0;
-  for my $dev_traf_p (@_) {
-    my $dev = $j->{devices}[$i];
-
-    my $ds = $dev_sums->[$i];
-    my $sum_in = $ds->{'sum_in'};
-    my $sum_out = $ds->{'sum_out'};
-
-    my ($today_traf_p, $curmonth_traf_p, $traf_p) = @$dev_traf_p;
-
-    if (my $rh = $today_traf_p->[0]->hash) {
-      my $h = {};
-      _push_r($h, 'in', $sum_in, $rh->{d_in});
-      _push_r($h, 'out', $sum_out, $rh->{d_out});
-      $dev->{today_traf} = $h;
-    } else {
-      $dev->{today_traf} = {in => -1, out => -1};
-    }
-
-    if (my $rh = $curmonth_traf_p->[0]->hash) {
-      my $h = {};
-      _push_r($h, 'in', $sum_in, $rh->{m_in});
-      _push_r($h, 'out', $sum_out, $rh->{m_out});
-      if ($rh->{day} != 1) {
-        $h->{fuzzy_in} = 1;
-        $h->{fuzzy_out} = 1;
-      }
-      $dev->{curmonth_traf} = $h;
-    } else {
-      $dev->{curmonth_traf} = {in => -1, out => -1};
-    }
-
-    my $traf_arr = [];
-
-    my $rep = $self->stash('rep');
-    if (!defined $rep || $rep eq 'day') {
-      # get_daily_data
-      my $ret = _process_daily_data($traf_p, $traf_arr);
-      return $ret if $ret ne '';
-
-    } else {
-      # get_monthly_data
-      my $ret = _process_monthly_data($traf_p, $traf_arr);
-      return $ret if $ret ne '';
-    }
-
-    $dev->{traf} = $traf_arr;
-
-    $i++;
-  }
-  # success
-  return '';
 }
 
 

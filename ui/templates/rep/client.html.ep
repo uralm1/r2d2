@@ -1,7 +1,0 @@
-% layout 'default';
-<div class="scont">
-  <h5>Client report</h5>
-  <p>Client id <%= $id %> report page</p>
-</div>
-
-

@@ -1,0 +1,20 @@
+% layout 'default', title => 'Отчёт по дубликатам mac', back_url => '/', back_js => 1;
+<div class="scont">
+  <p>Общее число записей: <%= 999 %></p>
+  <table class="striped narrow-log">
+    <thead>
+      <tr>
+	<th style="width:8%;">1</th>
+	<th>2</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+	<td style="width:8%;"></td>
+	<td></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
