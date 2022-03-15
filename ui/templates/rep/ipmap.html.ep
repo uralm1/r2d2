@@ -23,20 +23,20 @@
   %           if ($cnt == 0) {
   %             $need_close_tr = 1;
   <tr>
-  <td style="<%== $global_first ? '' : defined $prev_b4 && $b4 != $prev_b4 + 1 ? 'background-color:#ffc671;' : 'background-color:#ffefd6;' %>">
+  <td style="<%== $global_first ? '' : defined $prev_b4 && $b4->{b} != $prev_b4 + 1 ? 'background-color:#ffc671;' : 'background-color:#ffefd6;' %>">
   %= link_to url_for('clients')->query(s=>"$b1.$b2.$b3.$b4->{b}") => (class => 'listlink') => begin
   %= "$b1.$b2.$b3.$b4->{b}"
   %= end
   </td>
   %           } else {
-  <td style="<%== defined $prev_b4 && $b4 != $prev_b4 + 1 ? 'background-color:#ffc671;' : '' %>">
+  <td style="<%== defined $prev_b4 && $b4->{b} != $prev_b4 + 1 ? 'background-color:#ffc671;' : '' %>">
     %= link_to url_for('clients')->query(s => "$b1.$b2.$b3.$b4->{b}") => (class => 'listlink') => begin
   %= ".$b4->{b}"
   %= end
   </td>
   %           }
   %           $cnt++;
-  %           $prev_b4 = $b4;
+  %           $prev_b4 = $b4->{b};
   %           $global_first = 0;
   %           if ($cnt >= $addr_in_a_line) {
   %             if ($need_close_tr) {
