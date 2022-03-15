@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+
+## [1.1] - 2022-03-15
+- Отчёт по распределению IP-адресов.
 - Оптимизирован и исправлен асинхронный код.
 
 ## [1.0] - 2022-03-10

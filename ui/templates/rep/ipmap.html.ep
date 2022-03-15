@@ -1,20 +1,62 @@
 % layout 'default', title => 'Отчёт по распределению IP', back_url => '/', back_js => 1;
 <div class="scont">
-  <p>Общее число записей: <%= 999 %></p>
-  <table class="striped narrow-log">
-    <thead>
-      <tr>
-	<th style="width:8%;">1</th>
-	<th>2</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-	<td style="width:8%;"></td>
-	<td></td>
-      </tr>
-    </tbody>
+  <p><b>ВНИМАНИЕ!</b> Всегда проверяйте окончательную занятость IP-адресов командой <b>PING</b>!</p>
+  % my $addr_in_a_line = config 'ipmap_addresses_in_a_line';
+  % for my $p (@$ip_data) {
+  <h5><%= $p->{profile_name} %></h5>
+  %  my $ips = $p->{ips};
+  %  if (scalar %$ips) {
+  Количество устройств: <%= $p->{total_addr} %><br>
+  <table class="ipmap-table">
+  <tbody>
+  %   my $global_first = 1;
+  %   for my $b1 (sort keys %$ips) {
+  %     my $ips1 = $ips->{$b1};
+  %     for my $b2 (sort keys %$ips1) {
+  %       my $ips2 = $ips1->{$b2};
+  %       for my $b3 (sort keys %$ips2) {
+  %         my $ips3 = $ips2->{$b3};
+  %         my $need_close_tr = 0;
+  %         my $cnt = 0;
+  %         my $prev_b4 = undef;
+  %         for my $b4 (sort { $a->{b} <=> $b->{b} } @$ips3) {
+  %           if ($cnt == 0) {
+  %             $need_close_tr = 1;
+  <tr>
+  <td style="<%== $global_first ? '' : defined $prev_b4 && $b4 != $prev_b4 + 1 ? 'background-color:#ffc671;' : 'background-color:#ffefd6;' %>">
+  %= link_to url_for('clients')->query(s=>"$b1.$b2.$b3.$b4->{b}") => (class => 'listlink') => begin
+  %= "$b1.$b2.$b3.$b4->{b}"
+  %= end
+  </td>
+  %           } else {
+  <td style="<%== defined $prev_b4 && $b4 != $prev_b4 + 1 ? 'background-color:#ffc671;' : '' %>">
+    %= link_to url_for('clients')->query(s => "$b1.$b2.$b3.$b4->{b}") => (class => 'listlink') => begin
+  %= ".$b4->{b}"
+  %= end
+  </td>
+  %           }
+  %           $cnt++;
+  %           $prev_b4 = $b4;
+  %           $global_first = 0;
+  %           if ($cnt >= $addr_in_a_line) {
+  %             if ($need_close_tr) {
+  </tr>
+  %               $need_close_tr = 0;
+  %             }
+  %             $cnt = 0;
+  %           }
+  %         } # for $b4
+  %         if ($need_close_tr) {
+  </tr>
+  %         }
+  %       } # for $b3
+  %     } # for $b2
+  %   } # for $b1
+  </tbody>
   </table>
+  %  } else {
+  <p>Устройства отсутствуют</p>
+  %  }
+  % } # for $ip_data elements
+  <br>
 </div>
-
-

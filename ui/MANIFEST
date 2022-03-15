@@ -92,7 +92,8 @@ templates/profile/delete.html.ep
 templates/profile/edit.html.ep
 templates/profile/new.html.ep
 templates/profiles/index.html.ep
-templates/rep/client.html.ep
+templates/rep/ipmap.html.ep
+templates/rep/macdup.html.ep
 templates/server/delete.html.ep
 templates/server/edit.html.ep
 templates/server/limit.html.ep

@@ -14,7 +14,7 @@ use Head::Command::checkclients;
 
 use Sys::Hostname;
 
-our $VERSION = '2.80';
+our $VERSION = '2.81';
 
 # This method will run once at server start
 sub startup {

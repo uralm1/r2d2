@@ -9,7 +9,7 @@
   <!--link rel="stylesheet" href="/css/fonts-roboto.css"-->
   <link rel="stylesheet" href="/css/materialize.min.css?v=101">
   <link rel="stylesheet" href="/css/material-icons.css">
-  <link rel="stylesheet" href="/css/styles.css?v=10">
+  <link rel="stylesheet" href="/css/styles.css?v=11">
 </head>
 <body>
 % my $newversion = check_newversion;
@@ -28,8 +28,10 @@
   <ul id="logs-dropdown" class="dropdown-content">
     <li class="divider" tabindex="-1"></li>
     <li><%= link_to 'oplog' => begin %>Лог системных событий<% end %></li>
-    <li class="divider" tabindex="-1"></li>
     <li><%= link_to 'auditlog' => begin %>Лог аудита<% end %></li>
+    <li class="divider" tabindex="-1"></li>
+    <li><%= link_to 'repipmap' => begin %>Отчёт по распределению IP<% end %></li>
+    <!--li><%= link_to 'repmacdup' => begin %>Отчёт по дубликатам mac<% end %></li-->
     <li class="divider" tabindex="-1"></li>
     <li><a href="<%== config 'report_load_url' %>" target="_blank">Загрузка каналов</a></li>
   </ul>

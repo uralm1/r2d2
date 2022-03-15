@@ -1,7 +1,7 @@
 package Ui;
 use Mojo::Base 'Mojolicious';
 
-our $VERSION = '1.0';
+our $VERSION = '1.1';
 
 # This method will run once at server start
 sub startup {
@@ -16,6 +16,7 @@ sub startup {
     defjump_names => [],
     speed_plans => [],
     default_limit_in => 2048,
+    ipmap_addresses_in_a_line => 30,
   }});
   delete $self->defaults->{config}; # safety - not to pass passwords to stashes
 
@@ -79,7 +80,6 @@ sub startup {
   $r->get('/about')->to('index#about');
   $r->get('/about/stat')->to('index#aboutstat');
 
-  #$r->get('/rep/client')->to('rep#client');
   $r->get('/stat')->to('stat#index');
   $r->post('/stat/email')->to('stat#emailpost');
 
@@ -134,6 +134,9 @@ sub startup {
   $r->post('/agent/edit')->to('agent#editpost');
   $r->get('/agent/delete')->to('agent#delete');
   $r->post('/agent/delete')->to('agent#deletepost');
+
+  $r->get('/rep/ipmap')->to('rep#ipmap');
+  $r->get('/rep/macdup')->to('rep#macdup');
 }
 
 
