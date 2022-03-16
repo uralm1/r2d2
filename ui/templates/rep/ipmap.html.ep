@@ -23,7 +23,7 @@
   %           if ($cnt == 0) {
   %             $need_close_tr = 1;
   <tr>
-  <td style="<%== $global_first ? '' : defined $prev_b4 && $b4->{b} != $prev_b4 + 1 ? 'background-color:#ffc671;' : 'background-color:#ffefd6;' %>">
+  <td style="<%== $global_first ? '' : !defined $prev_b4 ? 'background-color:#ffe6c8;' : $b4->{b} != $prev_b4 + 1 ? 'background-color:#ffc671;' : '' %>">
   %= link_to url_for('clients')->query(s=>"$b1.$b2.$b3.$b4->{b}") => (class => 'listlink') => begin
   %= "$b1.$b2.$b3.$b4->{b}"
   %= end
