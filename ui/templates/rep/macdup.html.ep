@@ -1,20 +1,66 @@
-% layout 'default', title => 'Отчёт по дубликатам mac', back_url => '/', back_js => 1;
+% layout 'default', title => 'Отчёт по дубликатам MAC', back_url => '/', back_js => 1;
+% use Regexp::Common qw(net);
 <div class="scont">
-  <p>Общее число записей: <%= 999 %></p>
-  <table class="striped narrow-log">
+% my $i = 1;
+% my $need_close;
+% for (@$res_tab) {
+%   if ($i == 1) {
+  <h5>В базе данных имеются неверные или дублирующиеся MAC-адреса:</h5>
+  <table>
     <thead>
       <tr>
-	<th style="width:8%;">1</th>
-	<th>2</th>
+	<th></th>
+	<th>IP</th>
+	<th>MAC</th>
+	<th>Подразделение</th>
+	<th>Информация</th>
       </tr>
     </thead>
     <tbody>
-      <tr>
-	<td style="width:8%;"></td>
-	<td></td>
-      </tr>
+%     $need_close = 1;
+%   }
+<tr>
+  <td><%== $i %></td>
+  <td>
+    %= link_to url_for('clients')->query(s=>$_->{ip}) => (class => 'listlink') => begin
+    %= $_->{ip}
+    %= end
+  </td>
+  <td>
+    %= link_to url_for('clients')->query(s=>$_->{ip}) => (class => 'listlink') => begin
+    %= $_->{no_dhcp} ? img_html 'no_dhcp' : q{}
+    %= $_->{mac}
+    %= end
+  </td>
+  <td><%= $profiles_hash->{$_->{profile}} // $_->{profile} %></td>
+  % my ($info, $_style);
+  % if ($_->{mac} !~ /^$RE{net}{MAC}$/) {
+  %   $info = 'Ошибка. Некорректный mac адрес, обработка устройства будет заблокирована.';
+  %   $_style = 'background:#ffeac2;color:#ff0000;';
+  % } elsif ($_->{no_dhcp}) {
+  %   $info = 'Допустимо для VPN клиентов. Клиент не использует DHCP.';
+  %   $_style = 'background:#b3ffb2;color:#00a300;';
+  % } else {
+  %   $info = 'Ошибка. Наличие дубликатов mac приведет к некорректной работе DHCP если дубликаты находятся в одном подразделении.';
+  %   $_style = 'background:#ffeac2;color:#ff0000;';
+  % }
+  <td><span class="listagenttype" style="<%== $_style %>"><%= $info %></span></td>
+</tr>
+%   $i++;
+% } # for results
+% if ($need_close) {
     </tbody>
   </table>
+% }
+% unless (@$res_tab) {
+  <h5>В базе данных дублирующихся MAC-адресов не обнаружено.</h5>
+% }
+  <br>
 </div>
-
-
+% content_for script0 => begin
+<script>
+$(document).ready(function(){
+  $('.table-tooltips').tooltip({enterDelay:500});
+});
+</script>
+% end

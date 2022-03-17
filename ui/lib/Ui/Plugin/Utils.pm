@@ -102,6 +102,12 @@ sub register {
   });
 
 
+  # sets accept json header in request
+  $app->helper(accept_json => sub {
+    {Accept => 'application/json'}
+  });
+
+
   # $mb = btomb(1024)
   $app->helper(btomb => sub {
     return sprintf('%.1f', $_[1] / 1048576);
