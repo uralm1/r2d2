@@ -142,6 +142,7 @@ sub startup {
   $r->get('/ui/stat/server/#server_id')->to('ui_stat#serverget');
   $r->get('/ui/stat/client/#client_id')->to('ui_stat#clientget');
 
+  $r->get('/ui/rep/ipmap')->to('ui_rep#ipmap');
   $r->get('/ui/rep/macdup')->to('ui_rep#macdup');
 }
 

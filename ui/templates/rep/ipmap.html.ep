@@ -1,6 +1,6 @@
 % layout 'default', title => 'Отчёт по распределению IP', back_url => '/', back_js => 1;
 <div class="scont">
-  <p><b>ВНИМАНИЕ!</b> Всегда проверяйте окончательную занятость IP-адресов командой <b>PING</b>!</p>
+  <p class="red-text text-darken-4"><b>ВНИМАНИЕ!</b> Всегда проверяйте окончательную занятость IP-адресов командой <b>PING</b>!</p>
 % my $addr_in_a_line = config 'ipmap_addresses_in_a_line';
 % for my $p (@$ip_data) {
   <h5><%= $p->{profile_name} %></h5>

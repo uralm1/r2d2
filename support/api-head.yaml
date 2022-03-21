@@ -1975,6 +1975,66 @@ paths:
                 description: error message
 
 
+  /ui/rep/ipmap:
+    get:
+      summary: Получение данных отчета по распределению IP
+      tags: ['Ui logging & reporting']
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    profile:
+                      type: string
+                      description: device profile (key)
+                      example: 'gwtest1'
+                    profile_name:
+                      type: string
+                      description: device profile human readable name
+                      example: 'Тестовое подразделение'
+                    total_addr:
+                      type: integer
+                      description: Количество IP-адресов в данном подразделении
+                    ips:
+                      type: object
+                      description: Хэш октетов IPv4-адресов начиная со старшего
+                      additionalProperties:
+                        type: object
+                        additionalProperties:
+                          type: object
+                          additionalProperties:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                b:
+                                  type: integer
+                                  description: Младший октет IPv4 адреса
+                                id:
+                                  type: integer
+                                  description: Код устройства с данным адресом
+                      example:
+                        10: { 15: { 0: [{ b: 4, id: 10 }, { b: 5, id: 11 }] }}
+                      
+                  required:
+                    - profile
+                    - profile_name
+                    - total_addr
+                    - ips
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+
   /ui/rep/macdup:
     get:
       summary: Получение данных отчета по дубликатам MAC
