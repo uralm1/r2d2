@@ -12,45 +12,15 @@ sub macdup {
 
   $self->render_later;
 
-  $self->ua->get_p(Mojo::URL->new('/ui/profiles')->to_abs($self->head_url) =>
+  $self->ua->get_p(Mojo::URL->new('/ui/rep/macdup')->to_abs($self->head_url) =>
     $self->accept_json)
   ->then(sub {
     my $tx = shift;
     my $res = $tx->result;
     return Mojo::Promise->reject unless $self->request_success($res);
     return Mojo::Promise->reject unless my $v = $self->request_json($res);
-    return Mojo::Promise->reject('Invalid response format') if ref $v ne 'HASH';
 
-    $self->stash(profiles_hash => $v);
-
-    $self->ua->get_p(Mojo::URL->new('/devices')->to_abs($self->head_url) =>
-      $self->accept_json);
-  })->then(sub {
-    my $tx = shift;
-    my $res = $tx->result;
-    return Mojo::Promise->reject unless $self->request_success($res);
-    return Mojo::Promise->reject unless my $v = $self->request_json($res);
-    return Mojo::Promise->reject('Invalid response format') if ref $v ne 'ARRAY';
-
-    my @res_tab;
-    my %mac_hash;
-    my $i = 1;
-    # devices loop
-    for my $d (@$v) {
-      my $mac = lc $d->{mac};
-      if ($mac !~ /^$RE{net}{MAC}$/ || $mac_hash{$mac}) {
-        if ($i == 1) {
-          push @res_tab, {mac => $mac, %{$mac_hash{$mac}}};
-          $i++;
-        }
-        push @res_tab, {mac => $mac, ip => $d->{ip}, no_dhcp => $d->{no_dhcp}, profile => $d->{profile}};
-        $i++;
-      } else {
-        $mac_hash{$mac} = {ip => $d->{ip}, no_dhcp => $d->{no_dhcp}, profile => $d->{profile}};
-      }
-    } # for devices
-
-    $self->render(res_tab => \@res_tab);
+    $self->render(res => $v);
 
   })->catch(sub {
     my $err = shift;
@@ -135,6 +105,16 @@ sub ipmap {
       $self->render(text => 'Ошибка соединения с управляющим сервером');
     }# else { $self->log->debug('Skipped due empty reject') }
   });
+}
+
+
+sub leechtop {
+  my $self = shift;
+  return undef unless $self->authorize({ admin=>1 });
+
+  $self->render_later;
+
+  $self->render(text => 'NOT IMPLEMENTED');
 }
 
 

@@ -137,6 +137,7 @@ sub startup {
 
   $r->get('/rep/ipmap')->to('rep#ipmap');
   $r->get('/rep/macdup')->to('rep#macdup');
+  $r->get('/rep/leechtop')->to('rep#leechtop');
 }
 
 

@@ -3,13 +3,15 @@
 <div class="scont">
 % my $i = 1;
 % my $need_close;
-% for (@$res_tab) {
+% for (@$res) {
 %   if ($i == 1) {
   <h5>В базе данных имеются неверные или дублирующиеся MAC-адреса:</h5>
-  <table>
+  <table class="highlight">
     <thead>
       <tr>
-	<th></th>
+	<th style="width:4%"></th>
+	<th>Устройство</th>
+	<th>Клиент</th>
 	<th>IP</th>
 	<th>MAC</th>
 	<th>Подразделение</th>
@@ -20,19 +22,29 @@
 %     $need_close = 1;
 %   }
 <tr>
-  <td><%== $i %></td>
+  <td style="width:4%"><%== $i %></td>
+  <td>
+    %= link_to url_for('clients')->query(s=>$_->{ip}) => (class => 'listlink') => begin
+    %= $_->{name} // "ID: $_->{id}"
+    %= end
+  </td>
+  <td>
+    %= link_to url_for('clients')->query(s=>$_->{client_cn}) => (class => 'listlink') => begin
+    %= $_->{client_cn} // "ID: $_->{client_id}"
+    %= end
+  </td>
   <td>
     %= link_to url_for('clients')->query(s=>$_->{ip}) => (class => 'listlink') => begin
     %= $_->{ip}
     %= end
   </td>
-  <td>
-    %= link_to url_for('clients')->query(s=>$_->{ip}) => (class => 'listlink') => begin
+  <td style="white-space:nowrap">
+    %= link_to url_for('clients')->query(s=>$_->{mac}) => (class => 'listlink') => begin
     %= $_->{no_dhcp} ? img_html 'no_dhcp' : q{}
     %= $_->{mac}
     %= end
   </td>
-  <td><%= $profiles_hash->{$_->{profile}} // $_->{profile} %></td>
+  <td><%= $_->{profile_name} // $_->{profile} %></td>
   % my ($info, $_style);
   % if ($_->{mac} !~ /^$RE{net}{MAC}$/) {
   %   $info = 'Ошибка. Некорректный mac адрес, обработка устройства будет заблокирована.';
@@ -52,7 +64,7 @@
     </tbody>
   </table>
 % }
-% unless (@$res_tab) {
+% unless (@$res) {
   <h5>В базе данных дублирующихся MAC-адресов не обнаружено.</h5>
 % }
   <br>

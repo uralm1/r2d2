@@ -2,6 +2,8 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+- s/Место/Подразделение в таблицах.
+- Отчёты используют свои собственные запросы к head.
 
 ## [1.2] - 2022-03-17
 - Отчёт по дублирующимся MAC.

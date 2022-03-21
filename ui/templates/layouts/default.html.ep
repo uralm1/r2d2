@@ -32,6 +32,7 @@
     <li class="divider" tabindex="-1"></li>
     <li><%= link_to 'repipmap' => begin %>Отчёт по распределению IP<% end %></li>
     <li><%= link_to 'repmacdup' => begin %>Отчёт по дубликатам MAC<% end %></li>
+    <li><%= link_to 'repleechtop' => begin %>Топ скачивающих<% end %></li>
     <li class="divider" tabindex="-1"></li>
     <li><a href="<%== config 'report_load_url' %>" target="_blank">Загрузка каналов</a></li>
   </ul>

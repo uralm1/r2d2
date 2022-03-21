@@ -153,7 +153,7 @@
 		<th>Провайдер</th>
 		<th>Правило</th>
 		<th>Лимит</th>
-		<th>Место</th>
+		<th>Подразделение</th>
 	      </tr>
 	    </thead>
 	    <tbody>
@@ -174,7 +174,7 @@
 		  % end
 		</td>
 		<td><%= $_->{ip} %></td>
-		<td>
+		<td style="white-space:nowrap;">
 	          %= $_->{no_dhcp} ? img_html 'no_dhcp' : ''
 		  %= $_->{mac}
 		</td>

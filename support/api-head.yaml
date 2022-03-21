@@ -15,7 +15,7 @@ tags:
   - name: Ui profiles
   - name: Ui agents
   - name: Ui syncqueue
-  - name: Ui logging
+  - name: Ui logging & reporting
 
 paths:
   /subsys:
@@ -1893,7 +1893,7 @@ paths:
     get:
       summary: Получение лога операций
       description: Просмотр лога операций в интерфейсе пользователя.
-      tags: ['Ui logging']
+      tags: ['Ui logging & reporting']
       parameters:
         - name: page
           in: query
@@ -1936,7 +1936,7 @@ paths:
     get:
       summary: Получение лога аудита
       description: Просмотр лога аудита в интерфейсе пользователя.
-      tags: ['Ui logging']
+      tags: ['Ui logging & reporting']
       parameters:
         - name: page
           in: query
@@ -1966,6 +1966,73 @@ paths:
               schema:
                 type: string
                 description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+
+  /ui/rep/macdup:
+    get:
+      summary: Получение данных отчета по дубликатам MAC
+      tags: ['Ui logging & reporting']
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      description: Код устройства
+                    name:
+                      type: string
+                      description: Наименование устройства
+                      example: 'Рабочий ноутбук'
+                    mac:
+                      type: string
+                      description: device mac
+                      example: '11:22:33:44:55:66'
+                    ip:
+                      type: string
+                      description: device ip4
+                      example: '10.15.0.33'
+                    no_dhcp:
+                      type: integer
+                      description: (0-use dhcp, 1-dont use)
+                      example: 0
+                    profile:
+                      type: string
+                      description: device profile (key)
+                      example: 'gwtest1'
+                    profile_name:
+                      type: string
+                      description: device profile human readable name
+                      example: 'Тестовое подразделение'
+                    client_id:
+                      type: integer
+                      description: Код клиента владельца устройства
+                      example: 456
+                    client_cn:
+                      type: string
+                      description: ФИО клиента владельца устройства
+                      example: 'Иванов Иван Иванович'
+                  required:
+                    - id
+                    - name
+                    - mac
+                    - ip
+                    - no_dhcp
+                    - profile
+                    - client_id
+                    - client_cn
         '503':
           description: Operation error
           content:

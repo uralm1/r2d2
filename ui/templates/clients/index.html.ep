@@ -87,7 +87,7 @@
 		<th style="width:10%"><a class="sortlink" href="<%== url_with->query({sort => 'rt', set => 'sort'}) %>">Провайдер</a><%== $sorton->(qr/^rt$/) %></th>
 		<th style="width:12%">Правило</th>
 		<th style="width:12%">Лимит</th>
-		<th style="width:15%"><a class="sortlink" href="<%== url_with->query({sort => 'place', set => 'sort'}) %>">Место</a><%== $sorton->(qr/^place$/) %></th>
+		<th style="width:15%"><a class="sortlink" href="<%== url_with->query({sort => 'place', set => 'sort'}) %>">Подразделение</a><%== $sorton->(qr/^place$/) %></th>
 	      </tr>
 	    </thead>
 	    % $th = 1; }
@@ -110,7 +110,7 @@
 	      <td style="width:13%">
 		<%= $_->{ip} %>
 	      </td>
-	      <td style="width:15%">
+	      <td style="width:15%;white-space:nowrap;">
 	        %= $_->{no_dhcp} ? img_html 'no_dhcp' : ''
 		%= $_->{mac}
 	      </td>
@@ -169,7 +169,7 @@
 	<th style="width:10%"><a class="sortlink" href="<%== url_with->query({sort => 'rt', set => 'sort'}) %>">Провайдер</a><%== $sorton->(qr/^rt$/) %></th>
 	<th style="width:9%">Правило</th>
 	<th style="width:12%">Лимит</th>
-	<th style="width:15%"><a class="sortlink" href="<%== url_with->query({sort => 'place', set => 'sort'}) %>">Место</a><%== $sorton->(qr/^place$/) %></th>
+	<th style="width:15%"><a class="sortlink" href="<%== url_with->query({sort => 'place', set => 'sort'}) %>">Подразделение</a><%== $sorton->(qr/^place$/) %></th>
       </tr>
     </thead>
     <tbody>
@@ -196,7 +196,7 @@
 	<td style="width:13%">
 	  <%= $_->{ip} %>
 	</td>
-	<td style="width:15%">
+	<td style="width:15%;white-space:nowrap;">
           %= $_->{no_dhcp} ? img_html 'no_dhcp' : ''
 	  %= $_->{mac}
 	</td>
