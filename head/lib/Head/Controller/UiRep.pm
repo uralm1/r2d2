@@ -81,22 +81,19 @@ ORDER BY d.id ASC LIMIT 1000")
 
     my @res_tab;
     my %mac_hash;
-    my $i = 1;
     # devices loop
     while (my $h = $results->hash) {
       my $mac = lc $h->{mac};
       my $ipo = NetAddr::IP::Lite->new($h->{ip}) || die 'IP address failure';
       my $ip = $ipo->addr;
       if ($mac eq q{} || $mac_hash{$mac} || $mac !~ /^$RE{net}{MAC}$/) {
-        if ($i == 1) {
+        unless ($mac_hash{$mac}{printed}) {
           push @res_tab, { %{ $mac_hash{$mac} } };
-          $i++;
+          $mac_hash{$mac}{printed} = 1;
         }
         push @res_tab, { %$h, ip => $ip };
-        $i++;
       } else {
         $mac_hash{$mac} = { %$h, ip => $ip };
-        $i = 1;
       }
     }
     $self->render(json => \@res_tab);
