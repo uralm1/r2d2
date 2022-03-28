@@ -71,7 +71,7 @@
 
 	    % param profile1 => param 'profile';
 	    %= select_field profile1 => [[param('profile_name') => param('profile')]], id => 'profile', disabled => undef
-	    %#= label_for profile => 'Расположение'
+	    %#= label_for profile => 'Подразделение'
 	    %= t 'span', class => 'helper-text', 'Изменение местоположения не допускается'
 	  </div>
 	</div>

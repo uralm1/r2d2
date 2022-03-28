@@ -37,7 +37,7 @@
 	<div class="row">
 	  <div class="input-field col s12 m8 l5">
 	    %= select_field profile => $profile_array, id => 'profile';
-	    %#= label_for profile => 'Расположение'
+	    %#= label_for profile => 'Подразделение'
 	    %= t 'span', class => 'helper-text', 'data-error' => 'Ошибка', ''
 	  </div>
 	</div>

@@ -59,7 +59,7 @@
 	%= input_tag 'profile_name', type => 'hidden'
 	%# param 'profile_name1' => param 'profile_name';
 	%#= text_field 'profile_name1', id => 'profile', disabled => undef;
-	%#= label_for profile => 'Расположение'
+	%#= label_for profile => 'Подразделение'
       %#</div>
     %#</div>
   </div>
