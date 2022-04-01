@@ -102,7 +102,7 @@ var chart<%== $chart_id %> = new Chart($('#chart<%== $chart_id %>'), {
         labels: {
 	  usePointStyle: false
         }
-      }
+      },
     }
   }
 });

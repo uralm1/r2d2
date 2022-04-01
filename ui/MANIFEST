@@ -50,6 +50,8 @@ public/js/chart.js
 public/js/chart.min.js
 public/js/chartjs-adapter-date-fns.js
 public/js/chartjs-adapter-luxon.js
+public/js/chartjs-plugin-datalabels.js
+public/js/chartjs-plugin-datalabels.min.js
 public/js/jquery-3.6.0.min.js
 public/js/luxon.js
 public/js/luxon.min.js
@@ -93,6 +95,7 @@ templates/profile/edit.html.ep
 templates/profile/new.html.ep
 templates/profiles/index.html.ep
 templates/rep/ipmap.html.ep
+templates/rep/leechtop.html.ep
 templates/rep/macdup.html.ep
 templates/server/delete.html.ep
 templates/server/edit.html.ep

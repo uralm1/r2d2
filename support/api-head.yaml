@@ -2102,6 +2102,71 @@ paths:
                 description: error message
 
 
+  /ui/rep/monthtop:
+    get:
+      summary: Получение данных отчета по скачивающим за месяц
+      tags: ['Ui logging & reporting']
+      parameters:
+        - name: prev
+          in: query
+          description: 1-предыдущий месяц,0-текущий
+          schema:
+            type: integer
+            default: 0
+            example: 1
+        - name: count
+          in: query
+          description: Количество top клиентов в отчете, не считая 'Остальные'
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 15
+            example: 20
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    client:
+                      type: string
+                      description: Наименование клиента, обычно cn или строка 'Остальные'
+                    id:
+                      type: integer
+                      description: Код клиента, может отсутствовать
+                    in:
+                      type: integer
+                      description: Входящий трафик, байт
+                      example: 1234
+                    out:
+                      type: integer
+                      description: Исходящий трафик, байт
+                      example: 1234
+                  required:
+                    - client
+                    - in
+                    - out
+        '400':
+          description: Ошибка в параметрах
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+        '503':
+          description: Operation error
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: error message
+
+
 # Added by API Auto Mocking Plugin
 servers:
   # Added by API Auto Mocking Plugin

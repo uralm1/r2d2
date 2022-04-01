@@ -1,0 +1,138 @@
+% layout 'default', title => 'Топ скачивающих', back_url => '/', back_js => 1;
+<div class="scont">
+  %= form_for leechtop => (method=>'GET', id=>'monthform') => begin
+  <div class="row no-margin-bottom">
+    <div class="col s12">
+      <h5 style="display:inline;padding-right:20px;">Топ клиентов по объему входящего трафика за</h5>
+      <div class="input-field inline">
+      %= select_field prev => [['Текущий месяц' => '0'], ['Предыдущий месяц' => '1']], id => 'monthselect'
+      </div>
+    </div>
+  </div>
+  % end
+  <div class="row">
+    <div class="col s12 m11 l9 xl7">
+      <canvas id="chart1"></canvas>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col s12 m11 l9 xl7">
+      <table class="highlight tbl-device-stat">
+	<thead>
+	  <tr>
+	    <th style="width:4%"></th>
+	    <th>Клиент</th>
+	    <th>Получено</th>
+	    <th>Отправлено</th>
+	  </tr>
+	</thead>
+	<tbody>
+	% my $i = 1;
+	% for (@$top_data) {
+	  <tr>
+	    <td style="width:4%"><%== $i++ %></td>
+	    <td>
+	      % if ($_->{client} !~ /^Остальные$/) {
+	      %= link_to url_for('clients')->query(s=>$_->{client}) => (class => 'listlink') => begin
+	      %= $_->{client}
+	      %= end
+	      % } else {
+	      <b><%= $_->{client} %></b>
+	      % }
+	    </td>
+	    <td><%= traftomb $_->{in} %></td>
+	    <td><%= traftomb $_->{out} %></td>
+	  </tr>
+	% }
+	</tbody>
+      </table>
+      % unless (@$top_data) {
+      <p><b>Нет данных для отображения</b></p>
+      % }
+    </div>
+  </div>
+</div>
+% content_for script0 => begin
+%= include 'stat/_chartjs_deps'
+<script>
+var chart1 = new Chart($('#chart1'), {
+  type: 'pie',
+  data: {
+    datasets: [{
+      data: [
+% for (@$top_data) {
+<%= btomb $_->{in} %>,
+% }
+      ],
+      backgroundColor: [
+        '#ba4d51', '#ad79ce', '#a6c567', '#e18e92', '#fcb65e', '#679ec5',
+        '#b78c9b', '#f2ca84', '#7cbab4', '#92c7e2', '#859666',
+      ],
+      datalabels: {
+	labels: {
+	  //name: {
+	    //align: 'top',
+	    //display: 'auto',
+	    //formatter: function(value, ctx) {
+	      //return ctx.chart.data.labels[ctx.dataIndex];
+	    //}
+	  //},
+	  value: {
+	    display: 'auto',
+	    align: 'center',
+	    formatter: function(value, ctx) {
+	      return value + ' Мб';
+	    },
+	    //borderColor: 'white',
+	    //borderWidth: 2,
+	    //borderRadius: 4,
+	    //padding: 4,
+	  }
+	}
+      }
+    }],
+    labels: [
+% for (@$top_data) {
+'<%= $_->{client} %>',
+% }
+    ],
+  },
+  plugins: [ChartDataLabels],
+  options: {
+    responsive: true,
+    aspectRatio: 1.8,
+    plugins: {
+      legend: {
+	position: 'right',
+      },
+      tooltip: {
+      // enabled: false,
+	mode: 'index',
+	intersect: true,
+	position: 'nearest',
+	padding: 15,
+	callbacks: {
+	  label: function(context) {
+	    return context.label + ' ' + context.parsed + ' Мб';
+	  }
+	}
+      },
+      datalabels: {
+	color: 'white',
+	font: {
+	  weight: 'bold',
+	},
+	offset: 0,
+	padding: 0,
+      },
+    }
+  },
+});
+</script>
+<script>
+$(document).ready(function(){
+  $('select').formSelect();
+  $('#monthselect').change(function(){$('#monthform').submit()});
+});
+</script>
+% end

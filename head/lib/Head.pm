@@ -14,7 +14,7 @@ use Head::Command::checkclients;
 
 use Sys::Hostname;
 
-our $VERSION = '2.81';
+our $VERSION = '2.82';
 
 # This method will run once at server start
 sub startup {
@@ -144,6 +144,7 @@ sub startup {
 
   $r->get('/ui/rep/ipmap')->to('ui_rep#ipmap');
   $r->get('/ui/rep/macdup')->to('ui_rep#macdup');
+  $r->get('/ui/rep/monthtop')->to('ui_rep#monthtop');
 }
 
 

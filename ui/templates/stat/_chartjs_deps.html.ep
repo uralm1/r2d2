@@ -1,3 +1,4 @@
 <script src="/js/luxon.min.js?v=230"></script>
 <script src="/js/chart.min.js?v=371"></script>
 <script src="/js/chartjs-adapter-luxon.js"></script>
+<script src="/js/chartjs-plugin-datalabels.min.js?v=200"></script>

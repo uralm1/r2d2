@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+
+## [1.3] - 2022-04-01
+- Отчёт топ-клиентов по объемам загрузок.
 - s/Место/Подразделение в таблицах.
 - Отчёты используют свои собственные запросы к head.
 
