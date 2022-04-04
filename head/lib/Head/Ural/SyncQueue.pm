@@ -28,11 +28,12 @@ sub new {
 }
 
 
-# add new flag to queue
+# add new flags to queue
 # uses external $db parameter, to call this function inside transaction
-# $rows_inserted = $obj->set_flag($db, $device_id, 'plk')
-# $rows_inserted = $obj->set_flag($db, $device_id, 'plk',
+# [id1,... idn] = $obj->set_flag($db, $device_id, 'plk')
+# [id1,... idn] = $obj->set_flag($db, $device_id, 'plk',
 #   { name => 'Comp', client_cn => 'FIO', ip => integer_format_ip })
+# return ref to array of inserted flag ids,
 # dies on errors
 sub set_flag {
   my ($self, $db, $device_id, $profile, $ext_data) = @_;
@@ -47,16 +48,23 @@ sub set_flag {
     $ext_data_insert = {json => $ext_data};
   }
 
-  my $results = eval { $db->query("INSERT INTO sync_flags (device_id, agent_id, ext_data) \
-SELECT ?, a.id, ? FROM profiles_agents a \
+  my $results = eval { $db->query("SELECT a.id FROM profiles_agents a \
 INNER JOIN profiles p ON a.profile_id = p.id \
-WHERE p.profile = ? ORDER BY a.id",
-    $device_id,
-    $ext_data_insert,
-    $profile
-  ) };
-  die "Set new flag database error: $@\n" unless $results;
-  return $results->affected_rows;
+WHERE p.profile = ? ORDER BY a.id", $profile) };
+  die "Set new flag database error(select agents): $@\n" unless $results;
+
+  my $a = $results->arrays->map(sub { $_->[0] });
+  $results->finish;
+
+  my @flags_ids;
+  $a->each(sub {
+    $results = eval { $db->query("INSERT INTO sync_flags (device_id, agent_id, ext_data) \
+VALUES (?, ?, ?)", $device_id, $_, $ext_data_insert) };
+    die "Set new flag database error (insert): $@\n" unless $results;
+    push @flags_ids, $results->last_insert_id;
+  });
+
+  return \@flags_ids;
 }
 
 

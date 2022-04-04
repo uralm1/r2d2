@@ -114,6 +114,7 @@ WHERE id = ? AND client_id = ? AND profile = ?",
     {name => $j->{name}, client_cn => $client_cn, ip => $j->{ip}, _s => 'deviceput'}
   ) };
   return $self->render(text => $@, status => 503) unless defined $err;
+  #$self->log->debug('Inserted flags:['.join(',',@$err).']');
 
   eval { $tx->commit };
   return $self->render(text => "Database error, transaction commit failure: $@", status => 503) if $@;
