@@ -10,7 +10,7 @@ my $t = Test::Mojo->new('Dhcpsyn',{rlog_local=>1, rlog_remote=>0, disable_autolo
 });
 
 $t->get_ok('/subsys')->status_is(200)->content_like(qr/^dhcpsyn/);
-$t->get_ok('/subsys?format=json')->status_is(200)
+$t->get_ok('/subsys?_format=json')->status_is(200)
   ->json_like('/subsys'=>qr/^dhcpsyn/)
   ->json_has('/version')
   ->json_has('/profiles');

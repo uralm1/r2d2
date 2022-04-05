@@ -162,7 +162,7 @@ sub validate_config {
 
   # agent_types shouldn't be empty
   my $agent_types = $c->{agent_types};
-  $e = 'Config parameter agent_types is empty!' unless @$agent_types;
+  $e = 'Config parameter agent_types is empty!' unless $agent_types && @$agent_types;
 
   # agent_types_stat must contain only agent_types elements
   for my $elem (@{$c->{agent_types_stat}}) {

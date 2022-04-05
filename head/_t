@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Create database test before running tests!
+#
+# CREATE USER 'test' IDENTIFIED BY 'test';
+# GRANT USAGE ON *.* TO 'test';
+# CREATE DATABASE test;
+# GRANT ALL PRIVILEGES ON test.* TO 'test';
+
+TEST_DB="mysql://test:test@beko.uwc.local/test" prove -v -l t/10_testdb.t
+TEST_DB="mysql://test:test@beko.uwc.local/test" prove -v -l t/60_profiles.t

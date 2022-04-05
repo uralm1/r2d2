@@ -7,33 +7,33 @@ use Mojo::Promise;
 
 sub subsys {
   my $self = shift;
-  if ($self->accepts('json')) {
-    $self->render_later;
+  $self->respond_to(
+    json => sub {
+      $self->render_later;
 
-    my $db = $self->build_db_info($self->config('inet_db_conn'));
-    my $db_minion = $self->build_db_info($self->config('minion_db_conn'));
-    my $j = {
-      subsys => $self->stash('subsys'),
-      version => $self->stash('version'),
-      db => $db,
-      'db-minion' => $db_minion
-    };
-    Mojo::Promise->all($db->{status}, $db_minion->{status})
-    ->then(sub {
-      my ($st1, $st2) = @_;
-      $db->{status} = $st1->[0]->array->[1];
-      $db_minion->{status} = $st2->[0]->array->[1];
-      $self->render(json => $j);
-    })->catch(sub {
-      my $err = shift;
-      $db->{status} = 'нет ответа';
-      $db_minion->{status} = 'нет ответа';
-      $self->render(json => $j);
-    });
-
-  } else {
-    $self->render(text => $self->stash('subsys').' ('.$self->stash('version').')');
-  }
+      my $db = $self->build_db_info($self->config('inet_db_conn'));
+      my $db_minion = $self->build_db_info($self->config('minion_db_conn'));
+      my $j = {
+        subsys => $self->stash('subsys'),
+        version => $self->stash('version'),
+        db => $db,
+        'db-minion' => $db_minion
+      };
+      Mojo::Promise->all($db->{status}, $db_minion->{status})
+      ->then(sub {
+        my ($st1, $st2) = @_;
+        $db->{status} = $st1->[0]->array->[1];
+        $db_minion->{status} = $st2->[0]->array->[1];
+        $self->render(json => $j);
+      })->catch(sub {
+        my $err = shift;
+        $db->{status} = 'нет ответа';
+        $db_minion->{status} = 'нет ответа';
+        $self->render(json => $j);
+      });
+    },
+    any => {text => $self->stash('subsys').' ('.$self->stash('version').')'},
+  );
 }
 
 

@@ -2,6 +2,8 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+- Исправления тестов.
+- Доработки SyncQueue::set_flag.
 
 ## [1.3] - 2022-04-01
 - Отчёт топ-клиентов по объемам загрузок.

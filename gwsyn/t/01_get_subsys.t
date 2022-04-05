@@ -13,7 +13,7 @@ my $t = Test::Mojo->new('Gwsyn',{rlog_local=>1, rlog_remote=>0, disable_autoload
 });
 
 $t->get_ok('/subsys')->status_is(200)->content_like(qr/^gwsyn/);
-$t->get_ok('/subsys?format=json')->status_is(200)
+$t->get_ok('/subsys?_format=json')->status_is(200)
   ->json_like('/subsys'=>qr/^gwsyn/)
   ->json_has('/version')
   ->json_has('/profiles');

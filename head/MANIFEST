@@ -6,6 +6,7 @@ _r_cmd
 _r_cron
 _r_head
 _r_minion
+_t
 cpanfile
 Dockerfile
 head.conf_empty
@@ -65,6 +66,7 @@ script/start_server
 t/01_get_subsys.t
 t/100_ui_get_oplog.t
 t/101_ui_get_auditlog.t
+t/10_testdb.t
 t/60_profiles.t
 t/61_split_agent_subsys.t
 t/66_send_mail_notification.t
