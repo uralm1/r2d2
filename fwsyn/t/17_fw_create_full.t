@@ -96,17 +96,17 @@ COMMIT
 :in_test - [0:0]
 :out_test - [0:0]
 # 1
--A in_test -d 1.2.3.1 -m comment --comment 1
--A out_test -s 1.2.3.1 -m comment --comment 1
+#-A in_test -d 1.2.3.1 -m comment --comment 1
+#-A out_test -s 1.2.3.1 -m comment --comment 1
 # 2
--A in_test -d 1.2.3.2 -m comment --comment 2
--A out_test -s 1.2.3.2 -m comment --comment 2
+#-A in_test -d 1.2.3.2 -m comment --comment 2
+#-A out_test -s 1.2.3.2 -m comment --comment 2
 # 12
--A in_test -d 1.2.3.5 -m comment --comment 12
--A out_test -s 1.2.3.5 -m comment --comment 12
+#-A in_test -d 1.2.3.5 -m comment --comment 12
+#-A out_test -s 1.2.3.5 -m comment --comment 12
 # 13
--A in_test -d 1.2.3.6 -m comment --comment 13
--A out_test -s 1.2.3.6 -m comment --comment 13
+#-A in_test -d 1.2.3.6 -m comment --comment 13
+#-A out_test -s 1.2.3.6 -m comment --comment 13
 # 15
 -A in_test -d 1.2.3.8 -m comment --comment 15 -j MARK --set-mark 3
 -A out_test -s 1.2.3.8 -m comment --comment 15 -j MARK --set-mark 3
@@ -157,17 +157,17 @@ COMMIT
 #:in_test - [0:0]
 #:out_test - [0:0]
 # 1
--A in_test -d 1.2.3.1 -m comment --comment 1
--A out_test -s 1.2.3.1 -m comment --comment 1
+#-A in_test -d 1.2.3.1 -m comment --comment 1
+#-A out_test -s 1.2.3.1 -m comment --comment 1
 # 2
--A in_test -d 1.2.3.2 -m comment --comment 2
--A out_test -s 1.2.3.2 -m comment --comment 2
+#-A in_test -d 1.2.3.2 -m comment --comment 2
+#-A out_test -s 1.2.3.2 -m comment --comment 2
 # 12
--A in_test -d 1.2.3.5 -m comment --comment 12
--A out_test -s 1.2.3.5 -m comment --comment 12
+#-A in_test -d 1.2.3.5 -m comment --comment 12
+#-A out_test -s 1.2.3.5 -m comment --comment 12
 # 13
--A in_test -d 1.2.3.6 -m comment --comment 13
--A out_test -s 1.2.3.6 -m comment --comment 13
+#-A in_test -d 1.2.3.6 -m comment --comment 13
+#-A out_test -s 1.2.3.6 -m comment --comment 13
 # 15
 -A in_test -d 1.2.3.8 -m comment --comment 15 -j MARK --set-mark 3
 -A out_test -s 1.2.3.8 -m comment --comment 15 -j MARK --set-mark 3

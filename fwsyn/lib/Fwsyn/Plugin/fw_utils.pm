@@ -13,7 +13,7 @@ sub register {
   my $_blk_mark = sub {
     my $v = shift;
     my $q = $v->{qs};
-    return $v->{blocked} ? ($q eq 2 || $q eq 3 ? " -j MARK --set-mark $q" : '') : '';
+    return $v->{blocked} ? ($q eq q{2} || $q eq q{3} ? " -j MARK --set-mark $q" : q{}) : q{};
   };
 
 
@@ -648,7 +648,7 @@ sub register {
     my $fwfile = path($self->config('firewall_file'));
     my $client_in_chain = $self->config('client_in_chain');
     my $client_out_chain = $self->config('client_out_chain');
-    my $cmnt = $self->config('old_iptables_compatibility') ? '#' : '';
+    my $cmnt = $self->config('old_iptables_compatibility') ? '#' : q{};
 
     my $fh = eval { $fwfile->open('>') } or die "Can't create firewall file: $!";
 
@@ -679,12 +679,13 @@ sub register {
       print $fh "# $_->{id}\n";
       my $c = "-m comment --comment $_->{id}";
       print $fh "-A $client_in_chain -d $_->{ip} $c -j $_->{defjump}\n";
-      my $m = ($_->{mac}) ? "-m mac --mac-source $_->{mac} " : '';
+      my $m = ($_->{mac}) ? "-m mac --mac-source $_->{mac} " : q{};
       print $fh "-A $client_out_chain -s $_->{ip} $c ${m}-j $_->{defjump}\n";
       my $jb = $_blk_mark->($_); # target for blocking
+      my $blkcmnt = $jb eq q{} ? '#' : q{}; # optimize not blocked
       $mangle_append .= "# $_->{id}\n";
-      $mangle_append .= "-A $client_in_chain -d $_->{ip} ${c}${jb}\n";
-      $mangle_append .= "-A $client_out_chain -s $_->{ip} ${c}${jb}\n";
+      $mangle_append .= "$blkcmnt-A $client_in_chain -d $_->{ip} ${c}${jb}\n";
+      $mangle_append .= "$blkcmnt-A $client_out_chain -s $_->{ip} ${c}${jb}\n";
     }
     print $fh "COMMIT\n\n";
     print $fh "*mangle\n";
