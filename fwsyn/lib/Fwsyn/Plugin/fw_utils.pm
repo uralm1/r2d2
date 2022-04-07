@@ -582,7 +582,8 @@ sub register {
 
     # now work on mangle content
     my $ret = 0;
-    my $jb = $_blk_mark->({blocked=>1, qs=>$qs}); # target for blocking
+    my $jb = $_blk_mark->({blocked=>1, qs=>$qs}); # target for blocking/unblocking
+    my $blkcmnt = $jb eq q{} ? '#' : q{}; # optimize not blocked lines
     my $ff = 0;
     my $skip = 0;
 
@@ -591,22 +592,22 @@ sub register {
       #:pipe_in_inet_clients - [0:0]
       #:pipe_out_inet_clients - [0:0]
       # 450
-      #(1)-A pipe_in_inet_clients -d 192.168.34.23 -m comment --comment 450
-      #(2)-A pipe_out_inet_clients -s 192.168.34.23 -m comment --comment 450
+      #(1)#-A pipe_in_inet_clients -d 192.168.34.23 -m comment --comment 450
+      #(2)#-A pipe_out_inet_clients -s 192.168.34.23 -m comment --comment 450
       # 451
       #(1)-A pipe_in_inet_clients -d 192.168.34.24 -m comment --comment 451 -j MARK --set-mark 2
       #(2)-A pipe_out_inet_clients -s 192.168.34.24 -m comment --comment 451 -j MARK --set-mark 2
       if ($skip > 0) {
-        if (/^-A\ (\S+)\s+ (-[ds]\ \S+)\s+ -m\ comment\s+ --comment\ \Q$id\E/x) {
+        if (/^\#?-A\ (\S+)\s+ (-[ds]\ \S+)\s+ -m\ comment\s+ --comment\ \Q$id\E/x) {
           # CHAIN: $1, "-d/s IP": $2
           if ($1 eq $client_in_chain || $1 eq $client_out_chain) {
             # replace good rule
-            print $fh "-A $1 $2 -m comment --comment ${id}${jb}\n";
+            print $fh "$blkcmnt-A $1 $2 -m comment --comment ${id}${jb}\n";
             $ret = 1;
           }
           $skip++;
           next;
-        } elsif (/^-A\ /x) {
+        } elsif (/^\#?-A\ /x) {
           $skip++;
           next;
         } elsif (/^$/x) {
