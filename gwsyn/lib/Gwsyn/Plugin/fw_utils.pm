@@ -416,6 +416,7 @@ sub register {
 
     print $fh "COMMIT\n\n"; # AND... NEXT ROUND on mangle table
     my $jb = $_blk_mark->($v); # target for blocking
+    my $blkcmnt = $jb eq q{} ? '#' : q{}; # optimize not blocked lines
     $ff = 0;
     $skip = 0;
     $skip_duplicate = 0;
@@ -425,10 +426,10 @@ sub register {
       #:pipe_in_inet_clients - [0:0]
       #:pipe_out_inet_clients - [0:0]
       # 450
-      #(1)-A pipe_in_inet_clients -d 192.168.34.23 -m comment --comment 450
-      #(2)-A pipe_out_inet_clients -s 192.168.34.23 -m comment --comment 450
+      #(1)#-A pipe_in_inet_clients -d 192.168.34.23 -m comment --comment 450
+      #(2)#-A pipe_out_inet_clients -s 192.168.34.23 -m comment --comment 450
       if ($skip > 0) {
-        if (/^-A\ /x) {
+        if (/^\#?-A\ /x) {
           #say "Skipped line ($skip) $_";
           $skip++;
           next;
@@ -439,8 +440,8 @@ sub register {
           unless ($skip_duplicate) {
             # here actual replace
             print $fh "# $v->{id}\n";
-            print $fh "-A $client_in_chain -d $v->{ip} ${c}${jb}\n";
-            print $fh "-A $client_out_chain -s $v->{ip} ${c}${jb}\n";
+            print $fh "$blkcmnt-A $client_in_chain -d $v->{ip} ${c}${jb}\n";
+            print $fh "$blkcmnt-A $client_out_chain -s $v->{ip} ${c}${jb}\n";
           } else {
             $skip_duplicate = 0;
           }
@@ -466,8 +467,8 @@ sub register {
 
     if (!$ff or ($skip > 0 and !$skip_duplicate)) { # if not found or last line, add new
       print $fh "# $v->{id}\n";
-      print $fh "-A $client_in_chain -d $v->{ip} ${c}${jb}\n";
-      print $fh "-A $client_out_chain -s $v->{ip} ${c}${jb}\n";
+      print $fh "$blkcmnt-A $client_in_chain -d $v->{ip} ${c}${jb}\n";
+      print $fh "$blkcmnt-A $client_out_chain -s $v->{ip} ${c}${jb}\n";
       $ret = 1;
     }
 
@@ -515,11 +516,11 @@ sub register {
       #:pipe_in_inet_clients - [0:0]
       #:pipe_out_inet_clients - [0:0]
       # 450
-      #(1)-A pipe_in_inet_clients -d 192.168.34.23 -m comment --comment 450
-      #(2)-A pipe_out_inet_clients -s 192.168.34.23 -m comment --comment 450
+      #(1)#-A pipe_in_inet_clients -d 192.168.34.23 -m comment --comment 450
+      #(2)#-A pipe_out_inet_clients -s 192.168.34.23 -m comment --comment 450
       #COMMIT
       if ($skip > 0) {
-        if (/^-A\ /x) {
+        if (/^\#?-A\ /x) {
           #say "Skipped line ($skip) $_";
           $skip++;
           next;
