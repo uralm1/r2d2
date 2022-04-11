@@ -105,7 +105,7 @@ sub register {
         },
         zero_sub => sub {},
         # n pkt bytes MARK all -- * * 0.0.0.0/0 1.2.3.4 /* id */ MARK set 0x4
-        # n pkt bytes      all -- * * 0.0.0.0/0 1.2.3.5 /* id */
+        # n pkt bytes      all -- * * 0.0.0.0/0 1.2.3.5 /* id */ (!!!optional!!!)
         re1 => sub {
           my $id = shift;
           # $1 - n, $2 - ip
@@ -133,7 +133,7 @@ sub register {
         },
         zero_sub => sub {},
         # n pkt bytes MARK all -- * * 1.2.3.4 0.0.0.0/0 /* id */ MARK set 0x4
-        # n pkt bytes      all -- * * 1.2.3.5 0.0.0.0/0 /* id */
+        # n pkt bytes      all -- * * 1.2.3.5 0.0.0.0/0 /* id */ (!!!optional!!!)
         re1 => sub {
           my $id = shift;
           # $1 - n, $2 - ip
@@ -158,6 +158,9 @@ sub register {
     my $failure = undef;
     my @replaced_check;
     my @added_check;
+    my @deleted_check;
+    my $blocking_mark = $_blk_mark->($v); # empty when not blocking
+
     for my $n (qw/f_in f_out m_in m_out/) {
       my $m = $matang->{$n};
       die "Matang $n matanga!" unless $m;
@@ -170,7 +173,8 @@ sub register {
       for (my $i = 2; $i < @$dump; $i++) { # skip first 2 lines
         if ($dump->[$i] =~ $m->{re1}($v->{id})) {
           my $ri = $1;
-          if (!$ff) {
+          if (!$ff && ( $n =~ /^(?:f_in|f_out)$/ ||
+              ( $n =~ /^(?:m_in|m_out)$/ && $blocking_mark ) ) ) {
             $self->rlog("$m->{rule_desc} $m->{table} sync. Replacing rule #$ri id $v->{id} ip $2 in $m->{table} table.");
             $ff = 1;
             push @replaced_check, $n;
@@ -183,16 +187,26 @@ sub register {
               }
             }
           } else {
-            $self->rlog("$m->{rule_desc} $m->{table} sync. Deleting duplicate rule #$ri id $v->{id} ip $2 in $m->{table} table.");
+            my $delete_old_blocking = !$ff && !$blocking_mark;
+            my $op1 = $delete_old_blocking ? 'old blocking' : 'duplicate';
+            $self->rlog("$m->{rule_desc} $m->{table} sync. Deleting $op1 rule #$ri id $v->{id} ip $2 in $m->{table} table.");
+            push @deleted_check, $n if $delete_old_blocking;
             if ( $m->{delete_sub}($ri) ) {
-              # just warn, count it non-fatal
-              $self->rlog("$m->{rule_desc} sync error. Can't delete rule #$ri from $m->{table} table.");
+              my $msg = "$m->{rule_desc} sync error. Can't delete rule #$ri from $m->{table} table.";
+              if (!$delete_old_blocking || $failure) {
+                $self->rlog($msg); # count not first errors non-fatal
+              } else {
+                $failure = $msg;
+              }
             }
           }
         } # if regex
       } # for dump
 
-      if (!$ff) { # if not found, add rule
+      # if not found, add rules to filter table, but add rules to mangle table only when blocking
+      if ( !$ff && ( $n =~ /^(?:f_in|f_out)$/ ||
+           ( $n =~ /^(?:m_in|m_out)$/ && $blocking_mark ) ) ) {
+        # add rules
         $self->rlog("$m->{rule_desc} $m->{table} sync. Appending rule id $v->{id} ip $v->{ip} to $m->{table} table.");
         if ( !$m->{add_sub}($v) ) {
           # successfully added
@@ -212,11 +226,14 @@ sub register {
 
     die "$failure\n" if $failure;
 
-    if (@added_check && @added_check < 4) {
+    if (@added_check && @added_check % 2) {
       $self->rlog('Added only '.join('/', @added_check).' tables/chains. This is not normal, just warn you.');
     }
-    if (@replaced_check && @replaced_check < 4) {
-      $self->rlog('Replaced only '.join('/', @added_check).' tables/chains. This is not normal, just warn you.');
+    if (@replaced_check && @replaced_check % 2) {
+      $self->rlog('Replaced only '.join('/', @replaced_check).' tables/chains. This is not normal, just warn you.');
+    }
+    if (@deleted_check && @deleted_check % 2) {
+      $self->rlog('Deleted only '.join('/', @deleted_check).' tables/chains. This is not normal, just warn you.');
     }
 
     return 1;
@@ -261,7 +278,8 @@ sub register {
 
     die "$failure\n" if $failure;
 
-    if ($ret && @found_check < 4) {
+    # rules in mangle in/out chains are optional so no error for them
+    if ($ret && @found_check % 2) {
       $self->rlog('Deleted in only '.join('/', @found_check).' tables/chains. This is not normal, just warn you.');
     }
 
@@ -269,13 +287,13 @@ sub register {
   });
 
 
-  # my $resp = fw_block_rules($id, $qs);
+  # my $resp = fw_block_rules($id, $qs, $ip);
   #   $qs - 0-unblock, 2-limit, 3-block,
   # returns 1-done/0-not found on success,
   #   dies with 'error string' on error
   $app->helper(fw_block_rules => sub {
-    my ($self, $id, $qs) = @_;
-    croak 'Bad arguments' unless defined $id && defined $qs;
+    my ($self, $id, $qs, $ip) = @_;
+    croak 'Bad arguments' unless defined $id && defined $qs && defined $ip;
 
     my $matang = $self->fw_matang;
     my $ret = 0;
@@ -285,6 +303,8 @@ sub register {
       my $m = $matang->{$n};
       die "Matang $n matanga!" unless $m;
 
+      my $ff = 0;
+
       my $dump = $m->{dump_sub}();
       die "Error dumping rules $m->{chain} in $m->{table} table!\n" unless $dump;
 
@@ -293,18 +313,51 @@ sub register {
           my $ri = $1;
           my $op = $qs == 0 ? 'Unblocking' : "Blocking ($qs)";
           $self->rlog("$m->{rule_desc}. $op rule #$ri ip $2.");
+          $ff = 1;
           $ret = 1;
           push @found_check, $n;
-          if ( $m->{replace_sub}($ri, {id=>$id, ip=>$2, blocked=>1, qs=>$qs}) ) {
-            my $msg = "$m->{rule_desc} block/unblock error on $m->{table} table.";
-            if ($failure) {
-              $self->rlog($msg); # count not first errors non-fatal
-            } else {
-              $failure = $msg;
+          if ($qs == 0) {
+            # delete found rule on unblock
+            if ( $m->{delete_sub}($ri) ) {
+              my $msg = "$m->{rule_desc} unblock error on $m->{table} table.";
+              if ($failure) {
+                $self->rlog($msg); # count not first errors non-fatal
+              } else {
+                $failure = $msg;
+              }
+            }
+          } else {
+            # replace found rule on block
+            if ( $m->{replace_sub}($ri, {id=>$id, ip=>$2, blocked=>1, qs=>$qs}) ) {
+              my $msg = "$m->{rule_desc} block error on $m->{table} table.";
+              if ($failure) {
+                $self->rlog($msg); # count not first errors non-fatal
+              } else {
+                $failure = $msg;
+              }
             }
           }
+
         } # if regex
       } # for dump
+
+      if (!$ff && $qs > 1) { # if not found and we are blocking, add rule
+        $self->rlog("$m->{rule_desc}. Appending blocking ($qs) rule id $id ip $ip.");
+        if ( !$m->{add_sub}({id=>$id, ip=>$ip, blocked=>1, qs=>$qs}) ) {
+          # successfully added
+          $ret = 1;
+          push @found_check, $n;
+
+        } else {
+          my $msg = "$m->{rule_desc} block error. Can't append blocking rule id $id to $m->{table} table.";
+          if ($failure) {
+            $self->rlog($msg); # count not first errors non-fatal
+          } else {
+            $failure = $msg;
+          }
+        }
+      }
+
     } # for mangle in/out
 
     die "$failure\n" if $failure;
@@ -550,12 +603,14 @@ sub register {
   });
 
 
-  # my $resp = fw_block($id, $qs);
+  # my $ip_ret;
+  # my $resp = fw_block($id, $qs, \$ip_ret);
   #   $qs - 0-unblock, 2-limit, 3-block,
   # returns 1-need apply/0-not needed on success,
+  #   $ip_ret reference is set to ip address of the client processed,
   #   dies with 'error string' on error
   $app->helper(fw_block => sub {
-    my ($self, $id, $qs) = @_;
+    my ($self, $id, $qs, $ip_ret_ref) = @_;
     croak 'Bad arguments' unless defined $id && defined $qs;
 
     my $fwfile = path($self->config('firewall_file'));
@@ -586,6 +641,7 @@ sub register {
     my $blkcmnt = $jb eq q{} ? '#' : q{}; # optimize not blocked lines
     my $ff = 0;
     my $skip = 0;
+    my $ip_ret;
 
     for (@mangle_content) {
       #*mangle
@@ -598,12 +654,17 @@ sub register {
       #(1)-A pipe_in_inet_clients -d 192.168.34.24 -m comment --comment 451 -j MARK --set-mark 2
       #(2)-A pipe_out_inet_clients -s 192.168.34.24 -m comment --comment 451 -j MARK --set-mark 2
       if ($skip > 0) {
-        if (/^\#?-A\ (\S+)\s+ (-[ds]\ \S+)\s+ -m\ comment\s+ --comment\ \Q$id\E/x) {
-          # CHAIN: $1, "-d/s IP": $2
+        if (/^\#?-A\ (\S+)\s+ (-[ds]\ (\S+))\s+ -m\ comment\s+ --comment\ \Q$id\E/x) {
+          # CHAIN: $1, "-d/s IP": $2, IP: $3
           if ($1 eq $client_in_chain || $1 eq $client_out_chain) {
             # replace good rule
             print $fh "$blkcmnt-A $1 $2 -m comment --comment ${id}${jb}\n";
             $ret = 1;
+            if ($ip_ret) {
+              $self->rlog('IP addresses differ in same rule group in *mangle section.') if $3 ne $ip_ret;
+            } else {
+              $ip_ret = $3;
+            }
           }
           $skip++;
           next;
@@ -622,7 +683,7 @@ sub register {
           $ff = 1;
         } else {
           # secondary duplicating id - warn about it
-          $self->rlog("Found duplicate ID in firewall file *mangle section.");
+          $self->rlog('Found duplicate ID in firewall file *mangle section.');
         }
         $skip = 1;
         # copy id line too
@@ -633,6 +694,11 @@ sub register {
     print $fh "COMMIT\n";
 
     $fh->close or die "Can't close firewall file: $!";
+
+    if ($ret) {
+      die 'Can not determine ip address from rule group' unless $ip_ret;
+      $$ip_ret_ref = $ip_ret if $ip_ret_ref;
+    }
 
     return $ret;
   });
