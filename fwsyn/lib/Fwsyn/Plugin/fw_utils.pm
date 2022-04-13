@@ -173,9 +173,10 @@ sub register {
       for (my $i = 2; $i < @$dump; $i++) { # skip first 2 lines
         if ($dump->[$i] =~ $m->{re1}($v->{id})) {
           my $ri = $1;
+          my $ip = $2;
           if (!$ff && ( $n =~ /^(?:f_in|f_out)$/ ||
               ( $n =~ /^(?:m_in|m_out)$/ && $blocking_mark ) ) ) {
-            $self->rlog("$m->{rule_desc} $m->{table} sync. Replacing rule #$ri id $v->{id} ip $2 in $m->{table} table.");
+            $self->rlog("$m->{rule_desc} $m->{table} sync. Replacing rule #$ri id $v->{id} ip $ip in $m->{table} table.");
             $ff = 1;
             push @replaced_check, $n;
             if ( $m->{replace_sub}($ri, $v) ) {
@@ -189,7 +190,7 @@ sub register {
           } else {
             my $delete_old_blocking = !$ff && !$blocking_mark;
             my $op1 = $delete_old_blocking ? 'old blocking' : 'duplicate';
-            $self->rlog("$m->{rule_desc} $m->{table} sync. Deleting $op1 rule #$ri id $v->{id} ip $2 in $m->{table} table.");
+            $self->rlog("$m->{rule_desc} $m->{table} sync. Deleting $op1 rule #$ri id $v->{id} ip $ip in $m->{table} table.");
             push @deleted_check, $n if $delete_old_blocking;
             if ( $m->{delete_sub}($ri) ) {
               my $msg = "$m->{rule_desc} sync error. Can't delete rule #$ri from $m->{table} table.";
@@ -287,13 +288,13 @@ sub register {
   });
 
 
-  # my $resp = fw_block_rules($id, $qs, $ip);
+  # my $resp = fw_block_rules($id, $qs);
   #   $qs - 0-unblock, 2-limit, 3-block,
   # returns 1-done/0-not found on success,
   #   dies with 'error string' on error
   $app->helper(fw_block_rules => sub {
-    my ($self, $id, $qs, $ip) = @_;
-    croak 'Bad arguments' unless defined $id && defined $qs && defined $ip;
+    my ($self, $id, $qs) = @_;
+    croak 'Bad arguments' unless defined $id && defined $qs;
 
     my $matang = $self->fw_matang;
     my $ret = 0;
@@ -341,6 +342,7 @@ sub register {
         } # if regex
       } # for dump
 
+      my $ip = 'TODO'; #FIXME
       if (!$ff && $qs > 1) { # if not found and we are blocking, add rule
         $self->rlog("$m->{rule_desc}. Appending blocking ($qs) rule id $id ip $ip.");
         if ( !$m->{add_sub}({id=>$id, ip=>$ip, blocked=>1, qs=>$qs}) ) {
@@ -603,14 +605,12 @@ sub register {
   });
 
 
-  # my $ip_ret;
-  # my $resp = fw_block($id, $qs, \$ip_ret);
+  # my $resp = fw_block($id, $qs);
   #   $qs - 0-unblock, 2-limit, 3-block,
   # returns 1-need apply/0-not needed on success,
-  #   $ip_ret reference is set to ip address of the client processed,
   #   dies with 'error string' on error
   $app->helper(fw_block => sub {
-    my ($self, $id, $qs, $ip_ret_ref) = @_;
+    my ($self, $id, $qs) = @_;
     croak 'Bad arguments' unless defined $id && defined $qs;
 
     my $fwfile = path($self->config('firewall_file'));
@@ -641,7 +641,6 @@ sub register {
     my $blkcmnt = $jb eq q{} ? '#' : q{}; # optimize not blocked lines
     my $ff = 0;
     my $skip = 0;
-    my $ip_ret;
 
     for (@mangle_content) {
       #*mangle
@@ -654,17 +653,12 @@ sub register {
       #(1)-A pipe_in_inet_clients -d 192.168.34.24 -m comment --comment 451 -j MARK --set-mark 2
       #(2)-A pipe_out_inet_clients -s 192.168.34.24 -m comment --comment 451 -j MARK --set-mark 2
       if ($skip > 0) {
-        if (/^\#?-A\ (\S+)\s+ (-[ds]\ (\S+))\s+ -m\ comment\s+ --comment\ \Q$id\E/x) {
-          # CHAIN: $1, "-d/s IP": $2, IP: $3
+        if (/^\#?-A\ (\S+)\s+ (-[ds]\ \S+)\s+ -m\ comment\s+ --comment\ \Q$id\E/x) {
+          # CHAIN: $1, "-d/s IP": $2
           if ($1 eq $client_in_chain || $1 eq $client_out_chain) {
             # replace good rule
             print $fh "$blkcmnt-A $1 $2 -m comment --comment ${id}${jb}\n";
             $ret = 1;
-            if ($ip_ret) {
-              $self->rlog('IP addresses differ in same rule group in *mangle section.') if $3 ne $ip_ret;
-            } else {
-              $ip_ret = $3;
-            }
           }
           $skip++;
           next;
@@ -694,11 +688,6 @@ sub register {
     print $fh "COMMIT\n";
 
     $fh->close or die "Can't close firewall file: $!";
-
-    if ($ret) {
-      die 'Can not determine ip address from rule group' unless $ip_ret;
-      $$ip_ret_ref = $ip_ret if $ip_ret_ref;
-    }
 
     return $ret;
   });

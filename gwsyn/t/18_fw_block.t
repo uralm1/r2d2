@@ -36,13 +36,9 @@ my $make_test = sub {
 note "common usage";
 my $test_f = path($testdir, 'firewall.clients1');
 my $t = $make_test->($test_f);
-my $ip;
-is($t->app->fw_block(450, 2, \$ip), 1, 'fw_block 450,2');
-is($ip, '192.168.34.23', 'fw_block 450,2 - ip is ok');
-is($t->app->fw_block(451, 0, \$ip), 1, 'fw_block 451,0 unblock');
-is($ip, '192.168.34.24', 'fw_block 451,0 - ip is ok');
-is($t->app->fw_block(45, 0, \$ip), 0, 'fw_block 45,0 non existent');
-is($ip, '192.168.34.24', 'fw_block 45,0 - ip not changed');
+is($t->app->fw_block(450, 2), 1, 'fw_block 450,2');
+is($t->app->fw_block(451, 0), 1, 'fw_block 451,0 unblock');
+is($t->app->fw_block(45, 0), 0, 'fw_block 45,0 non existent');
 compare_ok($test_f, path($testdir, 'result1'), 'compare results 1');
 undef $t;
 

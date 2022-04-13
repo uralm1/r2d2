@@ -550,14 +550,12 @@ sub register {
   });
 
 
-  # my $ip_ret;
-  # my $resp = fw_block($id, $qs, \$ip_ret);
+  # my $resp = fw_block($id, $qs);
   #   $qs - 0-unblock, 2-limit, 3-block,
   # returns 1-need apply/0-not needed on success,
-  #   $ip_ret reference is set to ip address of the client processed,
   #   dies with 'error string' on error
   $app->helper(fw_block => sub {
-    my ($self, $id, $qs, $ip_ret_ref) = @_;
+    my ($self, $id, $qs) = @_;
     croak 'Bad arguments' unless defined $id && defined $qs;
 
     my $fwfile = path($self->config('firewall_file'));
@@ -588,7 +586,6 @@ sub register {
     my $blkcmnt = $jb eq q{} ? '#' : q{}; # optimize not blocked lines
     my $ff = 0;
     my $skip = 0;
-    my $ip_ret;
 
     for (@mangle_content) {
       #*mangle
@@ -601,17 +598,12 @@ sub register {
       #(1)-A pipe_in_inet_clients -d 192.168.34.24 -m comment --comment 451 -j MARK --set-mark 2
       #(2)-A pipe_out_inet_clients -s 192.168.34.24 -m comment --comment 451 -j MARK --set-mark 2
       if ($skip > 0) {
-        if (/^\#?-A\ (\S+)\s+ (-[ds]\ (\S+))\s+ -m\ comment\s+ --comment\ \Q$id\E/x) {
-          # CHAIN: $1, "-d/s IP": $2, IP: $3
+        if (/^\#?-A\ (\S+)\s+ (-[ds]\ \S+)\s+ -m\ comment\s+ --comment\ \Q$id\E/x) {
+          # CHAIN: $1, "-d/s IP": $2
           if ($1 eq $client_in_chain || $1 eq $client_out_chain) {
             # replace good rule
             print $fh "$blkcmnt-A $1 $2 -m comment --comment ${id}${jb}\n";
             $ret = 1;
-            if ($ip_ret) {
-              $self->rlog('IP addresses differ in same rule group in *mangle section.') if $3 ne $ip_ret;
-            } else {
-              $ip_ret = $3;
-            }
           }
           $skip++;
           next;
@@ -641,11 +633,6 @@ sub register {
     print $fh "COMMIT\n";
 
     $fh->close or die "Can't close firewall file: $!";
-
-    if ($ret) {
-      die 'Can not determine ip address from rule group' unless $ip_ret;
-      $$ip_ret_ref = $ip_ret if $ip_ret_ref;
-    }
 
     return $ret;
   });

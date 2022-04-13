@@ -12,17 +12,14 @@ sub register {
     my $app = $job->app;
     $app->rlog('Started block_device task '.$job->id." pid $$");
 
-    my $ip;
     my @err;
-    # part 1: firewall file, no need to apply
-    my $r = eval { $app->fw_block($id, $qs, \$ip) };
-    push @err, "Error blocking/unblocking rules in firewall file: $@" unless defined $r;
+    # part 1: firewall rules directly
+    my $r = eval { $app->fw_block_rules($id, $qs) };
+    push @err, "Error blocking/unblocking rules in iptables: $@" unless defined $r;
 
-    # part 1a: firewall rules directly
-    if ($ip) {
-      $r = eval { $app->fw_block_rules($id, $qs, $ip) };
-      push @err, "Error blocking/unblocking rules in iptables: $@" unless defined $r;
-    }
+    # part 1a: firewall file, no need to apply
+    $r = eval { $app->fw_block($id, $qs) };
+    push @err, "Error blocking/unblocking rules in firewall file: $@" unless defined $r;
 
     if (@err) {
       $app->rlog(join(',', @err));
