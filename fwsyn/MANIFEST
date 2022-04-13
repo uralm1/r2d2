@@ -48,3 +48,4 @@ t/19_matang_regexps.t
 t/20_tc_delete.t
 t/21_tc_add_replace.t
 t/22_tc_create_full.t
+t/30_fw_iptables.t
