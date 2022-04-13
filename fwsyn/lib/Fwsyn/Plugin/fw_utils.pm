@@ -297,6 +297,25 @@ sub register {
     croak 'Bad arguments' unless defined $id && defined $qs;
 
     my $matang = $self->fw_matang;
+
+    # scan f_in chain to get ip and check requested id existance
+    my $ip;
+    my $m = $matang->{'f_in'} or die "Matang f_in matanga!";
+    my $dump = $m->{dump_sub}();
+    die "Error dumping rules $m->{chain} in $m->{table} table!\n" unless $dump;
+
+    for (my $i = 2; $i < @$dump; $i++) { # skip first 2 lines
+      if ($dump->[$i] =~ $m->{re1}($id)) {
+        if ($ip) {
+          $self->rlog("Multiple ip under same id $id in $m->{table} table. This is not normal.") if $2 ne $ip;
+        } else {
+          $ip = $2;
+        }
+      } # if regex
+    } # for dump
+
+    return 0 unless $ip; # exit 0 if id doesn't exist
+
     my $ret = 0;
     my $failure = undef;
     my @found_check;
@@ -342,21 +361,24 @@ sub register {
         } # if regex
       } # for dump
 
-      my $ip = 'TODO'; #FIXME
-      if (!$ff && $qs > 1) { # if not found and we are blocking, add rule
-        $self->rlog("$m->{rule_desc}. Appending blocking ($qs) rule id $id ip $ip.");
-        if ( !$m->{add_sub}({id=>$id, ip=>$ip, blocked=>1, qs=>$qs}) ) {
-          # successfully added
-          $ret = 1;
-          push @found_check, $n;
+      if (!$ff) { # if not found (in mangle!)
+        if ($qs > 1) { # if we are blocking, add rule
+          $self->rlog("$m->{rule_desc}. Appending blocking ($qs) rule id $id ip $ip.");
+          if ( !$m->{add_sub}({id=>$id, ip=>$ip, blocked=>1, qs=>$qs}) ) {
+            # successfully added
+            $ret = 1;
+            push @found_check, $n;
 
-        } else {
-          my $msg = "$m->{rule_desc} block error. Can't append blocking rule id $id to $m->{table} table.";
-          if ($failure) {
-            $self->rlog($msg); # count not first errors non-fatal
           } else {
-            $failure = $msg;
+            my $msg = "$m->{rule_desc} block error. Can't append blocking rule id $id to $m->{table} table.";
+            if ($failure) {
+              $self->rlog($msg); # count not first errors non-fatal
+            } else {
+              $failure = $msg;
+            }
           }
+        } else { # if we are unblocking, do nothing but return 1
+          $ret = 1;
         }
       }
 
@@ -364,7 +386,7 @@ sub register {
 
     die "$failure\n" if $failure;
 
-    if ($ret && @found_check < 2) {
+    if ($ret && @found_check == 1) {
       $self->rlog('(Un)Blocked in only '.join('/', @found_check).' tables/chains. This is not normal, just warn you.');
     }
 
