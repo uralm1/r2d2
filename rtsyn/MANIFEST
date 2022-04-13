@@ -29,3 +29,4 @@ t/10_rt_delete.t
 t/11_rt_add_replace.t
 t/12_rt_create_full.t
 t/13_matang_regexps.t
+t/30_rt_iptables.t
