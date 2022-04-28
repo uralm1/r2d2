@@ -1,7 +1,7 @@
 package Ui;
 use Mojo::Base 'Mojolicious';
 
-our $VERSION = '1.3';
+our $VERSION = '1.4';
 
 # This method will run once at server start
 sub startup {
