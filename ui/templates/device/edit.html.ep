@@ -188,6 +188,18 @@
 	  <p class="no-margin-bottom">Будет запущено изменение параметров устройства на агентах.</p>
 	</div>
       </div>
+
+      <div id="limit-in-modal" class="modal">
+	<div class="modal-content">
+	  <h4>Внимание</h4>
+	  <p>Вы изменяете лимит в окне редактирования устройства.</p>
+	  <p>Изменение лимита в данном поле будет применено <b>только с начала нового месяца</b>.<br>Нажатие 'Сохранить изменения' вызовет пересинхронизацию устройства.</p>
+	  <p>Чтобы изменить лимит немедленно и без пересинхронизации, воспользуйтесь ссылкой 'Изменить лимит'.</p>
+	</div>
+	<div class="modal-footer">
+	  <a href="#!" class="modal-close waves-effect waves-green btn-flat">Я все понял</a>
+	</div>
+      </div>
       % end
     </div>
 
@@ -216,6 +228,8 @@ $(document).ready(function(){
   $('input.field-with-error,textarea.field-with-error').removeClass('valid').addClass('invalid');
 
   $('.list-warning-panel').click(function(){$('.list-warning-panel').parent().parent().hide(300)});
+  $('#limit-in-modal').modal();
+  $('#limit-in').change(function(){$('#limit-in-modal').modal('open')});
 });
 </script>
 % end

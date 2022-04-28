@@ -2,6 +2,11 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+
+## [1.4] - 2022-04-28
+- Более явное предупреждение в Ui при смене лимита на страницах редактирования.
+- Обновлен materialize.
+- Оптимизированы и покрыты тестами операции с iptables на агентах.
 - Исправления тестов.
 - Доработки SyncQueue::set_flag.
 
