@@ -6,7 +6,7 @@ sub new {
   my $class = shift;
   return bless {
     #colors => [ '#ffdcda', '#fffaca', '#d9ffff', '#f5def9', '#d3ffd5', '#ffffff', '#ececec' ],
-    colors => [ '#3f51b5', '#009688', '#303030', '#673ab7', '#7fa554', '#795548', '#ad342b' ],
+    colors => [ '#3f51b5', '#009688', '#303030', '#673ab7', '#7fa554', '#795548', '#ab3f98' ],
     d => {},
     next_color => 0,
     #default_color => '#ffffff',
