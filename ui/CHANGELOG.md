@@ -2,6 +2,7 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+- Выпадающее боковое меню на мобильных устройствах.
 
 ## [1.4] - 2022-04-28
 - Более явное предупреждение в Ui при смене лимита на страницах редактирования.

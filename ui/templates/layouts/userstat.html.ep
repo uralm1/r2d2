@@ -9,7 +9,7 @@
   <!--link rel="stylesheet" href="/css/fonts-roboto.css"-->
   <link rel="stylesheet" href="/css/materialize.min.css?v=110">
   <link rel="stylesheet" href="/css/material-icons.css">
-  <link rel="stylesheet" href="/css/styles.css?v=11">
+  <link rel="stylesheet" href="/css/styles.css?v=12">
 </head>
 <body>
   <ul id="services-dropdown" class="dropdown-content">
@@ -26,6 +26,7 @@
       % } else {
       <a href="/stat" class="brand-logo"><%= $title %></a>
       % }
+      <a href="#" data-target="mobile-menu" class="sidenav-trigger"><i class="material-icons">menu</i></a>
       <ul class="right hide-on-med-and-down">
 	<li><a class="dropdown-trigger" href="#!" data-target="services-dropdown">Полезные ссылки<i class="material-icons right">arrow_drop_down</i></a></li>
         <li><a href="<%== config 'client_help_url' %>" target="_blank"><i class="material-icons">help</i></a></li>
@@ -41,6 +42,15 @@
       % }
     </div>
   </nav>
+  <ul class="sidenav" id="mobile-menu">
+    <li class="subheader" tabindex="-1">Полезные ссылки</li>
+    <li><a href="https://auth.uwc.ufanet.ru" target="_blank">Корпоративная сеть</a></li>
+    <li><a href="https://rc.uwc.ufanet.ru" target="_blank">Корпоративная почта</a></li>
+    <li><a href="https://otk.uwc.ufanet.ru/otrs/customer.pl" target="_blank">Техподдержка АСУ</a></li>
+    <li><a href="https://faq.uwc.ufanet.ru" target="_blank">База знаний</a></li>
+    <li class="divider" tabindex="-1"></li>
+    <li><a href="<%== config 'client_help_url' %>" target="_blank">Справка</a></li>
+  </ul>
 %= content
   <footer class="page-footer pink darken-2">
     <div class="footer-copyright">
@@ -57,6 +67,7 @@
 <script src="/js/materialize.min.js?v=110"></script>
 <script>
   $(document).ready(function(){
+    $('.sidenav').sidenav();
     $('.tabs').tabs();
     $('.dropdown-trigger').dropdown({coverTrigger:false,constrainWidth:false});
   });

@@ -17,6 +17,10 @@ nav .brand-logo {
   white-space:nowrap;
 }
 
+.sidenav .subheader {
+  padding:0 18px;
+}
+
 .vcenter {
   vertical-align:middle !important;
 }

@@ -9,7 +9,7 @@
   <!--link rel="stylesheet" href="/css/fonts-roboto.css"-->
   <link rel="stylesheet" href="/css/materialize.min.css?v=110">
   <link rel="stylesheet" href="/css/material-icons.css">
-  <link rel="stylesheet" href="/css/styles.css?v=11">
+  <link rel="stylesheet" href="/css/styles.css?v=12">
 </head>
 <body>
 % my $newversion = check_newversion;
@@ -44,6 +44,7 @@
       % } else {
       <a href="/" class="brand-logo"><%== $title %></a>
       % }
+      <a href="#" data-target="mobile-menu" class="sidenav-trigger"><i class="material-icons">menu</i></a>
       <ul class="right hide-on-med-and-down">
 	<li><%= link_to 'status' => begin %>Состояние<% end %></li>
 	<li><a class="dropdown-trigger" href="#!" data-target="clients-dropdown">Управление<i class="material-icons right">arrow_drop_down</i></a></li>
@@ -56,6 +57,28 @@
 %= content 'tabs'
     </div>
   </nav>
+  <ul class="sidenav" id="mobile-menu">
+    <li><%= link_to 'status' => begin %>Состояние<% end %></li>
+    <li class="divider" tabindex="-1"></li>
+    <li class="subheader" tabindex="-1">Управление</li>
+    <li><%= link_to 'clients' => begin %>Список клиентов<% end %></li>
+    <li><%= link_to 'clientnew' => begin %>Добавить нового клиента&hellip;<% end %></li>
+    <li><%= link_to 'servernew' => begin %>Добавить новый сервер&hellip;<% end %></li>
+    <li class="divider" tabindex="-1"></li>
+    <li class="subheader" tabindex="-1">Объекты</li>
+    <li><%= link_to 'profiles' => begin %>Список объектов<% end %></li>
+    <li><%= link_to 'profilenew' => begin %>Добавить новый объект&hellip;<% end %></li>
+    <li class="divider" tabindex="-1"></li>
+    <li class="subheader" tabindex="-1">Логи и отчёты</li>
+    <li><%= link_to 'oplog' => begin %>Лог системных событий<% end %></li>
+    <li><%= link_to 'auditlog' => begin %>Лог аудита<% end %></li>
+    <li><%= link_to 'repipmap' => begin %>Отчёт по распределению IP<% end %></li>
+    <li><%= link_to 'repmacdup' => begin %>Отчёт по дубликатам MAC<% end %></li>
+    <li><%= link_to 'repleechtop' => begin %>Топ скачивающих<% end %></li>
+    <li><a href="<%== config 'report_load_url' %>" target="_blank">Загрузка каналов</a></li>
+    <li class="divider" tabindex="-1"></li>
+    <li><a href="<%== config 'help_url' %>" target="_blank">Справка</a></li>
+  </ul>
 %= content
   <footer class="page-footer pink darken-2">
     <div class="footer-copyright">
@@ -75,6 +98,7 @@ $(document).ready(function(){
 % if (stash 'back_js') {
   $('a.brand-logo').click(function(e){e.preventDefault();window.history.back()});
 % }
+  $('.sidenav').sidenav();
   $('.tabs').tabs();
   $('.dropdown-trigger').dropdown({coverTrigger:false,constrainWidth:false});
 % if ($newversion) {
